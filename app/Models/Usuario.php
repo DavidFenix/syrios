@@ -15,7 +15,7 @@ class Usuario extends BaseModel
         'status'
     ];
 
-    // Usuário pertence a uma escola
+    // um Usuário pertence a uma escola
     public function escola()
     {
         return $this->belongsTo(Escola::class, 'school_id');
