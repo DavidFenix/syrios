@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\BaseModel;
-
 class Role extends BaseModel
 {
     protected $basename = 'role';
     protected $primaryKey = 'id';
-    public $timestamps = false;
 
     protected $fillable = ['role_name'];
 
@@ -16,7 +13,7 @@ class Role extends BaseModel
     {
         return $this->belongsToMany(
             Usuario::class,
-            config('prefix.tabelas') . 'usuario_role',
+            'syrios_usuario_role',
             'role_id',
             'usuario_id'
         )->withPivot('school_id');

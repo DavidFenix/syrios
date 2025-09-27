@@ -1,18 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MasterController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
-Route::get('/', function () {
-    return view('welcome');
+Route::prefix('master')->group(function () {
+    Route::get('/', [MasterController::class, 'index'])->name('master.index');
+    Route::post('/escola', [MasterController::class, 'storeEscola'])->name('master.storeEscola');
+    Route::delete('/escola/{id}', [MasterController::class, 'destroyEscola'])->name('master.destroyEscola');
+    Route::post('/role', [MasterController::class, 'storeRole'])->name('master.storeRole');
+    Route::post('/usuario', [MasterController::class, 'storeUsuario'])->name('master.storeUsuario');
+    Route::delete('/usuario/{id}', [MasterController::class, 'destroyUsuario'])->name('master.destroyUsuario');
 });
