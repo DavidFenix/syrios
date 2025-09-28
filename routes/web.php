@@ -1,5 +1,26 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Master\EscolaController;
+
+Route::get('/', function () {
+    return redirect('/master/escolas');
+});
+
+Route::prefix('master')->name('master.')->group(function () {
+    // Rota principal redireciona para lista de escolas
+    Route::get('/', function () {
+        return redirect()->route('master.escolas.index');
+    });
+
+    // CRUD automático para Escola
+    Route::resource('escolas', EscolaController::class);
+});
+
+
+
+
+/*
 use App\Http\Controllers\MasterController;
 
 Route::prefix('master')->group(function () {
@@ -10,3 +31,5 @@ Route::prefix('master')->group(function () {
     Route::post('/usuario', [MasterController::class, 'storeUsuario'])->name('master.storeUsuario');
     Route::delete('/usuario/{id}', [MasterController::class, 'destroyUsuario'])->name('master.destroyUsuario');
 });
+
+*/

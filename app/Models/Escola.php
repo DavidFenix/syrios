@@ -5,6 +5,7 @@ namespace App\Models;
 class Escola extends BaseModel
 {
     protected $basename = 'escola'; // vira syrios_escola
+    
     protected $primaryKey = 'id';
 
     protected $fillable = [
@@ -22,11 +23,6 @@ class Escola extends BaseModel
     public function secretaria()
     {
         return $this->belongsTo(Escola::class, 'secretaria_id');
-    }
-
-    public function filhas()
-    {
-        return $this->hasMany(Escola::class, 'secretaria_id');
     }
 
     // Relacionamentos principais
@@ -48,5 +44,17 @@ class Escola extends BaseModel
     public function disciplinas()
     {
         return $this->hasMany(Disciplina::class, 'school_id');
+    }
+
+    // Uma escola filha pertence a uma escola mãe
+    public function mae()
+    {
+        return $this->belongsTo(Escola::class, 'secretaria_id');
+    }
+
+    // Uma escola mãe tem várias escolas filhas
+    public function filhas()
+    {
+        return $this->hasMany(Escola::class, 'secretaria_id');
     }
 }
