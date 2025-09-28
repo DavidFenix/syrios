@@ -47,6 +47,12 @@ class Escola extends BaseModel
     }
 
     // Uma escola filha pertence a uma escola mãe
+    public function maes()
+    {
+        return $this->belongsTo(Escola::class, 'secretaria_id');
+    }
+
+    // Uma escola filha pertence a uma escola mãe
     public function mae()
     {
         return $this->belongsTo(Escola::class, 'secretaria_id');
@@ -58,3 +64,4 @@ class Escola extends BaseModel
         return $this->hasMany(Escola::class, 'secretaria_id');
     }
 }
+

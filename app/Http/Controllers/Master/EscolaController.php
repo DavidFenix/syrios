@@ -114,4 +114,52 @@ class EscolaController extends Controller
         $escola->delete();
         return redirect()->route('master.escolas.index')->with('success', 'Escola excluída!');
     }
+
+    public function associarFilha(Request $request)
+    {
+        $request->validate([
+            'mae_id' => 'required|exists:syrios_escola,id',
+            'filha_id' => 'required|exists:syrios_escola,id',
+        ]);
+
+        $filha = Escola::findOrFail($request->filha_id);
+        $filha->secretaria_id = $request->mae_id;
+        $filha->save();
+
+        return redirect()->route('master.escolas.associacoes')
+                         ->with('success', 'Escola filha associada com sucesso!');
+    }
+
+
+    public function associacoes()
+    {
+        $maes = Escola::whereNull('secretaria_id')->get();
+        $filhas = Escola::whereNotNull('secretaria_id')->get();
+
+        return view('master.escolas.associacoes', compact('maes', 'filhas'));
+    }
+
+    public function associacoes2()
+    {
+        // escolas mãe = secretaria_id NULL
+        $escolasMae = Escola::whereNull('secretaria_id')->get();
+
+        // pega o ID da mãe selecionada (se houver na URL ?mae_id=)
+        $maeSelecionada = request('mae_id');
+
+        $escolasFilhas = collect();
+        $nomeMae = null;
+
+        if ($maeSelecionada) {
+            $mae = Escola::find($maeSelecionada);
+            if ($mae) {
+                $nomeMae = $mae->nome_e;
+                $escolasFilhas = $mae->filhas; // usa o relacionamento
+            }
+        }
+
+        return view('master.escolas.associacoes2', compact('escolasMae', 'maeSelecionada', 'escolasFilhas', 'nomeMae'));
+    }
+
+
 }
