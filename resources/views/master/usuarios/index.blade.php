@@ -3,6 +3,23 @@
 @section('content')
 <div class="container">
     <h1>Usuários</h1>
+    @include('master.usuarios._list', ['usuarios' => $usuarios])
+</div>
+@endsection
+
+
+
+
+
+
+
+
+{{--
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <h1>Usuários</h1>
 
     <a href="{{ route('master.usuarios.create') }}" class="btn btn-primary mb-3">Novo Usuário</a>
 
@@ -48,3 +65,4 @@
     </table>
 </div>
 @endsection
+--}}

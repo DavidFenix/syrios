@@ -1,6 +1,28 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="container">
+    <h1>Roles</h1>
+    @include('master.roles._list', ['roles' => $roles])
+</div>
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+{{--
+@extends('layouts.app')
+
+@section('content')
 <h1>Roles</h1>
 
 <a href="{{ route('master.roles.create') }}" class="btn btn-primary">Nova Role</a>
@@ -31,3 +53,4 @@
     </tbody>
 </table>
 @endsection
+--}}

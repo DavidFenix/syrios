@@ -1,4 +1,25 @@
 @extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <h1>Escolas</h1>
+    @include('master.escolas._list', ['escolas' => $escolas, 'filtro' => $filtro])
+</div>
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+{{--
+@extends('layouts.app')
 @section('title','Gestão de Instituições')
 
 @section('content')
@@ -50,3 +71,5 @@
   </tbody>
 </table>
 @endsection
+--}}
+
