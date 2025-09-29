@@ -11,8 +11,8 @@
   <div class="col-auto">
     <select name="tipo" class="form-select" onchange="this.form.submit()">
       <option value="">Todas</option>
-      <option value="mae"   {{ $filtro==='mae'?'selected':'' }}>Somente Secretarias (mães)</option>
-      <option value="filha" {{ $filtro==='filha'?'selected':'' }}>Somente Escolas (filhas)</option>
+      <option value="mae"   {{ ($filtro ?? '') === 'mae' ? 'selected' : '' }}>Somente Secretarias (mães)</option>
+      <option value="filha" {{ ($filtro ?? '') === 'filha' ? 'selected' : '' }}>Somente Escolas (filhas)</option>
     </select>
   </div>
 </form>

@@ -130,7 +130,35 @@ class EscolaController extends Controller
                          ->with('success', 'Escola filha associada com sucesso!');
     }
 
+    public function associacoes()
+    {
+        // escolas mãe = secretaria_id NULL
+        $escolasMae = Escola::whereNull('secretaria_id')->get();
 
+        // pega o ID da mãe selecionada (se houver na URL ?mae_id=)
+        $maeSelecionada = request('mae_id');
+
+        $escolasFilhas = collect();
+        $nomeMae = null;
+
+        if ($maeSelecionada) {
+            $mae = Escola::find($maeSelecionada);
+            if ($mae) {
+                $nomeMae = $mae->nome_e;
+                $escolasFilhas = $mae->filhas; // usa o relacionamento
+            }
+        }
+
+        return view('master.escolas.associacoes', compact(
+            'escolasMae',
+            'maeSelecionada',
+            'escolasFilhas',
+            'nomeMae'
+        ));
+    }
+
+
+    /*
     public function associacoes()
     {
         $maes = Escola::whereNull('secretaria_id')->get();
@@ -138,7 +166,10 @@ class EscolaController extends Controller
 
         return view('master.escolas.associacoes', compact('maes', 'filhas'));
     }
+    */
 
+    //passo 2: esta função foi chamada pela rota ../master/escolas-associacoes2
+    //ao terminar vai retornar compact(dados) para a view /master/escolas/associacoes2.blade.php
     public function associacoes2()
     {
         // escolas mãe = secretaria_id NULL
@@ -158,6 +189,7 @@ class EscolaController extends Controller
             }
         }
 
+        //os resultados em compact vai para a view master/escolas/associacoes2.php
         return view('master.escolas.associacoes2', compact('escolasMae', 'maeSelecionada', 'escolasFilhas', 'nomeMae'));
     }
 

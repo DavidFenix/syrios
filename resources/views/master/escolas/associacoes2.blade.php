@@ -1,5 +1,7 @@
 @extends('layouts.app')
-
+{{--passo 3: quatro informações chagaram aqui através de compact('escolasMae', 'maeSelecionada', 'escolasFilhas', 'nomeMae'))
+==>serão acessadas como {{$escolasMae}} e {{$maeSelecionada}} e {{$escolasFilhas}} e {{$nomeMae}}
+--}}
 @section('content')
 <div class="container">
     <h1>Associações Escola Mãe ↔ Filhas</h1>

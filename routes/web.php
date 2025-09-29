@@ -4,28 +4,51 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Master\EscolaController;
 use App\Http\Controllers\Master\RoleController;
 use App\Http\Controllers\Master\UsuarioController;
+use App\Http\Controllers\Master\DashboardController;
 
+
+    //Route::get('master/dashboard', [DashboardController::class, 'index'])->name('master.dashboard');
+    // Route::get('/dashboard', function () {
+    //     return view('master.dashboard');
+    // })->name('dashboard');
+    // Route::get('/', function () {
+    //     return redirect()->route('master.escolas.index');
+    // });
 
 Route::prefix('master')->name('master.')->group(function () {
-    // Rota principal redireciona para lista de escolas
+
+    // Dashboard unificado
+    Route::get('dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+
+    // Rota principal redireciona para dashboard
     Route::get('/', function () {
-        return redirect()->route('master.escolas.index');
+        return redirect()->route('master.dashboard');
     });
+
     Route::resource('escolas', EscolaController::class)->except(['show']);
     Route::resource('roles', RoleController::class);
     Route::resource('usuarios', UsuarioController::class);
 
     // // Associações Escola Mãe ↔ Escola Filha
     // Associações (fora do resource)
-    Route::get('escolas-associacoes', [EscolaController::class, 'associacoes'])
-        ->name('escolas.associacoes');
-    // Route::get('associacoes', [App\Http\Controllers\Master\EscolaController::class, 'associacoes'])
+    // Route::get('escolas-associacoes', [EscolaController::class, 'associacoes'])
     //     ->name('escolas.associacoes');
-    Route::post('associacoes', [App\Http\Controllers\Master\EscolaController::class, 'associarFilha'])
+    // Route::post('associacoes', [App\Http\Controllers\Master\EscolaController::class, 'associarFilha'])
+    //     ->name('escolas.associar');
+
+    //passo 1: tudo começa quando alguem digita(faz get) ../master/escolas-associacoes2
+    //Esta rota get vai usar a função associacoes2() definida na classe EscolaControler.
+    Route::get('escolas-associacoes2', [EscolaController::class, 'associacoes2'])
+         ->name('escolas.associacoes2');
+
+    // CRUD de Associações Escola Mãe ↔ Escola Filha
+    Route::get('associacoes', [EscolaController::class, 'associacoes'])
+        ->name('escolas.associacoes');
+    Route::post('associacoes', [EscolaController::class, 'associarFilha'])
         ->name('escolas.associar');
 
-    Route::get('escolas-associacoes2', [EscolaController::class, 'associacoes2'])
-        ->name('escolas.associacoes2');
+    
 
 });
 

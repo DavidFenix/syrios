@@ -2,61 +2,74 @@
 
 @section('content')
 <div class="container">
-    <h1>🔗 Associação Escola Mãe ↔ Escola Filha</h1>
+    <h1>Associações Escola Mãe ↔ Filhas</h1>
 
-    {{-- mensagens --}}
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach($errors->all() as $e)
-                    <li>{{ $e }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    {{-- Formulário --}}
-    <form method="post" action="{{ route('master.escolas.associar') }}" class="row g-3 mb-4">
+    {{-- Formulário para criar nova associação --}}
+    <form method="POST" action="{{ route('master.escolas.associar') }}" class="row g-3 mb-4">
         @csrf
         <div class="col-md-5">
-            <label>Escola Mãe (Secretaria)</label>
-            <select name="mae_id" class="form-control" required>
-                <option value="">-- selecione --</option>
-                @foreach($maes as $m)
-                    <option value="{{ $m->id }}">{{ $m->nome_e }}</option>
+            <label class="form-label">Escola Mãe (Secretaria)</label>
+            <select name="mae_id" class="form-select" required>
+                <option value="">-- escolha --</option>
+                @foreach($escolasMae as $mae)
+                    <option value="{{ $mae->id }}">{{ $mae->nome_e }}</option>
                 @endforeach
             </select>
         </div>
-
         <div class="col-md-5">
-            <label>Escola Filha</label>
-            <select name="filha_id" class="form-control" required>
-                <option value="">-- selecione --</option>
-                @foreach(App\Models\Escola::whereNull('secretaria_id')->get() as $f)
-                    <option value="{{ $f->id }}">{{ $f->nome_e }}</option>
+            <label class="form-label">Escola Filha</label>
+            <select name="filha_id" class="form-select" required>
+                @foreach(\App\Models\Escola::whereNotNull('secretaria_id')->get() as $filha)
+                    <option value="{{ $filha->id }}">{{ $filha->nome_e }}</option>
                 @endforeach
             </select>
         </div>
-
         <div class="col-md-2 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary">Associar</button>
+            <button type="submit" class="btn btn-primary w-100">Associar</button>
         </div>
     </form>
 
-    {{-- Listagem --}}
-    <h3>📋 Lista de Escolas Mães e suas Filhas</h3>
-    @foreach($maes as $m)
-        <h5>{{ $m->nome_e }}</h5>
-        <ul>
-            @forelse($m->filhas as $f)
-                <li>{{ $f->nome_e }}</li>
-            @empty
-                <li><i>Nenhuma filha associada</i></li>
-            @endforelse
-        </ul>
-    @endforeach
+    {{-- Select para listar filhas de uma mãe --}}
+    <form method="GET" action="{{ route('master.escolas.associacoes') }}" class="mb-3">
+        <label for="mae_id">Ver Filhas de:</label>
+        <select name="mae_id" id="mae_id" class="form-select d-inline w-auto">
+            <option value="">-- escolha --</option>
+            @foreach($escolasMae as $mae)
+                <option value="{{ $mae->id }}" {{ $maeSelecionada == $mae->id ? 'selected' : '' }}>
+                    {{ $mae->nome_e }}
+                </option>
+            @endforeach
+        </select>
+        <button type="submit" class="btn btn-secondary">Ver</button>
+    </form>
+
+    {{-- Tabela de filhas --}}
+    @if($maeSelecionada && $nomeMae)
+        <h3>Escolas Filhas de <strong>{{ $nomeMae }}</strong></h3>
+        @if($escolasFilhas->isNotEmpty())
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>INEP</th>
+                        <th>CNPJ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($escolasFilhas as $filha)
+                        <tr>
+                            <td>{{ $filha->id }}</td>
+                            <td>{{ $filha->nome_e }}</td>
+                            <td>{{ $filha->inep }}</td>
+                            <td>{{ $filha->cnpj }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <p>Nenhuma escola filha vinculada.</p>
+        @endif
+    @endif
 </div>
 @endsection
