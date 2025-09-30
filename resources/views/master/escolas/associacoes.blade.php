@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1>Associações Escola Mãe ↔ Filhas</h1>
+    <h2>Associações Escola Mãe ↔ Filhas</h2>
 
     {{-- Formulário para criar nova associação --}}
     <form method="POST" action="{{ route('master.escolas.associar') }}" class="row g-3 mb-4">
@@ -29,7 +29,21 @@
         </div>
     </form>
 
-    {{-- Select para listar filhas de uma mãe --}}
+    <h2>Ver Escolas Filhas</h2>
+    @include('master.escolas._list_assoc', [
+        'escolasMae' => $escolasMae,
+        'maeSelecionada' => $maeSelecionada,
+        'escolasFilhas' => $escolasFilhas,
+        'nomeMae' => $nomeMae,
+    ])
+    
+</div>
+@endsection
+
+
+
+
+{{-- Select para listar filhas de uma mãe -}}
     <form method="GET" action="{{ route('master.escolas.associacoes') }}" class="mb-3">
         <label for="mae_id">Ver Filhas de:</label>
         <select name="mae_id" id="mae_id" class="form-select d-inline w-auto">
@@ -43,7 +57,7 @@
         <button type="submit" class="btn btn-secondary">Ver</button>
     </form>
 
-    {{-- Tabela de filhas --}}
+    {{-- Tabela de filhas -}}
     @if($maeSelecionada && $nomeMae)
         <h3>Escolas Filhas de <strong>{{ $nomeMae }}</strong></h3>
         @if($escolasFilhas->isNotEmpty())
@@ -71,5 +85,4 @@
             <p>Nenhuma escola filha vinculada.</p>
         @endif
     @endif
-</div>
-@endsection
+    --}}

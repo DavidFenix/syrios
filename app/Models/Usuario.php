@@ -15,6 +15,23 @@ class Usuario extends BaseModel
         'status'
     ];
 
+    public function scopeFiltrarPorEscola($query, $filtro)
+    {
+        if ($filtro === 'mae') {
+            // usuários vinculados a escolas que são secretarias
+            return $query->whereHas('escola', function($q) {
+                $q->whereNull('secretaria_id');
+            });
+        } elseif ($filtro === 'filha') {
+            // usuários vinculados a escolas que são filhas
+            return $query->whereHas('escola', function($q) {
+                $q->whereNotNull('secretaria_id');
+            });
+        }
+        return $query; // todos
+    }
+
+
     // um Usuário pertence a uma escola
     public function escola()
     {

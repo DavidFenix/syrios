@@ -32,7 +32,7 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Roles</label><br>
+            <label class="form-label">Função(Papel/Destino)</label><br>
             @foreach($roles as $role)
                 <input type="checkbox" name="roles[]" value="{{ $role->id }}"> {{ $role->role_name }}<br>
             @endforeach

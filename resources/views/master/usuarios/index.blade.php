@@ -1,4 +1,19 @@
 @extends('layouts.app')
+@section('title','Gestão de Usuários')
+@section('content')
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="h4 mb-0">Usuários</h1>
+      <a href="{{ route('master.usuarios.create') }}" class="btn btn-primary">+ Novo Usuário</a>
+    </div>
+
+    @include('master.usuarios._list', ['usuarios' => $usuarios])
+</div>
+@endsection
+
+
+{{--
+@extends('layouts.app')
 
 @section('content')
 <div class="container">
@@ -6,12 +21,7 @@
     @include('master.usuarios._list', ['usuarios' => $usuarios])
 </div>
 @endsection
-
-
-
-
-
-
+--}}
 
 
 {{--

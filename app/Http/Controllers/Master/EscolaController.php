@@ -20,7 +20,8 @@ class EscolaController extends Controller
             $query->whereNotNull('secretaria_id');
         }
 
-        $escolas = $query->with('mae')->orderBy('nome_e')->get();
+        //$escolas = $query->with('mae')->orderBy('nome_e')->get();
+        $escolas = Escola::with('mae')->filtrar($filtro)->get();
         $maes    = Escola::whereNull('secretaria_id')->orderBy('nome_e')->get();
 
         return view('master.escolas.index', compact('escolas', 'maes', 'filtro'));

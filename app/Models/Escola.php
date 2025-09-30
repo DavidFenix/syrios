@@ -19,6 +19,17 @@ class Escola extends BaseModel
         'secretaria_id'
     ];
 
+    // 🔎 Novo escopo de filtro
+    public function scopeFiltrar($query, ?string $tipo)
+    {
+        if ($tipo === 'mae') {
+            $query->whereNull('secretaria_id');
+        } elseif ($tipo === 'filha') {
+            $query->whereNotNull('secretaria_id');
+        }
+        return $query;
+    }
+
     // Auto-relacionamento: Secretaria
     public function secretaria()
     {

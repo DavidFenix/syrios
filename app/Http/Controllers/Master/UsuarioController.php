@@ -13,8 +13,11 @@ class UsuarioController extends Controller
 {
     public function index()
     {
-        $usuarios = Usuario::with(['escola', 'roles'])->get();
-        return view('master.usuarios.index', compact('usuarios'));
+        $filtro = request('tipo');
+        $usuarios = Usuario::with(['escola','roles'])->filtrarPorEscola($filtro)->get();
+
+        //$usuarios = Usuario::with(['escola', 'roles'])->get();
+        return view('master.usuarios.index', compact('usuarios','filtro'));
     }
 
     public function create()

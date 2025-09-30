@@ -1,24 +1,21 @@
 @extends('layouts.app')
+@section('title','Gestão de Instituições')
 
 @section('content')
 <div class="container">
-    <h1>Escolas</h1>
-    @include('master.escolas._list', ['escolas' => $escolas, 'filtro' => $filtro])
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Instituições / Secretarias</h1>
+    <a href="{{ route('master.escolas.create') }}" class="btn btn-primary">Nova instituição</a>
+  </div>
+  @include('master.escolas._list', ['escolas' => $escolas, 'filtro' => $filtro])
 </div>
 @endsection
 
 
 
-
-
-
-
-
-
-
-
-
 {{--
+----------------------------------------------------
+quando index.blade.php está assim, funciona
 @extends('layouts.app')
 @section('title','Gestão de Instituições')
 
@@ -70,6 +67,16 @@
   @endforelse
   </tbody>
 </table>
+@endsection
+--}}
+
+{{--
+@extends('layouts.app')
+@section('content')
+<div class="container">
+    <h1>Escolas</h1>
+    @include('master.escolas._list', ['escolas' => $escolas, 'filtro' => $filtro])
+</div>
 @endsection
 --}}
 
