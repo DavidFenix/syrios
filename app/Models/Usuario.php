@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
-class Usuario extends BaseModel
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class Usuario extends BaseAuthModel
 {
     protected $basename = 'usuario';
     protected $primaryKey = 'id';
@@ -14,6 +16,17 @@ class Usuario extends BaseModel
         'nome_u',
         'status'
     ];
+
+    //protected $hidden = ['senha_hash'];
+    protected $hidden = [
+        'senha_hash', 'remember_token',
+    ];
+
+    // Laravel espera "password"
+    public function getAuthPassword()
+    {
+        return $this->senha_hash;
+    }
 
     public function scopeFiltrarPorEscola($query, $filtro)
     {

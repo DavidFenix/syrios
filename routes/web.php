@@ -5,17 +5,37 @@ use App\Http\Controllers\Master\EscolaController;
 use App\Http\Controllers\Master\RoleController;
 use App\Http\Controllers\Master\UsuarioController;
 use App\Http\Controllers\Master\DashboardController;
+use App\Http\Controllers\Secretaria\EscolaController as SecretariaEscolaController;
+//use App\Http\Controllers\Secretaria\SecretariaController;
+//use App\Http\Controllers\Secretaria\UsuarioController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\LoginController;
 
 
-    //Route::get('master/dashboard', [DashboardController::class, 'index'])->name('master.dashboard');
-    // Route::get('/dashboard', function () {
-    //     return view('master.dashboard');
-    // })->name('dashboard');
-    // Route::get('/', function () {
-    //     return redirect()->route('master.escolas.index');
-    // });
+Route::prefix('secretaria')->name('secretaria.')->middleware('auth')->group(function () {
+    
+    // Dashboard da secretaria (se quiser criar depois)
+    Route::get('/', function () {
+        return redirect()->route('secretaria.escolas.index');
+    })->name('dashboard');
 
-Route::prefix('master')->name('master.')->group(function () {
+    // CRUD das escolas filhas da secretaria logada
+    Route::resource('escolas', SecretariaEscolaController::class)->except(['show']);
+    Route::resource('usuarios', App\Http\Controllers\Secretaria\UsuarioController::class);
+
+    // Route::get('dashboard', [App\Http\Controllers\Secretaria\SecretariaController::class, 'dashboard'])->name('dashboard');
+
+    Route::resource('secretarias', App\Http\Controllers\Secretaria\SecretariaController::class)->only(['index']);
+    Route::resource('escolas', App\Http\Controllers\Secretaria\EscolaController::class)->only(['index']);
+    Route::resource('usuarios', App\Http\Controllers\Secretaria\UsuarioController::class)->only(['index']);
+});
+
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Protege as rotas master atrás do middleware auth
+Route::prefix('master')->middleware('auth')->name('master.')->group(function () {
 
     // Dashboard unificado
     Route::get('dashboard', [DashboardController::class, 'index'])
@@ -29,13 +49,6 @@ Route::prefix('master')->name('master.')->group(function () {
     Route::resource('escolas', EscolaController::class)->except(['show']);
     Route::resource('roles', RoleController::class);
     Route::resource('usuarios', UsuarioController::class);
-
-    // // Associações Escola Mãe ↔ Escola Filha
-    // Associações (fora do resource)
-    // Route::get('escolas-associacoes', [EscolaController::class, 'associacoes'])
-    //     ->name('escolas.associacoes');
-    // Route::post('associacoes', [App\Http\Controllers\Master\EscolaController::class, 'associarFilha'])
-    //     ->name('escolas.associar');
 
     //passo 1: tudo começa quando alguem digita(faz get) ../master/escolas-associacoes2
     //Esta rota get vai usar a função associacoes2() definida na classe EscolaControler.

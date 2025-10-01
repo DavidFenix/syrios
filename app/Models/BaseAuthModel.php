@@ -1,9 +1,9 @@
 <?php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class BaseModel extends Model
+class BaseAuthModel extends Authenticatable
 {
     public $timestamps = false;
 
@@ -13,8 +13,11 @@ class BaseModel extends Model
 
         // se a classe define $basename, aplica o prefixo do config
         if (!isset($this->table) && property_exists($this, 'basename')) {
-            $prefix = config('prefix.tabelas', 'syrios_');
+            $prefix = config('prefix.tabelas', '');
             $this->table = $prefix . $this->basename;
         }
     }
 }
+
+
+?>
