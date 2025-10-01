@@ -2,6 +2,11 @@
 @section('title','Escolas da Secretaria')
 
 @section('content')
+
+<div class="container">
+    <h1>Painel da Secretaria - Escolas</h1>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h4 mb-0">Escolas vinculadas à {{ $secretaria->nome_e }}</h1>
   <a href="{{ route('secretaria.escolas.create') }}" class="btn btn-primary">Nova escola</a>

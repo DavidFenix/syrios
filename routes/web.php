@@ -6,36 +6,18 @@ use App\Http\Controllers\Master\RoleController;
 use App\Http\Controllers\Master\UsuarioController;
 use App\Http\Controllers\Master\DashboardController;
 use App\Http\Controllers\Secretaria\EscolaController as SecretariaEscolaController;
-//use App\Http\Controllers\Secretaria\SecretariaController;
-//use App\Http\Controllers\Secretaria\UsuarioController;
+use App\Http\Controllers\Secretaria\UsuarioController as SecretariaUsuarioController;
+use App\Http\Controllers\Escola\UsuarioController as EscolaUsuarioController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\LoginController;
 
-
-Route::prefix('secretaria')->name('secretaria.')->middleware('auth')->group(function () {
-    
-    // Dashboard da secretaria (se quiser criar depois)
-    Route::get('/', function () {
-        return redirect()->route('secretaria.escolas.index');
-    })->name('dashboard');
-
-    // CRUD das escolas filhas da secretaria logada
-    Route::resource('escolas', SecretariaEscolaController::class)->except(['show']);
-    Route::resource('usuarios', App\Http\Controllers\Secretaria\UsuarioController::class);
-
-    // Route::get('dashboard', [App\Http\Controllers\Secretaria\SecretariaController::class, 'dashboard'])->name('dashboard');
-
-    Route::resource('secretarias', App\Http\Controllers\Secretaria\SecretariaController::class)->only(['index']);
-    Route::resource('escolas', App\Http\Controllers\Secretaria\EscolaController::class)->only(['index']);
-    Route::resource('usuarios', App\Http\Controllers\Secretaria\UsuarioController::class)->only(['index']);
-});
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Protege as rotas master atrás do middleware auth
-Route::prefix('master')->middleware('auth')->name('master.')->group(function () {
+Route::prefix('master')->middleware(['auth', 'role:master'])->name('master.')->group(function () {
 
     // Dashboard unificado
     Route::get('dashboard', [DashboardController::class, 'index'])
@@ -64,6 +46,53 @@ Route::prefix('master')->middleware('auth')->name('master.')->group(function () 
     
 
 });
+
+
+Route::prefix('secretaria')->name('secretaria.')->middleware(['auth', 'role:secretaria'])->group(function () {
+    
+    // Dashboard da secretaria (se quiser criar depois)
+    Route::get('/', function () {
+        return redirect()->route('secretaria.escolas.index');
+    })->name('dashboard');
+
+    // CRUD das escolas filhas da secretaria logada
+    Route::resource('escolas', SecretariaEscolaController::class)->except(['show']);
+    Route::resource('usuarios', App\Http\Controllers\Secretaria\UsuarioController::class);
+
+    // Route::get('dashboard', [App\Http\Controllers\Secretaria\SecretariaController::class, 'dashboard'])->name('dashboard');
+
+    Route::resource('secretarias', App\Http\Controllers\Secretaria\SecretariaController::class)->only(['index']);
+    Route::resource('escolas', App\Http\Controllers\Secretaria\EscolaController::class)->only(['index']);
+    Route::resource('usuarios', App\Http\Controllers\Secretaria\UsuarioController::class)->only(['index']);
+});
+
+
+
+Route::prefix('secretaria')->name('secretaria.')->middleware(['auth', 'role:secretaria'])->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('secretaria.escolas.index');
+    });
+
+    // CRUD de Escolas filhas
+    Route::resource('escolas', SecretariaEscolaController::class)->except(['show']);
+
+    // CRUD de Usuários (da secretaria e suas escolas filhas)
+    Route::resource('usuarios', SecretariaUsuarioController::class)->except(['show']);
+});
+
+Route::prefix('escola')->name('escola.')->middleware(['auth', 'role:escola'])->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('escola.usuarios.index');
+    });
+
+    // CRUD de Usuários (professores, pais, etc.)
+    Route::resource('usuarios', EscolaUsuarioController::class)->except(['show']);
+});
+
+
+
+
+
 
 /*
 Route::get('/', function () {

@@ -61,4 +61,11 @@ class Usuario extends BaseAuthModel
             'role_id'
         )->withPivot('school_id');
     }
+
+    // App/Models/Usuario.php
+    public function hasRole($roleName)
+    {
+        return $this->roles->contains('role_name', $roleName);
+    }
+
 }

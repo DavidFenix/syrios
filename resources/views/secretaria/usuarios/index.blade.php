@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+
+<div class="container">
+    <h1>Painel da Secretaria - Usuários</h1>
+</div>
+
 <div class="container">
     <h1>Usuários das Escolas Filhas - {{ $secretaria->nome_e }}</h1>
 

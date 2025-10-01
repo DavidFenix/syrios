@@ -2,7 +2,7 @@
 // ===============================
 // CONFIGURAÇÃO DO BANCO
 // ===============================
-$host = "localhost:3306";
+$host = "localhost:3307";
 $user = "323966";
 $pass = "deivide12";
 $db   = "syrios"; // ajuste para o nome exato do seu banco
@@ -32,43 +32,86 @@ $tables = $conn->query("SHOW TABLES");
         no sistema Syrios. Serve como referência rápida para desenvolvedores e administradores.
     </div>
 
+    <div class="accordion" id="accordionFluxos">
+
+      <!-- Fluxo Master -->
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingMaster">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMaster" aria-expanded="false" aria-controls="collapseMaster">
+            👑 Fluxo padrão do Usuário Master (Role: master)
+          </button>
+        </h2>
+        <div id="collapseMaster" class="accordion-collapse collapse" aria-labelledby="headingMaster">
+          <div class="accordion-body">
+            <ul>
+              <li><strong>Cria Secretarias (escolas mães)</strong> → <code>secretaria_id = null</code></li>
+              <li><strong>Restrição</strong>: nenhum outro usuário pode criar Secretarias.</li>
+              <li><strong>Cria Usuário para administrar uma Secretaria</strong>
+                <ul>
+                  <li>Define a <code>Role_usuario = secretaria</code></li>
+                  <li>Associa com <code>id_escola</code> de destino.</li>
+                  <li>O Master sempre é o dono → <code>school_id(usuario) = id(master)</code></li>
+                  <li>Ninguém mais pode criar esse tipo de usuário.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fluxo Secretaria -->
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingSecretaria">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecretaria" aria-expanded="false" aria-controls="collapseSecretaria">
+            🏢 Fluxo padrão do Usuário Secretaria (Role: secretaria)
+          </button>
+        </h2>
+        <div id="collapseSecretaria" class="accordion-collapse collapse" aria-labelledby="headingSecretaria">
+          <div class="accordion-body">
+            <ul>
+              <li><strong>Cria Escola filha</strong> → uso obrigatório do seu <code>secretaria_id</code>.</li>
+              <li><strong>Cria Usuário para administrar Escola</strong>
+                <ul>
+                  <li>Define a <code>Role_usuario = escola</code></li>
+                  <li>Associa com <code>id_escola</code> de destino.</li>
+                  <li>A Secretaria sempre é dona → <code>school_id(usuario) = id(secretaria)</code></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fluxo Escola -->
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingEscola">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEscola" aria-expanded="false" aria-controls="collapseEscola">
+            🏫 Fluxo padrão do Usuário Escola (Role: escola)
+          </button>
+        </h2>
+        <div id="collapseEscola" class="accordion-collapse collapse" aria-labelledby="headingEscola">
+          <div class="accordion-body">
+            <ul>
+              <li><strong>Cria Usuário Professor</strong>
+                <ul>
+                  <li>Define a <code>Role_usuario = professor</code></li>
+                  <li>A Escola sempre é dona → <code>school_id(usuario) = id(escola)</code></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
     
-    Fluxo padrão do Usuário Master[que possui Role(master)]
-    
-        Cria Secretarias(escolas mães) cujo secretaria_id=null
-            
-            Ninguem mais pode criar uma Secretaria
-
-        Cria um Usuário para administrar uma Secretaria(defindo a Role_Usuario 'secretaria' junto com o id_escola de destino)
-            
-            Master sempre é seu dono (school_id(Usuario)=id(Master))
-            
-            Ninguem mais pode criar esse tipo de usuário
-
-
-    Fluxo padrão do Usuário Secretaria[que possui Role(secretaria)]
-    
-        Cria uma Escola filha forçando o uso do seu secretaria_id
-            
-        Cria um Usuário para administrar a Escola(defindo a Role_Usuario 'escola' junto com o id_escola de destino)
-            
-            Secretaria sempre é seu dono (school_id(Usuario)=id(Secretaria))
-
-    Fluxo padrão do Usuário Escola[que possui Role(escola)]
-    
-        Cria um Usuário Professor
-
-            Escola sempre é seu dono (school_id(Usuario)=id(Escola))
-
-        
 
 
 
 
 
-
-
-
+<!--
 
         Cria os Usuários: Professor, Aluno, Pai, etc.
 
@@ -77,14 +120,6 @@ $tables = $conn->query("SHOW TABLES");
             Secretaria sempre é seu dono (school_id(Usuario)=id(Secretaria))
             
         
-        
-
-
-
-
-
-
-
 
         Cria Escolas para uma Secretaria(opcional::Essa é função de uma Secretaria=>criar escolas para si mesma)
 
@@ -94,9 +129,6 @@ $tables = $conn->query("SHOW TABLES");
             
             Associa uma Secretaria para ser a dona (school_id(Usuario)=id(Secretaria))-nesse caso o Master fez o papel da Secretaria
 
-
-
-
         Cria Escolas para uma Secretaria(opcional::Essa é função de uma Secretaria)
             Associa a Escola a uma Secretaria
         Associa Escola a uma Secretaria(opcional-é papel da Secretaria)
@@ -105,7 +137,7 @@ $tables = $conn->query("SHOW TABLES");
         Associa um Usuário a uma Role em uma Escola(opcional-este é papel da Secretaria)
 
         Cria Escolas(escolas filhas)
-    Associa 
+    Associa -->
     
     <ol>
         <li>

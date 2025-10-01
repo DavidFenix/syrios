@@ -22,6 +22,8 @@
         <div class="collapse navbar-collapse" id="navbarMaster">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
+                {{-- MASTER --}}
+                @if(Auth::user() && Auth::user()->hasRole('master'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('master/dashboard*') ? 'active' : '' }}"
                        href="{{ route('master.dashboard') }}">
@@ -56,13 +58,41 @@
                         🔗 Associações
                     </a>
                 </li>
+                @endif
+
+                {{-- SECRETARIA --}}
+                @if(Auth::user() && Auth::user()->hasRole('secretaria'))
+                  <li class="nav-item">
+                    <a class="nav-link {{ request()->is('secretaria/escolas*') ? 'active' : '' }}"
+                       href="{{ route('secretaria.escolas.index') }}">
+                      Escolas Filhas
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link {{ request()->is('secretaria/usuarios*') ? 'active' : '' }}"
+                       href="{{ route('secretaria.usuarios.index') }}">
+                      Usuários
+                    </a>
+                  </li>
+                @endif
+
+                {{-- ESCOLA --}}
+                @if(Auth::user() && Auth::user()->hasRole('escola'))
+                  <li class="nav-item">
+                    <a class="nav-link {{ request()->is('escola/usuarios*') ? 'active' : '' }}"
+                       href="{{ route('escola.usuarios.index') }}">
+                      Professores
+                    </a>
+                  </li>
+                @endif
+
 
             </ul>
 
             <ul class="navbar-nav ms-auto">
                 @auth
                     <li class="nav-item">
-                        <span class="nav-link">Bem-vindo, {{ Auth::user()->nome_u }}</span>
+                        <span class="nav-link">Bem-vindo, {{ Auth::user()->nome_u ?? 'Visitante' }}</span>
                     </li>
                     <li class="nav-item">
                         <form method="POST" action="{{ route('logout') }}">
