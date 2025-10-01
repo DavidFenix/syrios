@@ -2,7 +2,7 @@
 // ===============================
 // CONFIGURAÇÃO DO BANCO
 // ===============================
-$host = "localhost:3307";
+$host = "localhost:3306";
 $user = "323966";
 $pass = "deivide12";
 $db   = "syrios"; // ajuste para o nome exato do seu banco
@@ -31,6 +31,96 @@ $tables = $conn->query("SHOW TABLES");
         Este documento resume as principais regras de negócio e decisões de modelagem já implementadas
         no sistema Syrios. Serve como referência rápida para desenvolvedores e administradores.
     </div>
+
+    
+    Fluxo padrão do Usuário Master[que possui Role(master)]
+    
+        Cria Secretarias(escolas mães) cujo secretaria_id=null
+            
+            Ninguem mais pode criar uma Secretaria
+
+        Cria um Usuário para administrar uma Secretaria(defindo a Role_Usuario 'secretaria' junto com o id_escola de destino)
+            
+            Master sempre é seu dono (school_id(Usuario)=id(Master))
+            
+            Ninguem mais pode criar esse tipo de usuário
+
+
+    Fluxo padrão do Usuário Secretaria[que possui Role(secretaria)]
+    
+        Cria uma Escola filha forçando o uso do seu secretaria_id
+            
+        Cria um Usuário para administrar a Escola(defindo a Role_Usuario 'escola' junto com o id_escola de destino)
+            
+            Secretaria sempre é seu dono (school_id(Usuario)=id(Secretaria))
+
+    Fluxo padrão do Usuário Escola[que possui Role(escola)]
+    
+        Cria um Usuário Professor
+
+            Escola sempre é seu dono (school_id(Usuario)=id(Escola))
+
+        
+
+
+
+
+
+
+
+
+
+        Cria os Usuários: Professor, Aluno, Pai, etc.
+
+        Cria um Usuário para administrar a Escola(defindo a Role_Usuario 'escola' junto com o id_escola de destino)
+            
+            Secretaria sempre é seu dono (school_id(Usuario)=id(Secretaria))
+            
+        
+        
+
+
+
+
+
+
+
+
+        Cria Escolas para uma Secretaria(opcional::Essa é função de uma Secretaria=>criar escolas para si mesma)
+
+            Associa uma Secretaria para ser a mãe (secretaria_id(Escola)=id(Secretaria))-nesse caso o Master fez o papel da Secretaria
+
+        Cria um Usuário para administrar uma Escola de uma Secretaria(definindo a)(opcional::Essa é função de uma Secretaria=>criar usuários para administrar suas Escolas)
+            
+            Associa uma Secretaria para ser a dona (school_id(Usuario)=id(Secretaria))-nesse caso o Master fez o papel da Secretaria
+
+
+
+
+        Cria Escolas para uma Secretaria(opcional::Essa é função de uma Secretaria)
+            Associa a Escola a uma Secretaria
+        Associa Escola a uma Secretaria(opcional-é papel da Secretaria)
+        
+        
+        Associa um Usuário a uma Role em uma Escola(opcional-este é papel da Secretaria)
+
+        Cria Escolas(escolas filhas)
+    Associa 
+    
+    <ol>
+        <li>
+            <h2>Usuário Master</h2>
+            <ol>
+                <li>Dashboard</li>
+                O dashboard o usuário master tem as seguintes funções
+                <li>Escolas</li>
+
+                <li>Usuários</li>
+                <li>Funções/Papeis</li>
+            </ol>
+        </li>
+        
+    </ol>
 
     <h2>1. Usuários</h2>
     <ul>
