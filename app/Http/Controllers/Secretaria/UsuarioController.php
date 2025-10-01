@@ -36,7 +36,11 @@ class UsuarioController extends Controller
             return redirect()->route('home')->with('error', 'Nenhuma secretaria vinculada.');
         }
 
-        $escolas = $secretaria->filhas;
+        // secretária e suas filhas
+        $filhas = $secretaria->filhas()->get();
+        $escolas = collect([$secretaria])->merge($filhas);
+
+        //$escolas = $secretaria->filhas;
         //$roles = Role::where('role_name', '!=', 'master')->get();
         
         // filtrar roles: exclui master e secretaria
@@ -45,6 +49,107 @@ class UsuarioController extends Controller
         return view('secretaria.usuarios.create', compact('escolas','roles'));
     }
 
+    public function store(Request $request)
+    {
+        //dd($request->all()); // <- debug, vai mostrar os dados enviados
+
+        $secretaria = auth()->user()->escola;
+
+        $filhasIds = $secretaria->filhas()->pluck('id')->toArray();
+        $permitidos = array_merge([$secretaria->id], $filhasIds);
+
+        if (! in_array($request->school_id, $permitidos)) {
+            return back()->with('error', 'Escola inválida para esta secretaria.');
+        }
+
+        // 🔒 Validação
+        $request->validate([
+            'nome_u'   => 'required|string|max:100',
+            'cpf'      => 'required|string|max:11',
+            'senha'    => 'required|string|min:6',
+            'status'   => 'required|boolean',
+            'school_id'=> 'required|exists:syrios_escola,id',
+            'roles'    => 'array',
+            'roles.*'  => 'exists:syrios_role,id',
+        ]);
+
+        // 🔒 Garante que a escola escolhida pertence à secretaria logada
+        if (!$secretaria->filhas->pluck('id')->contains($request->school_id)) {
+            return back()->withErrors('Escola inválida para esta secretaria.');
+        }
+
+        // 🔨 Cria o usuário
+        $usuario = Usuario::create([
+            'nome_u'    => $request->nome_u,
+            'cpf'       => $request->cpf,
+            'senha_hash'=> Hash::make($request->senha),
+            'status'    => $request->status,
+            'school_id' => $request->school_id,
+        ]);
+
+        // 🔨 Vincula roles (com school_id)
+        $rolesSync = [];
+        foreach ($request->roles ?? [] as $role_id) {
+            $rolesSync[$role_id] = ['school_id' => $request->school_id];
+        }
+        $usuario->roles()->sync($rolesSync);
+
+        return redirect()->route('secretaria.usuarios.index')
+            ->with('success', 'Usuário criado com sucesso.');
+    }
+
+    public function update(Request $request, Usuario $usuario)
+    {
+        $secretaria = auth()->user()->escola;
+
+        $filhasIds = $secretaria->filhas()->pluck('id')->toArray();
+        $permitidos = array_merge([$secretaria->id], $filhasIds);
+
+        if (! in_array($request->school_id, $permitidos)) {
+            return back()->with('error', 'Escola inválida para esta secretaria.');
+        }
+
+        // 🔒 Validação
+        $request->validate([
+            'nome_u'   => 'required|string|max:100',
+            'cpf'      => 'required|string|max:11',
+            'status'   => 'required|boolean',
+            'school_id'=> 'required|exists:syrios_escola,id',
+            'senha'    => 'nullable|string|min:6',
+            'roles'    => 'array',
+            'roles.*'  => 'exists:syrios_role,id',
+        ]);
+
+        // 🔒 Garante que a escola escolhida pertence à secretaria logada
+        if (!$secretaria->filhas->pluck('id')->contains($request->school_id)) {
+            return back()->withErrors('Escola inválida para esta secretaria.');
+        }
+
+        // 🔨 Atualiza usuário
+        $usuario->update([
+            'nome_u'    => $request->nome_u,
+            'cpf'       => $request->cpf,
+            'status'    => $request->status,
+            'school_id' => $request->school_id,
+        ]);
+
+        // Atualiza senha (se enviada)
+        if ($request->filled('senha')) {
+            $usuario->update(['senha_hash' => Hash::make($request->senha)]);
+        }
+
+        // 🔨 Atualiza roles (com school_id)
+        $rolesSync = [];
+        foreach ($request->roles ?? [] as $role_id) {
+            $rolesSync[$role_id] = ['school_id' => $request->school_id];
+        }
+        $usuario->roles()->sync($rolesSync);
+
+        return redirect()->route('secretaria.usuarios.index')
+            ->with('success', 'Usuário atualizado com sucesso.');
+    }
+
+    /*
     public function store(Request $request)
     {
         $request->validate([
@@ -78,32 +183,6 @@ class UsuarioController extends Controller
         return redirect()->route('secretaria.usuarios.index')->with('success', 'Usuário criado!');
     }
 
-    
-
-    
-    public function edit(Usuario $usuario)
-    {
-        $secretaria = auth()->user()->escola;
-
-        if (!$secretaria) {
-            return redirect()->route('home')->with('error', 'Nenhuma secretaria vinculada.');
-        }
-
-        if (!$secretaria->filhas->contains($usuario->school_id)) {
-            return redirect()->route('secretaria.usuarios.index')->with('error','Usuário não permitido.');
-        }
-
-        $escolas = $secretaria->filhas;
-        //$roles = Role::where('role_name', '!=', 'master')->get();
-        
-        // filtrar roles (sem master e secretaria)
-        $roles = Role::whereNotIn('role_name', ['master', 'secretaria'])->get();
-
-
-        return view('secretaria.usuarios.edit', compact('usuario','escolas','roles'));
-    }
-
-
     public function update(Request $request, Usuario $usuario)
     {
         $secretaria = auth()->user()->escola;
@@ -134,6 +213,32 @@ class UsuarioController extends Controller
         $usuario->roles()->sync($rolesFiltradas);
 
         return redirect()->route('secretaria.usuarios.index')->with('success', 'Usuário atualizado!');
+    }*/
+
+    public function edit(Usuario $usuario)
+    {
+        $secretaria = auth()->user()->escola;
+
+        if (!$secretaria) {
+            return redirect()->route('home')->with('error', 'Nenhuma secretaria vinculada.');
+        }
+
+        if (!$secretaria->filhas->contains($usuario->school_id)) {
+            return redirect()->route('secretaria.usuarios.index')->with('error','Usuário não permitido.');
+        }
+
+        // secretária e suas filhas
+        $filhas = $secretaria->filhas()->get();
+        $escolas = collect([$secretaria])->merge($filhas);
+
+        //$escolas = $secretaria->filhas;
+        //$roles = Role::where('role_name', '!=', 'master')->get();
+        
+        // filtrar roles (sem master e secretaria)
+        $roles = Role::whereNotIn('role_name', ['master', 'secretaria'])->get();
+
+
+        return view('secretaria.usuarios.edit', compact('usuario','escolas','roles','secretaria'));
     }
 
     public function destroy(Usuario $usuario)
@@ -144,18 +249,15 @@ class UsuarioController extends Controller
             return redirect()->route('secretaria.usuarios.index')->with('error','Usuário não permitido.');
         }
 
+        // Remove os vínculos na tabela pivot primeiro
+        $usuario->roles()->detach();
+
+        // Agora pode excluir o usuário
         $usuario->delete();
 
         return redirect()->route('secretaria.usuarios.index')->with('success', 'Usuário excluído!');
     }
 }
-
-
-
-
-
-
-
 
 
 
