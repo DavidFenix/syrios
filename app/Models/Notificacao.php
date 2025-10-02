@@ -2,10 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Notificacao extends Model
+class Notificacao extends BaseModel
 {
-    use HasFactory;
+    protected $basename = 'notificacao';
+
+    protected $fillable = [
+        'usuario_id',
+        'mensagem',
+        'lida',
+        'school_id',
+    ];
+
+    public function usuario()
+    {
+        return $this->belongsTo(Usuario::class, 'usuario_id');
+    }
 }

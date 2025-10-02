@@ -2,10 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Enturmacao extends Model
+class Enturmacao extends BaseModel
 {
-    use HasFactory;
+    protected $basename   = 'enturmacao'; // syrios_enturmacao
+    public    $timestamps = false;
+
+    protected $fillable = [
+        'school_id',
+        'aluno_id',
+        'turma_id',
+    ];
+
+    public function escola() { return $this->belongsTo(Escola::class, 'school_id'); }
+    public function aluno()  { return $this->belongsTo(Aluno::class, 'aluno_id'); }
+    public function turma()  { return $this->belongsTo(Turma::class, 'turma_id'); }
 }

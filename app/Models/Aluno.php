@@ -2,10 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+class Aluno extends BaseModel
+{   
 
-class Aluno extends Model
-{
-    use HasFactory;
+    protected $basename = 'aluno'; // vira syrios_aluno
+    protected $primaryKey = 'id';
+
+    protected $fillable = [
+        'matricula',
+        'school_id',
+        'nome_a',
+    ];
+
+    // Relacionamento: um aluno pertence a uma escola
+    public function escola()
+    {
+        return $this->belongsTo(Escola::class, 'school_id');
+    }
 }

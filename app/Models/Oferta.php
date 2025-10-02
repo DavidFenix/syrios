@@ -2,10 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Oferta extends Model
+class Oferta extends BaseModel
 {
-    use HasFactory;
+    protected $basename = 'oferta';
+
+    protected $fillable = [
+        'disciplina_id',
+        'turma_id',
+        'professor_id',
+        'school_id',
+    ];
+
+    public function disciplina()
+    {
+        return $this->belongsTo(Disciplina::class, 'disciplina_id');
+    }
+
+    public function turma()
+    {
+        return $this->belongsTo(Turma::class, 'turma_id');
+    }
+
+    public function professor()
+    {
+        return $this->belongsTo(Professor::class, 'professor_id');
+    }
 }

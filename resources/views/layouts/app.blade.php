@@ -79,8 +79,8 @@
                 {{-- ESCOLA --}}
                 @if(Auth::user() && Auth::user()->hasRole('escola'))
                   <li class="nav-item">
-                    <a class="nav-link {{ request()->is('escola/usuarios*') ? 'active' : '' }}"
-                       href="{{ route('escola.usuarios.index') }}">
+                    <a class="nav-link {{-- request()->is('escola/usuarios*') ? 'active' : '' --}}"
+                       href="{{-- route('escola.usuarios.index') --}}">
                       Professores
                     </a>
                   </li>

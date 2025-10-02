@@ -2,10 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class RegStatus extends Model
+class RegStatus extends BaseModel
 {
-    use HasFactory;
+    protected $basename   = 'regstatus'; // syrios_regstatus
+    public    $timestamps = false;
+
+    protected $fillable = [
+        'id',        // PK manual (não auto-increment)
+        'descr_s',
+    ];
+
+    public $incrementing = false; // PK não auto-increment
+    protected $keyType   = 'int';
+
+    public function ocorrencias() { return $this->hasMany(Ocorrencia::class, 'status_id'); }
 }

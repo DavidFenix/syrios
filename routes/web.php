@@ -14,6 +14,11 @@ use App\Http\Controllers\Secretaria\EscolaController as SecretariaEscolaControll
 use App\Http\Controllers\Secretaria\UsuarioController as SecretariaUsuarioController;
 
 // Escola
+use App\Http\Controllers\Escola\AlunoController;
+use App\Http\Controllers\Escola\DashboardController;
+use App\Http\Controllers\Escola\DisciplinaController;
+use App\Http\Controllers\Escola\ProfessorController;
+use App\Http\Controllers\Escola\TurmaController;
 use App\Http\Controllers\Escola\UsuarioController as EscolaUsuarioController;
 
 /*
@@ -80,6 +85,37 @@ Route::prefix('secretaria')
 |--------------------------------------------------------------------------
 */
 Route::prefix('escola')
+    ->name('escola.')
+    ->middleware(['auth', 'role:escola'])
+    ->group(function () {
+        Route::get('/', function () {
+            return redirect()->route('escola.dashboard');
+        });
+
+        Route::get('dashboard', [App\Http\Controllers\Escola\DashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // CRUD de Usuários (professores, pais, etc.)
+        Route::resource('usuarios', App\Http\Controllers\Escola\UsuarioController::class)->except(['show']);
+
+        // CRUD de Usuários (professores, pais, etc.)
+        Route::resource('professores', App\Http\Controllers\Escola\ProfessorController::class)->except(['show']);
+
+        // CRUD de Disciplinas
+        Route::resource('disciplinas', App\Http\Controllers\Escola\DisciplinaController::class)->except(['show']);
+
+        // CRUD de Turmas
+        Route::resource('turmas', App\Http\Controllers\Escola\TurmaController::class)->except(['show']);
+
+        // CRUD de Alunos
+        Route::resource('alunos', App\Http\Controllers\Escola\AlunoController::class)->except(['show']);
+    });
+
+
+
+
+
+/*/Route::prefix('escola')
     ->middleware(['auth', 'role:escola'])
     ->name('escola.')
     ->group(function () {
@@ -90,3 +126,22 @@ Route::prefix('escola')
         // CRUD de usuários da escola (professores, pais, etc.)
         Route::resource('usuarios', EscolaUsuarioController::class)->except(['show']);
     });
+
+Route::prefix('escola')->name('escola.')->middleware(['auth', 'role:escola'])->group(function () {
+
+    //redireciona
+    Route::get('/', function () {
+            return redirect()->route('escola.dashboard');
+        });
+
+    // Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\Escola\DashboardController::class, 'index'])
+        ->name('dashboard');
+
+    // CRUDs específicos da escola logada
+    Route::resource('professores', App\Http\Controllers\Escola\ProfessorController::class)->except(['show']);
+    Route::resource('alunos', App\Http\Controllers\Escola\AlunoController::class)->except(['show']);
+    Route::resource('disciplinas', App\Http\Controllers\Escola\DisciplinaController::class)->except(['show']);
+    Route::resource('turmas', App\Http\Controllers\Escola\TurmaController::class)->except(['show']);
+});
+*/

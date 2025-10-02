@@ -2,10 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Turma extends Model
+class Turma extends BaseModel
 {
-    use HasFactory;
+    protected $basename = 'turma';
+
+    protected $fillable = [
+        'serie_turma',
+        'turno',
+        'school_id',
+    ];
+
+    public function escola()
+    {
+        return $this->belongsTo(Escola::class, 'school_id');
+    }
 }

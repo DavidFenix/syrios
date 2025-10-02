@@ -2,10 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Registros extends Model
+class Registros extends BaseModel
 {
-    use HasFactory;
+    protected $basename   = 'registros'; // syrios_registros
+    public    $timestamps = false;
+
+    protected $fillable = [
+        'school_id',
+        'descr_r',
+    ];
+
+    public function escola()      { return $this->belongsTo(Escola::class, 'school_id'); }
+    public function ocorrencias() { return $this->hasMany(Ocorrencia::class, 'registro_id'); }
 }
