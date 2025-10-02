@@ -12,7 +12,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="{{ route('master.dashboard') }}">⚡ Syrios</a>
+        <a class="navbar-brand fw-bold" href="{{ dashboard_route() }}">⚡ Syrios</a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMaster"
                 aria-controls="navbarMaster" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,12 +24,12 @@
 
                 {{-- MASTER --}}
                 @if(Auth::user() && Auth::user()->hasRole('master'))
-                <li class="nav-item">
+                <!--li class="nav-item">
                     <a class="nav-link {{ request()->is('master/dashboard*') ? 'active' : '' }}"
-                       href="{{ route('master.dashboard') }}">
+                       href="{{-- route('master.dashboard') --}}">
                         📊 Dashboard
                     </a>
-                </li>
+                </li-->
 
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('master/escolas*') ? 'active' : '' }}"

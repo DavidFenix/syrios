@@ -23,7 +23,10 @@ class LoginController extends Controller
         // tenta autenticar usando o campo CPF
         if (Auth::attempt(['cpf' => $credentials['cpf'], 'password' => $credentials['password']])) {
             $request->session()->regenerate();
-            return redirect()->intended('/master/dashboard');
+            
+            //return redirect()->intended('/master/dashboard');
+            return redirect()->intended($this->redirectTo());
+
         }
 
         return back()->withErrors([
@@ -39,4 +42,28 @@ class LoginController extends Controller
 
         return redirect('/login');
     }
+
+    protected function redirectTo()
+    {
+        $user = auth()->user();
+
+        // Se for Master
+        if ($user->roles->contains('role_name', 'master')) {
+            return route('master.dashboard');
+        }
+
+        // Se for Secretaria
+        if ($user->roles->contains('role_name', 'secretaria')) {
+            return route('secretaria.dashboard');
+        }
+
+        // Se for Escola
+        if ($user->roles->contains('role_name', 'escola')) {
+            return route('escola.usuarios.index');
+        }
+
+        // Qualquer outro (professor, pais, etc.)
+        return '/'; // ou uma rota "home"
+    }
+
 }
