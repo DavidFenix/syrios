@@ -35,13 +35,24 @@ class UsuarioController extends Controller
 
         $request->validate([
             'nome_u' => 'required|string|max:100',
-            'cpf' => 'required|string|max:11|unique:syrios_usuario,cpf',
+            'cpf' => 'required|string|max:11',
             'password' => 'required|string|min:6',
             'status' => 'required|boolean',
             'roles' => 'required|array'
         ]);
 
-        // cria usuario
+        // Verifica se já existe usuário com o mesmo CPF
+        $usuarioExistente = Usuario::where('cpf', $request->cpf)->first();
+
+        if ($usuarioExistente) {
+            // Já existe: redireciona com mensagem e opção de vincular
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('usuario_existente', $usuarioExistente->id);
+        }
+
+        // Caso não exista, cria normalmente
         $usuario = Usuario::create([
             'school_id' => $escolaId,
             'cpf' => $request->cpf,
@@ -66,6 +77,75 @@ class UsuarioController extends Controller
 
         return redirect()->route('escola.usuarios.index')->with('success','Usuário criado com sucesso!');
     }
+
+    public function vincular($usuarioId)
+    {
+        $schoolId = session('current_school_id'); // contexto da escola logada
+        if (!$schoolId) {
+            return redirect()->route('escola.usuarios.index')
+                ->with('error', 'Nenhuma escola selecionada no contexto.');
+        }
+
+        $usuario = Usuario::findOrFail($usuarioId);
+
+        // Verifica se já tem a role professor nessa escola
+        $roleProfessor = Role::where('role_name', 'professor')->firstOrFail();
+        $jaVinculado = $usuario->roles()
+            ->where('role_id', $roleProfessor->id)
+            ->wherePivot('school_id', $schoolId)
+            ->exists();
+
+        if ($jaVinculado) {
+            return redirect()->route('escola.usuarios.index')
+                ->with('info', 'Usuário já vinculado como professor nesta escola.');
+        }
+
+        // Vincula o usuário como professor na escola atual
+        $usuario->roles()->attach($roleProfessor->id, ['school_id' => $schoolId]);
+
+        // Garante registro na tabela professor
+        Professor::firstOrCreate([
+            'usuario_id' => $usuario->id,
+            'school_id'  => $schoolId
+        ]);
+
+        return redirect()->route('escola.usuarios.index')
+            ->with('success', 'Usuário vinculado à escola como professor com sucesso!');
+    }
+
+
+    /*/vincular apenas com professor por enquanto
+    public function vincular($usuarioId)
+    {
+        $schoolId = session('current_school_id');
+        $usuario = Usuario::findOrFail($usuarioId);
+
+        if (!$schoolId) {
+            return back()->with('error', 'Nenhuma escola em contexto. Faça login novamente.');
+        }
+
+        // já está vinculado?
+        if ($usuario->roles()->wherePivot('school_id', $schoolId)->exists()) {
+            return redirect()->route('escola.usuarios.index')
+                ->with('info', 'Usuário já está vinculado a esta escola.');
+        }
+
+        // Vincula como professor (ou outros roles selecionados futuramente)
+        $usuario->roles()->attach(2, ['school_id' => $schoolId]);
+
+        $usuario->roles()->attach($roleProfessor->id, [
+            'school_id' => $schoolId
+        ]);
+
+        Professor::firstOrCreate([
+            'usuario_id' => $usuario->id,
+            'school_id' => $schoolId,
+        ]);
+
+        return redirect()->route('escola.usuarios.index')
+            ->with('success', 'Usuário vinculado com sucesso!');
+    }*/
+
 
     public function edit(Usuario $usuario)
     {

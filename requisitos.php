@@ -32,6 +32,27 @@ $tables = $conn->query("SHOW TABLES");
         no sistema Syrios. Serve como referência rápida para desenvolvedores e administradores.
     </div>
 
+    <div>Tarefas agora: ✅ Sugestão de ordem prática para implementar<br>
+
+Criar ContextService (com decideAfterLogin, setContext, clearContext).<br>
+
+Ajustar LoginController para usar ContextService::decideAfterLogin.<br>
+
+Criar as views de seleção (choose_school, choose_role, no_access).<br>
+
+Criar e registrar o middleware EnsureContextSelected.<br>
+
+Trocar dashboard_route no helpers.php.<br>
+
+Testar com usuários que têm:<br>
+
+1 role em 1 escola,<br>
+
+vários roles na mesma escola,<br>
+
+vários roles em várias escolas.<br>
+</div>
+
     <div class="accordion" id="accordionFluxos">
 
       <!-- Fluxo Master -->

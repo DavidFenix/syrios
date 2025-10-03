@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syrios - Painel Master</title>
+    <title>Syrios - Painel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -23,81 +23,110 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
                 {{-- MASTER --}}
-                @if(Auth::user() && Auth::user()->hasRole('master'))
-                <!--li class="nav-item">
-                    <a class="nav-link {{ request()->is('master/dashboard*') ? 'active' : '' }}"
-                       href="{{-- route('master.dashboard') --}}">
-                        📊 Dashboard
-                    </a>
-                </li-->
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('master/escolas*') ? 'active' : '' }}"
-                       href="{{ route('master.escolas.index') }}">
-                        🏫 Escolas
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('master/roles*') ? 'active' : '' }}"
-                       href="{{ route('master.roles.index') }}">
-                        ⚙️ Roles
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('master/usuarios*') ? 'active' : '' }}"
-                       href="{{ route('master.usuarios.index') }}">
-                        👥 Usuários
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('master/escolas-associacoes*') ? 'active' : '' }}"
-                       href="{{ route('master.escolas.associacoes') }}">
-                        🔗 Associações
-                    </a>
-                </li>
+                @if(session('current_role') === 'master')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('master/escolas*') ? 'active' : '' }}"
+                           href="{{ route('master.escolas.index') }}">
+                            🏫 Escolas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('master/roles*') ? 'active' : '' }}"
+                           href="{{ route('master.roles.index') }}">
+                            ⚙️ Roles
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('master/usuarios*') ? 'active' : '' }}"
+                           href="{{ route('master.usuarios.index') }}">
+                            👥 Usuários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('master/escolas-associacoes*') ? 'active' : '' }}"
+                           href="{{ route('master.escolas.associacoes') }}">
+                            🔗 Associações
+                        </a>
+                    </li>
                 @endif
 
                 {{-- SECRETARIA --}}
-                @if(Auth::user() && Auth::user()->hasRole('secretaria'))
-                  <li class="nav-item">
-                    <a class="nav-link {{ request()->is('secretaria/escolas*') ? 'active' : '' }}"
-                       href="{{ route('secretaria.escolas.index') }}">
-                      Escolas Filhas
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link {{ request()->is('secretaria/usuarios*') ? 'active' : '' }}"
-                       href="{{ route('secretaria.usuarios.index') }}">
-                      Usuários
-                    </a>
-                  </li>
+                @if(session('current_role') === 'secretaria')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('secretaria/escolas*') ? 'active' : '' }}"
+                           href="{{ route('secretaria.escolas.index') }}">
+                            🏫 Escolas Filhas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('secretaria/usuarios*') ? 'active' : '' }}"
+                           href="{{ route('secretaria.usuarios.index') }}">
+                            👥 Usuários
+                        </a>
+                    </li>
                 @endif
 
                 {{-- ESCOLA --}}
-                @if(Auth::user() && Auth::user()->hasRole('escola'))
-                  <li class="nav-item">
-                    <a class="nav-link {{-- request()->is('escola/usuarios*') ? 'active' : '' --}}"
-                       href="{{-- route('escola.usuarios.index') --}}">
-                      Professores
-                    </a>
-                  </li>
+                @if(session('current_role') === 'escola')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/professores*') ? 'active' : '' }}"
+                           href="{{ route('escola.professores.index') }}">
+                            👨‍🏫 Professores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/alunos*') ? 'active' : '' }}"
+                           href="{{ route('escola.alunos.index') }}">
+                            🎓 Alunos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/disciplinas*') ? 'active' : '' }}"
+                           href="{{ route('escola.disciplinas.index') }}">
+                            📚 Disciplinas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/turmas*') ? 'active' : '' }}"
+                           href="{{ route('escola.turmas.index') }}">
+                            🏷️ Turmas
+                        </a>
+                    </li>
                 @endif
-
-
             </ul>
 
             <ul class="navbar-nav ms-auto">
                 @auth
+                    {{-- Contexto atual --}}
+                    @if(session('current_role') && session('current_school_id'))
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-warning" href="#" role="button" data-bs-toggle="dropdown">
+                                🎯 {{ ucfirst(session('current_role')) }}
+                                @php
+                                    $escolaAtual = \App\Models\Escola::find(session('current_school_id'));
+                                @endphp
+                                @if($escolaAtual)
+                                    — {{ $escolaAtual->nome_e }}
+                                @endif
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                {{-- Opção de trocar contexto --}}
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('choose.school') }}">
+                                        🔄 Trocar de contexto
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endif
+
                     <li class="nav-item">
-                        <span class="nav-link">Bem-vindo, {{ Auth::user()->nome_u ?? 'Visitante' }}</span>
+                        <span class="nav-link">👤 {{ Auth::user()->nome_u ?? 'Usuário' }}</span>
                     </li>
                     <li class="nav-item">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button class="btn btn-link nav-link">Sair</button>
+                            <button class="btn btn-link nav-link">🚪 Sair</button>
                         </form>
                     </li>
                 @else
@@ -107,15 +136,14 @@
                 @endauth
             </ul>
 
-            </span>
         </div>
     </div>
 </nav>
 
 {{-- Espaço para compensar navbar fixa --}}
-<div style="margin-top: 70px;"></div>
+<div style="margin-top: 100px;"></div>
 
-{{-- Inicio Debug --}}
+{{-- Debug de mensagens --}}
 @if ($errors->any())
     <div class="alert alert-danger">
         <ul>
@@ -137,7 +165,6 @@
         {{ session('error') }}
     </div>
 @endif
-{{-- Fim Debug --}}
 
 <div class="container">
     @yield('content')

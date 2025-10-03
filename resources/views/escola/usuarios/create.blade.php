@@ -2,6 +2,17 @@
 
 @section('content')
 <div class="container">
+    
+    @if(session('usuario_existente'))
+        <div class="alert alert-warning">
+            Usuário já existe no sistema.
+            <form action="{{ route('escola.usuarios.vincular', session('usuario_existente')) }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-primary">Vincular este usuário à minha escola</button>
+            </form>
+        </div>
+    @endif
+
     <h1>Novo Usuário</h1>
 
     <form method="POST" action="{{ route('escola.usuarios.store') }}">
