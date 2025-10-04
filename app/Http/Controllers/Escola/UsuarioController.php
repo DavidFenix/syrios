@@ -13,7 +13,8 @@ class UsuarioController extends Controller
 {
     public function index()
     {
-        $escolaId = auth()->user()->school_id;
+        //$escolaId = auth()->user()->school_id;
+        $escolaId = session('current_school_id'); // escola logada
 
         // lista apenas outros usuários da mesma escola
         $usuarios = Usuario::where('school_id', $escolaId)
@@ -31,7 +32,8 @@ class UsuarioController extends Controller
 
     public function store(Request $request)
     {
-        $escolaId = auth()->user()->school_id;
+        //$escolaId = auth()->user()->school_id;
+        $escolaId = session('current_school_id'); // escola logada
 
         $request->validate([
             'nome_u' => 'required|string|max:100',
