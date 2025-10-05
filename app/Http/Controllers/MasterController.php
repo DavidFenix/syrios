@@ -72,17 +72,58 @@ class MasterController extends Controller
     // Excluir escola
     public function destroyEscola($id)
     {
-        Escola::findOrFail($id)->delete();
-        return redirect()->route('master.index')->with('success','Escola excluída!');
+        $escola = Escola::findOrFail($id);
+
+        // 🔒 regra:Impede exclusão da escola principal
+        if ($escola->is_master) {
+            return redirect()->back()->with('error', 'A escola principal não pode ser excluída.');
+        }
+
+        $escola->delete();
+
+        return redirect()->route('master.index')
+            ->with('success', 'Escola excluída com sucesso!');
     }
 
-    // Excluir usuário
+    // // Excluir escola
+    // public function destroyEscola($id)
+    // {
+    //     Escola::findOrFail($id)->delete();
+    //     return redirect()->route('master.index')->with('success','Escola excluída!');
+    // }
+
     public function destroyUsuario($id)
     {
         $usuario = Usuario::findOrFail($id);
+
+        // 🔒 regra:Impede exclusão do super master
+        if ($usuario->is_super_master) {
+            return redirect()->back()->with('error', 'O usuário master principal não pode ser excluído.');
+        }
+
+        // 🔒 regra:Impede exclusão de usuários vinculados à escola principal (is_master = true)
+        if ($usuario->escola && $usuario->escola->is_master) {
+            return redirect()->back()->with('error', 'Usuários da escola principal não podem ser excluídos.');
+        }
+
+        // Remove vínculos de roles
         $usuario->roles()->detach();
+
+        // Exclui usuário
         $usuario->delete();
 
-        return redirect()->route('master.index')->with('success','Usuário excluído!');
+        return redirect()->route('master.index')
+            ->with('success', 'Usuário excluído com sucesso!');
     }
+
+
+    // Excluir usuário
+    // public function destroyUsuario($id)
+    // {
+    //     $usuario = Usuario::findOrFail($id);
+    //     $usuario->roles()->detach();
+    //     $usuario->delete();
+
+    //     return redirect()->route('master.index')->with('success','Usuário excluído!');
+    // }
 }

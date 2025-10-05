@@ -398,34 +398,34 @@ class UsuarioController extends Controller
     }
 
     //cuidado: delete absoluto de todas as escolas
-    public function destroy(Usuario $usuario)
-    {
-        $this->authorizeEscola($usuario);
+    // public function destroy(Usuario $usuario)
+    // {
+    //     $this->authorizeEscola($usuario);
 
-        // Remove vínculos na pivot roles
-        $usuario->roles()->detach();
+    //     // Remove vínculos na pivot roles
+    //     $usuario->roles()->detach();
 
-        // Se ele for professor, remove vínculo primeiro
-        \App\Models\Professor::where('usuario_id', $usuario->id)->delete();
+    //     // Se ele for professor, remove vínculo primeiro
+    //     \App\Models\Professor::where('usuario_id', $usuario->id)->delete();
 
-        $usuario->delete();
-        return redirect()->route('escola.usuarios.index')->with('success','Usuário excluído com sucesso!');
-    }
+    //     $usuario->delete();
+    //     return redirect()->route('escola.usuarios.index')->with('success','Usuário excluído com sucesso!');
+    // }
 
-    /*aqui é mais cuidadoso
+    //aqui é mais cuidadoso
     public function destroy(Usuario $usuario)
     {
         $currentSchoolId = session('current_school_id');
 
-        // remove apenas o vínculo na escola atual
+        // regra:remove apenas o vínculo na escola atual logada
         $usuario->roles()->wherePivot('school_id', $currentSchoolId)->detach();
 
-        // se ele era professor nessa escola, remove também
+        // regra:se ele era professor nessa escola, remove também
         Professor::where('usuario_id', $usuario->id)
                  ->where('school_id', $currentSchoolId)
                  ->delete();
 
-        // verifica se ainda tem algum vínculo em outras escolas
+        // regra:verifica se ainda tem algum vínculo em outras escolas antes de apaga-lo
         if ($usuario->roles()->count() === 0) {
             $usuario->delete();
         }
@@ -433,7 +433,7 @@ class UsuarioController extends Controller
         return redirect()->route('escola.usuarios.index')
             ->with('success', 'Usuário desvinculado da escola com sucesso!');
     }
-    */
+    //*/
 
     private function authorizeEscola($usuario)
     {

@@ -93,7 +93,22 @@ class EscolaController extends Controller
 
     public function destroy(Escola $escola)
     {
+        // 🔒 Impede exclusão da escola principal
+        if ($escola->is_master) {
+            return redirect()->back()->with('error', 'A escola principal não pode ser excluída.');
+        }
+
+        // Exclui a escola
         $escola->delete();
-        return redirect()->route('secretaria.escolas.index')->with('success','Escola excluída');
+
+        return redirect()->route('secretaria.escolas.index')
+            ->with('success', 'Escola excluída com sucesso!');
     }
+
+
+    // public function destroy(Escola $escola)
+    // {
+    //     $escola->delete();
+    //     return redirect()->route('secretaria.escolas.index')->with('success','Escola excluída');
+    // }
 }

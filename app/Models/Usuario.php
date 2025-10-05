@@ -14,7 +14,12 @@ class Usuario extends BaseAuthModel
         'cpf',
         'senha_hash',
         'nome_u',
-        'status'
+        'status',
+        // 'is_super_master' 👈 não incluímos por segurança
+    ];
+
+    protected $casts = [
+        'is_super_master' => 'boolean',
     ];
 
     //protected $hidden = ['senha_hash'];

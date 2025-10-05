@@ -16,7 +16,12 @@ class Escola extends BaseModel
         'estado',
         'endereco',
         'telefone',
-        'secretaria_id'
+        'secretaria_id',
+        // 'is_master' 👈 não incluímos por segurança
+    ];
+
+    protected $casts = [
+        'is_master' => 'boolean', // 👈 converte automaticamente para true/false
     ];
 
     // 🔎 Novo escopo de filtro

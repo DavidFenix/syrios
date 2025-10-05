@@ -12,6 +12,7 @@ class EscolaController extends Controller
     public function index(Request $request)
     {
         $filtro = $request->get('tipo'); // 'mae', 'filha', ou null
+        
         $query  = Escola::query();
 
         if ($filtro === 'mae') {
@@ -21,7 +22,9 @@ class EscolaController extends Controller
         }
 
         //$escolas = $query->with('mae')->orderBy('nome_e')->get();
+        
         $escolas = Escola::with('mae')->filtrar($filtro)->get();
+        
         $maes    = Escola::whereNull('secretaria_id')->orderBy('nome_e')->get();
 
         return view('master.escolas.index', compact('escolas', 'maes', 'filtro'));
@@ -62,6 +65,7 @@ class EscolaController extends Controller
 
     public function update(Request $request, Escola $escola)
     {
+        //regra:validar os dados
         $data = $request->validate([
             'nome_e'       => 'required|string|max:150',
             'inep'         => 'nullable|string|max:20',
@@ -73,19 +77,21 @@ class EscolaController extends Controller
             'secretaria_id'=> 'nullable|integer|exists:syrios_escola,id',
         ]);
 
+        //regra:secretaria_id não pode ser igual ao escola.id
         if (isset($data['secretaria_id']) && (int)$data['secretaria_id'] === (int)$escola->id) {
             return back()->withErrors(['secretaria_id' => 'Uma escola não pode ser sua própria secretaria.'])
                          ->withInput();
         }
 
         $escola->update($data);
+
         return redirect()->route('master.escolas.index')
             ->with('success', 'Instituição atualizada!');
     }
 
     public function destroy(Escola $escola)
     {
-        // DELETE SEGURO: evita quebrar FKs
+        // regra:DELETE SEGURO; evita quebrar FKs
         $deps = [
             'usuarios'      => DB::table('syrios_usuario')->where('school_id', $escola->id)->count(),
             'professores'   => DB::table('syrios_professor')->where('school_id', $escola->id)->count(),
@@ -103,6 +109,7 @@ class EscolaController extends Controller
 
         $bloqs = array_filter($deps, function ($c) { return $c > 0; });
 
+        //regra:não excluir escola quando possui vínculos
         if (!empty($bloqs)) {
             $lista = [];
             foreach ($bloqs as $tabela => $qtd) {
@@ -112,7 +119,13 @@ class EscolaController extends Controller
                 ->with('error', 'Não é possível excluir. Existem vínculos → '.implode(', ', $lista));
         }
 
-        $escola->delete();
+        // 🔒 regra:Impede excluir a escola master
+        if($escola->is_master){
+            return redirect()->route('master.escolas.index')->with('error', 'Não é permitir excluir Escola Master!');
+        }else{
+            $escola->delete();
+        }
+        
         return redirect()->route('master.escolas.index')->with('success', 'Escola excluída!');
     }
 

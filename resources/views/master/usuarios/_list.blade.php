@@ -39,15 +39,22 @@
                 <td>
                     <a href="{{ route('master.usuarios.edit', $usuario->id) }}" class="btn btn-warning btn-sm">Dados</a>
                     <a href="{{ route('master.usuarios.roles.edit', $usuario) }}" class="btn btn-sm btn-warning">Papeis</a>
+                    {{--regra:impedir que usuário exclua a si mesmo--}}
                     @if($usuario->id !== auth()->id())
-                        
-                        <form action="{{ route('master.usuarios.destroy', $usuario->id) }}" method="POST" style="display:inline-block;">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Excluir este usuário?')">Excluir</button>
-                        </form>
+                        @if($usuario->is_super_master)
+                            <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir usuário super master">🔒</button>
+                        @else
+                            <form action="{{ route('master.usuarios.destroy', $usuario->id) }}" method="POST" style="display:inline-block;">
+                                @csrf @method('DELETE')
+                                <!--button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Excluir este usuário?')">Excluir</button-->
+                                <a href="{{ route('master.usuarios.confirmDestroy', $usuario) }}" class="btn btn-sm btn-outline-danger">🗑</a>
+
+
+                            </form>
+                        @endif
                     @else
                     
-                    <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir a si mesmo">🔒</button>
+                        <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir a si mesmo">🔒</button>
                     @endif
 
                 </td>
@@ -84,6 +91,7 @@
                     </td>
                     <td>
                         <a href="{{ route('master.usuarios.edit', $usuario->id) }}" class="btn btn-sm btn-warning">Editar</a>
+                        
                         <form action="{{ route('master.usuarios.destroy', $usuario->id) }}" method="POST" style="display:inline">
                             @csrf
                             @method('DELETE')

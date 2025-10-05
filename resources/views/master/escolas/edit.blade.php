@@ -37,8 +37,10 @@
    <input name="telefone" class="form-control" value="{{ old('telefone', $escola->telefone) }}">
  </div>
 
+{{--nao permite definir mãe se for uma escola master(gerente maximo do sistema)--}}
+ @if($escola->id != 1)
  <div class="col-md-6">
-   <label class="form-label">Secretaria (opcional)</label>
+   <label class="form-label">Vincular a uma Secretaria (opcional)</label>
    <select name="secretaria_id" class="form-select">
      <option value="">— Sem secretaria (é MÃE) —</option>
      @foreach($maes as $m)
@@ -48,6 +50,7 @@
      @endforeach
    </select>
  </div>
+ @endif
 
  <div class="col-12">
    <button class="btn btn-primary">Salvar</button>

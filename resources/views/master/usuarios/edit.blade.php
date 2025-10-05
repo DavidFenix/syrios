@@ -29,29 +29,55 @@
 
             <div class="col-md-6">
                 <label class="form-label">Status*</label>
-                <select name="status" class="form-select">
-                    <option value="1" {{ old('status', $usuario->status) == 1 ? 'selected' : '' }}>Ativo</option>
-                    <option value="0" {{ old('status', $usuario->status) == 0 ? 'selected' : '' }}>Inativo</option>
-                </select>
+                {{--regra:não deixa desativar o usuario super master--}}
+                @if($usuario->is_super_master)
+                    <select disabled name="status" class="form-select">
+                        <option value="1" {{ old('status', $usuario->status) == 1 ? 'selected' : '' }}>Ativo</option>
+                        <option value="0" {{ old('status', $usuario->status) == 0 ? 'selected' : '' }}>Inativo</option>
+                    </select>
+                    {{-- 👇 campo oculto com o valor real --}}
+                    <input type="hidden" name="status" value="{{ old('status', $usuario->status) }}">
+                @else
+                    <select name="status" class="form-select">
+                        <option value="1" {{ old('status', $usuario->status) == 1 ? 'selected' : '' }}>Ativo</option>
+                        <option value="0" {{ old('status', $usuario->status) == 0 ? 'selected' : '' }}>Inativo</option>
+                    </select>
+                @endif
+                
             </div>
         </div>
 
         {{-- Escola principal --}}
         <div class="mb-4">
-            <label class="form-label">Escola de Origem*</label>
-            <select name="school_id" class="form-select" required>
-                <option value="">Selecione...</option>
-                @foreach($escolas as $escola)
-                    <option value="{{ $escola->id }}" {{ old('school_id', $usuario->school_id) == $escola->id ? 'selected' : '' }}>
-                        {{ $escola->nome_e }}
-                    </option>
-                @endforeach
-            </select>
+            <label class="form-label">Escola de Origem</label>
+            {{---regra:não deixa trocar escola de origem do usuario super marter--}}
+            @if($usuario->is_super_master)
+                @php
+                    // Busca a escola vinculada ao usuário
+                    $escolaUsuario = $escolas->firstWhere('id', old('school_id', $usuario->school_id));
+                @endphp
+
+                {{-- Exibe o nome da escola apenas para informação --}}
+                <input type="text" class="form-control" value="{{ $escolaUsuario->nome_e ?? 'Desconhecida' }}" disabled>
+
+                {{-- Envia o school_id mesmo com o campo visual desativado --}}
+                <input type="hidden" name="school_id" id="school_id" value="{{ $escolaUsuario->id ?? $usuario->school_id }}">
+            @else
+                <select name="school_id" id="school_id" class="form-select" required>
+                    <option value="">Selecione...</option>
+                    @foreach($escolas as $escola)
+                        <option value="{{ $escola->id }}" {{ old('school_id', $usuario->school_id) == $escola->id ? 'selected' : '' }}>
+                            {{ $escola->nome_e }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
+
         </div>
 
         {{-- Papéis agrupados por escola --}}
         <div class="mb-4">
-            <h5 class="mb-3">🧩 Papéis (Roles)</h5>
+            <h5 class="mb-3">🧩 Papéis (Roles) - Apenas informe::sem alterações aqui</h5>
 
             {{-- Agrupa roles por escola --}}
             @php
@@ -73,7 +99,8 @@
                                        name="roles[]"
                                        value="{{ $role->id }}"
                                        id="role_{{ $schoolId }}_{{ $role->id }}"
-                                       {{ $checked ? 'checked' : '' }}>
+                                       {{ $checked ? 'checked' : '' }}
+                                       disabled> {{-- 👈 desativa o checkbox --}}
                                 <label class="form-check-label" for="role_{{ $schoolId }}_{{ $role->id }}">
                                     {{ ucfirst($role->role_name) }}
                                 </label>

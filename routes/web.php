@@ -65,9 +65,13 @@ Route::prefix('master')
     Route::post('usuarios/{usuario}/roles', [MasterUsuarioController::class, 'updateRoles'])
         ->name('usuarios.roles.update');
 
+    // 🗑 Mostrar confirmação antes da exclusão
+    Route::get('usuarios/{usuario}/confirm-destroy', [MasterUsuarioController::class, 'confirmDestroy'])
+            ->name('usuarios.confirmDestroy');
 
-
-
+    // 🧹 Executar exclusão
+    Route::delete('usuarios/{usuario}', [MasterUsuarioController::class, 'destroy'])
+            ->name('usuarios.destroy');
 
 
     });
