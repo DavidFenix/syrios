@@ -9,12 +9,20 @@ use Illuminate\Support\Facades\Auth;
 
 class DisciplinaController extends Controller
 {
+    // public function index()
+    // {
+    //     $escola = Auth::user()->escola;
+    //     $disciplinas = Disciplina::where('school_id', $escola->id)->get();
+
+    //     return view('escola.disciplinas.index', compact('disciplinas', 'escola'));
+    // }
+
     public function index()
     {
-        $escola = Auth::user()->escola;
-        $disciplinas = Disciplina::where('school_id', $escola->id)->get();
+        $schoolId = session('current_school_id');
+        $disciplinas = Disciplina::where('school_id', $schoolId)->get();
 
-        return view('escola.disciplinas.index', compact('disciplinas', 'escola'));
+        return view('escola.disciplinas.index', compact('disciplinas'));
     }
 
     public function create()
@@ -24,7 +32,8 @@ class DisciplinaController extends Controller
 
     public function store(Request $request)
     {
-        $escola = Auth::user()->escola;
+        //$escola = Auth::user()->escola;
+        $schoolId = session('current_school_id');
 
         $request->validate([
             'abr'     => 'required|string|max:10',
@@ -34,32 +43,64 @@ class DisciplinaController extends Controller
         Disciplina::create([
             'abr'       => $request->abr,
             'descr_d'   => $request->descr_d,
-            'school_id' => $escola->id,
+            'school_id' => $schoolId,
         ]);
 
         return redirect()->route('escola.disciplinas.index')->with('success', 'Disciplina criada!');
     }
 
-    public function edit(Disciplina $disciplina)
+    public function edit($id)
     {
+        $schoolId = session('current_school_id');
+        $disciplina = Disciplina::where('school_id', $schoolId)->findOrFail($id);
+
         return view('escola.disciplinas.edit', compact('disciplina'));
     }
 
-    public function update(Request $request, Disciplina $disciplina)
+    public function update(Request $request, $id)
     {
+        $schoolId = session('current_school_id');
+        $disciplina = Disciplina::where('school_id', $schoolId)->findOrFail($id);
+
         $request->validate([
             'abr'     => 'required|string|max:10',
             'descr_d' => 'required|string|max:100',
         ]);
 
-        $disciplina->update($request->only('abr','descr_d'));
+        $disciplina->update($request->only(['abr','descr_d']));
 
-        return redirect()->route('escola.disciplinas.index')->with('success', 'Disciplina atualizada!');
+        return redirect()->route('escola.disciplinas.index')->with('success','Disciplina atualizada com sucesso!');
     }
 
-    public function destroy(Disciplina $disciplina)
+    public function destroy($id)
     {
+        $schoolId = session('current_school_id');
+        $disciplina = Disciplina::where('school_id', $schoolId)->findOrFail($id);
         $disciplina->delete();
-        return redirect()->route('escola.disciplinas.index')->with('success', 'Disciplina excluída!');
+
+        return redirect()->route('escola.disciplinas.index')->with('success','Disciplina removida!');
     }
+    
+    // public function edit(Disciplina $disciplina)
+    // {
+    //     return view('escola.disciplinas.edit', compact('disciplina'));
+    // }
+
+    // public function update(Request $request, Disciplina $disciplina)
+    // {
+    //     $request->validate([
+    //         'abr'     => 'required|string|max:10',
+    //         'descr_d' => 'required|string|max:100',
+    //     ]);
+
+    //     $disciplina->update($request->only('abr','descr_d'));
+
+    //     return redirect()->route('escola.disciplinas.index')->with('success', 'Disciplina atualizada!');
+    // }
+
+    // public function destroy(Disciplina $disciplina)
+    // {
+    //     $disciplina->delete();
+    //     return redirect()->route('escola.disciplinas.index')->with('success', 'Disciplina excluída!');
+    // }
 }

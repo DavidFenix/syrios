@@ -9,7 +9,33 @@ use Illuminate\Http\Request;
 
 class EscolaController extends Controller
 {
+    
     public function index()
+    {
+        // obtém ID da escola atual da sessão
+        $currentSchoolId = session('current_school_id');
+
+        // verifica se há uma escola em contexto
+        if (!$currentSchoolId) {
+            return redirect()->route('home')->with('error', 'Nenhuma escola selecionada no momento.');
+        }
+
+        // busca a escola atual no banco
+        $secretaria = Escola::find($currentSchoolId);
+
+        // se não existir (por exemplo, ID inválido)
+        if (!$secretaria) {
+            return redirect()->route('home')->with('error', 'Escola atual não encontrada.');
+        }
+
+        // filhas da secretaria atual
+        $escolas = $secretaria->filhas()->get();
+
+        return view('secretaria.escolas.index', compact('escolas', 'secretaria'));
+    }
+
+
+    /*public function index()
     {
         // secretaria logada
         $secretaria = auth()->user()->escola;
@@ -23,7 +49,7 @@ class EscolaController extends Controller
         $escolas = $secretaria->filhas()->get();
 
         return view('secretaria.escolas.index', compact('escolas','secretaria'));
-    }
+    }*/
 
     /*public function index()
     {

@@ -1,7 +1,86 @@
 @extends('layouts.app')
 
 @section('content')
-Por enquanto, é o cadastro de usuario que permite cadastrar na tabela professor também se a role professor for marcada.
+<div class="container">
+    <h1>Professores da Escola e demais Vinculados</h1>
+    <a href="{{ route('escola.usuarios.index') }}" class="btn btn-primary mb-3">➕ Vincular ou Criar Usuário</a>
+
+    @if($mensagem)
+      <div class="alert alert-success">
+        {{ $mensagem }}
+      </div>
+    @endif
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Usuário</th>
+          <th>Escola de origem</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($professores as $p)
+          <tr>
+            <td>{{ $p->id }}</td>
+            <td>{{ $p->usuario->nome_u ?? '-' }}</td>
+            <td>{{ $p->usuario->escola->nome_e ?? '-' }}</td>
+            <td>
+
+              @if($p->id !== auth()->id())
+              <form action="{{ route('escola.professores.destroy', $p) }}" method="POST" class="d-inline"
+                    onsubmit="return confirm('Remover este professor?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-danger">🗑</button>
+              </form>
+              @else
+                <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir a si mesmo">🔒</button>
+              @endif
+
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="4" class="text-center text-muted">Nenhum professor</td></tr>
+        @endforelse
+      </tbody>
+    </table>
+</div>
+@endsection
+
+
+{{--
+@section('content')
+<div class="container">
+    <h1>Professores da Escola e demais Vinculados</h1>
+    <a href="{{ route('escola.usuarios.index') }}" class="btn btn-primary mb-3">➕ Vincular ou Criar Usuário</a>
+
+    <table class="table table-striped">
+        <thead><tr><th>ID</th><th>Usuário</th><th>Escola de Origem</th><th>Ações</th></tr></thead>
+        <tbody>
+        @forelse($professores as $p)
+          <tr>
+            <td>{{ $p->id }}</td>
+            <td>{{ $p->usuario->nome_u ?? '-' }}</td>
+            <td>{{ $p->usuario->escola->nome_e ?? '—' }}</td>
+            <td>
+              <form action="{{ route('escola.professores.destroy',$p) }}" method="POST" class="d-inline" 
+                    onsubmit="return confirm('Remover este professor?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-danger">🗑</button>
+              </form>
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="3" class="text-center text-muted">Nenhum professor</td></tr>
+        @endforelse
+        </tbody>
+    </table>
+</div>
+@endsection
+--}}
+
+
 {{--
 <div class="container">
     <h1>Professores</h1>
@@ -34,9 +113,8 @@ Por enquanto, é o cadastro de usuario que permite cadastrar na tabela professor
         </tbody>
     </table>
 </div>
---}}
 @endsection
-
+--}}
 
 
 {{--

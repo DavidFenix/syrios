@@ -1,4 +1,37 @@
 @extends('layouts.app')
+@section('content')
+<div class="container">
+    <h1>Turmas</h1>
+    <a href="{{ route('escola.turmas.create') }}" class="btn btn-primary mb-3">➕ Nova Turma</a>
+
+    <table class="table table-striped">
+        <thead><tr><th>ID</th><th>Série</th><th>Turno</th><th>Ações</th></tr></thead>
+        <tbody>
+        @forelse($turmas as $t)
+          <tr>
+            <td>{{ $t->id }}</td>
+            <td>{{ $t->serie_turma }}</td>
+            <td>{{ $t->turno }}</td>
+            <td>
+              <a href="{{ route('escola.turmas.edit',$t) }}" class="btn btn-sm btn-warning">✏️</a>
+              <form action="{{ route('escola.turmas.destroy',$t) }}" method="POST" class="d-inline"
+                    onsubmit="return confirm('Remover esta turma?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-danger">🗑</button>
+              </form>
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="4" class="text-center text-muted">Nenhuma turma</td></tr>
+        @endforelse
+        </tbody>
+    </table>
+</div>
+@endsection
+
+
+{{--
+@extends('layouts.app')
 
 @section('content')
 <div class="container">
@@ -35,7 +68,7 @@
     </table>
 </div>
 @endsection
-
+--}}
 
 
 {{--

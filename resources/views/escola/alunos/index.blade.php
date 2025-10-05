@@ -1,4 +1,38 @@
 @extends('layouts.app')
+@section('content')
+<div class="container">
+    <h1>Alunos</h1>
+    <a href="{{ route('escola.alunos.create') }}" class="btn btn-primary mb-3">➕ Novo Aluno</a>
+
+    <table class="table table-striped">
+        <thead><tr><th>ID</th><th>Matrícula</th><th>Nome</th><th>Ações</th></tr></thead>
+        <tbody>
+        @forelse($alunos as $a)
+          <tr>
+            <td>{{ $a->id }}</td>
+            <td>{{ $a->matricula }}</td>
+            <td>{{ $a->nome_a }}</td>
+            <td>
+              <a href="{{ route('escola.alunos.edit',$a) }}" class="btn btn-sm btn-warning">✏️</a>
+              <form action="{{ route('escola.alunos.destroy',$a) }}" method="POST" class="d-inline"
+                    onsubmit="return confirm('Remover este aluno?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-danger">🗑</button>
+              </form>
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="4" class="text-center text-muted">Nenhum aluno</td></tr>
+        @endforelse
+        </tbody>
+    </table>
+</div>
+@endsection
+
+
+
+{{--
+@extends('layouts.app')
 
 @section('content')
 <div class="container">
@@ -35,7 +69,7 @@
     </table>
 </div>
 @endsection
-
+--}}
 
 
 {{--

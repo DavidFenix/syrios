@@ -1,4 +1,37 @@
 @extends('layouts.app')
+@section('content')
+<div class="container">
+    <h1>Disciplinas</h1>
+    <a href="{{ route('escola.disciplinas.create') }}" class="btn btn-primary mb-3">➕ Nova Disciplina</a>
+
+    <table class="table table-striped">
+        <thead><tr><th>ID</th><th>Abreviação</th><th>Descrição</th><th>Ações</th></tr></thead>
+        <tbody>
+        @forelse($disciplinas as $d)
+          <tr>
+            <td>{{ $d->id }}</td>
+            <td>{{ $d->abr }}</td>
+            <td>{{ $d->descr_d }}</td>
+            <td>
+              <a href="{{ route('escola.disciplinas.edit',$d) }}" class="btn btn-sm btn-warning">✏️</a>
+              <form action="{{ route('escola.disciplinas.destroy',$d) }}" method="POST" class="d-inline"
+                    onsubmit="return confirm('Remover esta disciplina?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-danger">🗑</button>
+              </form>
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="4" class="text-center text-muted">Nenhuma disciplina</td></tr>
+        @endforelse
+        </tbody>
+    </table>
+</div>
+@endsection
+
+
+{{--
+@extends('layouts.app')
 
 @section('content')
 <div class="container">
@@ -35,7 +68,7 @@
     </table>
 </div>
 @endsection
-
+--}}
 
 {{--
 @extends('layouts.app')

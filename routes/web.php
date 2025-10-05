@@ -54,6 +54,22 @@ Route::prefix('master')
         // Associações Escola Mãe ↔ Escola Filha
         Route::get('associacoes', [MasterEscolaController::class, 'associacoes'])->name('escolas.associacoes');
         Route::post('associacoes', [MasterEscolaController::class, 'associarFilha'])->name('escolas.associar');
+
+        Route::post('usuarios/{usuario}/vincular', [MasterUsuarioController::class, 'vincular'])
+    ->name('usuarios.vincular');
+
+
+    // Gestão de roles específicas por escola
+    Route::get('usuarios/{usuario}/roles', [MasterUsuarioController::class, 'editRoles'])
+        ->name('usuarios.roles.edit');
+    Route::post('usuarios/{usuario}/roles', [MasterUsuarioController::class, 'updateRoles'])
+        ->name('usuarios.roles.update');
+
+
+
+
+
+
     });
 
 /*

@@ -33,10 +33,14 @@
       <td>{{ optional($e->mae)->nome_e }}</td>
       <td class="text-end">
         <a class="btn btn-sm btn-outline-secondary" href="{{ route('master.escolas.edit', $e) }}">Editar</a>
-        <form action="{{ route('master.escolas.destroy', $e) }}" method="post" class="d-inline" onsubmit="return confirm('Excluir esta escola?');">
-          @csrf @method('DELETE')
-          <button class="btn btn-sm btn-outline-danger">Excluir</button>
-        </form>
+        @if($e->id !== 1)
+            <form action="{{ route('master.escolas.destroy', $e) }}" method="post" class="d-inline" onsubmit="return confirm('Excluir esta escola?');">
+              @csrf @method('DELETE')
+              <button class="btn btn-sm btn-outline-danger">Excluir</button>
+            </form>
+        @else
+            <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir a escola principal">🔒</button>
+        @endif
       </td>
     </tr>
   @empty

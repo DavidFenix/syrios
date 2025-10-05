@@ -14,6 +14,34 @@ class UsuarioController extends Controller
 {
     public function index()
     {
+        // Obtém o ID da escola atual da sessão
+        $currentSchoolId = session('current_school_id');
+
+        // Verifica se há uma escola selecionada
+        if (!$currentSchoolId) {
+            return redirect()->route('home')->with('error', 'Nenhuma escola selecionada no momento.');
+        }
+
+        // Busca a escola (secretaria) correspondente
+        $secretaria = Escola::find($currentSchoolId);
+
+        // Garante que seja válida
+        if (!$secretaria) {
+            return redirect()->route('home')->with('error', 'Escola atual não encontrada.');
+        }
+
+        // Pega todos os usuários das escolas filhas da secretaria atual
+        $usuarios = Usuario::whereIn('school_id', $secretaria->filhas()->pluck('id'))
+            ->with(['escola', 'roles'])
+            ->get();
+
+        return view('secretaria.usuarios.index', compact('usuarios', 'secretaria'));
+    }
+
+
+    /*
+    public function index()
+    {
         $secretaria = auth()->user()->escola;
 
         if (!$secretaria) {
@@ -26,7 +54,7 @@ class UsuarioController extends Controller
             ->get();
 
         return view('secretaria.usuarios.index', compact('usuarios','secretaria'));
-    }
+    }*/
 
     public function create()
     {

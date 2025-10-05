@@ -21,7 +21,7 @@
             <th>CPF</th>
             <th>Status</th>
             <th>Escola</th>
-            <th>Roles</th>
+            <th>Papel</th>
             <th>Ações</th>
         </tr>
     </thead>
@@ -37,11 +37,19 @@
                     {{ $usuario->roles->pluck('role_name')->implode(', ') }}
                 </td>
                 <td>
-                    <a href="{{ route('master.usuarios.edit', $usuario->id) }}" class="btn btn-warning btn-sm">Editar</a>
-                    <form action="{{ route('master.usuarios.destroy', $usuario->id) }}" method="POST" style="display:inline-block;">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Excluir este usuário?')">Excluir</button>
-                    </form>
+                    <a href="{{ route('master.usuarios.edit', $usuario->id) }}" class="btn btn-warning btn-sm">Dados</a>
+                    <a href="{{ route('master.usuarios.roles.edit', $usuario) }}" class="btn btn-sm btn-warning">Papeis</a>
+                    @if($usuario->id !== auth()->id())
+                        
+                        <form action="{{ route('master.usuarios.destroy', $usuario->id) }}" method="POST" style="display:inline-block;">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Excluir este usuário?')">Excluir</button>
+                        </form>
+                    @else
+                    
+                    <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir a si mesmo">🔒</button>
+                    @endif
+
                 </td>
             </tr>
         @endforeach
