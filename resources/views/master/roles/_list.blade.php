@@ -6,7 +6,7 @@
         <tr>
             <th>ID</th>
             <th>Nome da Role</th>
-            <th>Ações</th>
+            <!--th>Ações</th-->
         </tr>
     </thead>
     <tbody>
@@ -14,13 +14,13 @@
             <tr>
                 <td>{{ $role->id }}</td>
                 <td>{{ $role->role_name }}</td>
-                <td>
+                <!--td>
                     <a href="{{ route('master.roles.edit', $role->id) }}" class="btn btn-warning btn-sm">Editar</a>
                     <form action="{{ route('master.roles.destroy', $role->id) }}" method="POST" style="display:inline-block;">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Excluir esta role?')">Excluir</button>
                     </form>
-                </td>
+                </td-->
             </tr>
         @endforeach
     </tbody>

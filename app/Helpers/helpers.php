@@ -2,6 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 
+if (!function_exists('prefix')) {
+    function prefix(string $basename): string
+    {
+        $prefix = config('prefix.tabelas', 'syrios_');
+        return $prefix . $basename;
+    }
+}
+
 if (!function_exists('dashboard_route')) {
     function dashboard_route()
     {
@@ -53,6 +61,8 @@ if (!function_exists('dashboard_route')) {
         // 👉 Último recurso: pedir para escolher contexto
         return route('choose.school');
     }
+
+
 }
 
 

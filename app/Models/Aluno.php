@@ -2,9 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Aluno extends BaseModel
 {   
 
+    use HasFactory;
+    
     protected $basename = 'aluno'; // vira syrios_aluno
     protected $primaryKey = 'id';
 

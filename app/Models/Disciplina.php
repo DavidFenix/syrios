@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Disciplina extends BaseModel
 {
+    use HasFactory;
+    
     protected $basename = 'disciplina';
 
     protected $fillable = [

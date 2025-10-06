@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Professor extends BaseModel
 {
+    use HasFactory;
+    
     protected $basename = 'professor';
 
     protected $primaryKey = 'id';
