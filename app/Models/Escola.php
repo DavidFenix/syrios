@@ -28,6 +28,16 @@ class Escola extends BaseModel
         'is_master' => 'boolean', // 👈 converte automaticamente para true/false
     ];
 
+    protected static function booted()
+    {
+        static::deleting(function ($escola) {
+            if ($escola->is_master) {
+                return false; // bloqueia exclusão
+            }
+        });
+    }
+
+
     // 🔎 Novo escopo de filtro
     public function scopeFiltrar($query, ?string $tipo)
     {

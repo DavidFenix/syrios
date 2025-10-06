@@ -104,9 +104,11 @@ class FullDevSeeder extends Seeder
 
             // 🔹 6) Turmas, Alunos e Enturmação
             $nomesTurmas = ['1ª Série A', '1ª Série B', '1ª Série C', '1ª Série D'];
+            $faker = \Faker\Factory::create('pt_BR'); // inicializa o Faker apenas uma vez
+
             foreach ($todasEscolas as $escola) {
                 foreach ($nomesTurmas as $nomeTurma) {
-                    $turno = fake()->randomElement(['Integral', 'Noturno']);
+                    $turno = $faker->randomElement(['Integral', 'Noturno']);
                     $turma = Turma::factory()->create([
                         'school_id' => $escola->id,
                         'serie_turma' => $nomeTurma,
@@ -146,11 +148,31 @@ class FullDevSeeder extends Seeder
                 Professor::create(['usuario_id' => $prof->id, 'school_id' => $escola->id]);
             }
 
+            // Garante pelo menos 1 professor por escola
+            foreach ($todasEscolas as $escola) {
+                if (DB::table(prefix('professor'))->where('school_id', $escola->id)->count() == 0) {
+                    $prof = Usuario::factory()->create(['school_id' => $escola->id]);
+                    $this->attachRole($prof->id, 2, $escola->id);
+                    DB::table(prefix('professor'))->insert([
+                        'usuario_id' => $prof->id,
+                        'school_id'  => $escola->id,
+                    ]);
+                    $this->command->warn("👨‍🏫 Professor criado para escola ID {$escola->id}");
+                }
+            }
+
+
             // 🔹 9) Ofertas (professores + disciplinas + turmas)
             foreach ($todasEscolas as $escola) {
                 $disciplinasIds = DB::table(prefix('disciplina'))->where('school_id', $escola->id)->pluck('id');
                 $turmasIds = DB::table(prefix('turma'))->where('school_id', $escola->id)->pluck('id');
                 $profIds = DB::table(prefix('professor'))->where('school_id', $escola->id)->pluck('id');
+
+                // ⚠️ Se a escola não tiver professores, pula
+                if ($profIds->isEmpty()) {
+                    $this->command->warn("⏩ Nenhum professor na escola ID {$escola->id}, pulando ofertas.");
+                    continue;
+                }
 
                 foreach ($turmasIds as $turmaId) {
                     foreach ($disciplinasIds as $discId) {
@@ -165,10 +187,19 @@ class FullDevSeeder extends Seeder
                 }
             }
 
+
             // 🔹 10) Diretor de turma
             $todasTurmas = DB::table(prefix('turma'))->get();
+
             foreach ($todasTurmas as $turma) {
                 $ofertas = DB::table(prefix('oferta'))->where('turma_id', $turma->id)->get();
+
+                // ⚠️ Pula turmas sem ofertas
+                if ($ofertas->isEmpty()) {
+                    $this->command->warn("⏩ Turma ID {$turma->id} sem ofertas — pulando diretor de turma.");
+                    continue;
+                }
+
                 $profEscolhido = $ofertas->random()->professor_id;
 
                 DB::table(prefix('diretor_turma'))->insertOrIgnore([
@@ -177,6 +208,7 @@ class FullDevSeeder extends Seeder
                     'school_id' => $turma->school_id,
                 ]);
             }
+
 
             $this->command->info('✅ FullDevSeeder executado com sucesso! Sistema completo gerado.');
         });

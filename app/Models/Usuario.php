@@ -25,6 +25,16 @@ class Usuario extends BaseAuthModel
         'is_super_master' => 'boolean',
     ];
 
+    protected static function booted()
+    {
+        static::deleting(function ($usuario) {
+            if ($usuario->is_super_master) {
+                return false; // bloqueia exclusão
+            }
+        });
+    }
+
+
     //protected $hidden = ['senha_hash'];
     protected $hidden = [
         'senha_hash', 'remember_token',
