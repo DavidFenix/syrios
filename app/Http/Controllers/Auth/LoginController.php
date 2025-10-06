@@ -78,7 +78,6 @@ class LoginController extends Controller
             'secretaria' => route('secretaria.dashboard'),
             'escola'     => route('escola.dashboard'),
             'professor'  => route('professor.dashboard'),
-            //'professor'  => '/', // 🔥 por enquanto vai para home ou página neutra
             default      => '/',
         };
     }
