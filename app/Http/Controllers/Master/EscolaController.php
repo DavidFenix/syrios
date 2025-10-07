@@ -56,6 +56,27 @@ class EscolaController extends Controller
 
     public function edit(Escola $escola)
     {
+        
+        $auth = auth()->user();
+
+        // 🔒 Proteção 1: regra:impede que qualquer usuário não super master edite a escola master
+        if ($escola->is_master && !$auth->is_super_master) {
+            return redirect()
+                ->route('master.escolas.index')
+                ->with('error', 'Apenas o Super Master pode editar a escola principal.');
+        }
+
+        // 🧩 regra:Bloqueia edição da escola master por não-super_master
+        // if ($escola->is_master) {
+        //     $usuario = auth()->user();
+
+        //     if (!$usuario || !$usuario->is_super_master) {
+        //         return redirect()
+        //             ->route('master.escolas.index')
+        //             ->with('error', 'A escola principal só pode ser editada pelo Super Master.');
+        //     }
+        // }
+
         $maes = Escola::whereNull('secretaria_id')
             ->where('id', '<>', $escola->id)
             ->orderBy('nome_e')->get();
@@ -65,6 +86,27 @@ class EscolaController extends Controller
 
     public function update(Request $request, Escola $escola)
     {
+        
+        $auth = auth()->user();
+
+        // 🔒 regra:Bloqueia alteração na escola master, exceto pelo Super Master
+        if ($escola->is_master && !$auth->is_super_master) {
+            return redirect()
+                ->route('master.escolas.index')
+                ->with('error', 'Apenas o Super Master pode atualizar a escola principal.');
+        }
+
+        // 🧩 regra:Bloqueia atualização da escola master por não-super_master
+        // if ($escola->is_master) {
+        //     $usuario = auth()->user();
+
+        //     if (!$usuario || !$usuario->is_super_master) {
+        //         return redirect()
+        //             ->route('master.escolas.index')
+        //             ->with('error', 'A escola principal só pode ser alterada pelo Super Master.');
+        //     }
+        // }
+
         //regra:validar os dados
         $data = $request->validate([
             'nome_e'       => 'required|string|max:150',
@@ -91,6 +133,15 @@ class EscolaController extends Controller
 
     public function destroy(Escola $escola)
     {
+        $auth = auth()->user();
+
+        // 🔒 Impede excluir a escola master (qualquer usuário)
+        if ($escola->is_master) {
+            return redirect()
+                ->route('master.escolas.index')
+                ->with('error', 'A escola principal não pode ser excluída.');
+        }
+        
         // regra:DELETE SEGURO; evita quebrar FKs
         $deps = [
             'usuarios'      => DB::table('syrios_usuario')->where('school_id', $escola->id)->count(),
@@ -120,13 +171,18 @@ class EscolaController extends Controller
         }
 
         // 🔒 regra:Impede excluir a escola master
-        if($escola->is_master){
-            return redirect()->route('master.escolas.index')->with('error', 'Não é permitir excluir Escola Master!');
-        }else{
-            $escola->delete();
+        if ($escola->is_master) {
+            return redirect()
+                ->route('master.escolas.index')
+                ->with('error', 'A escola master não pode ser excluída.');
         }
-        
-        return redirect()->route('master.escolas.index')->with('success', 'Escola excluída!');
+
+        $escola->delete();
+
+        return redirect()
+            ->route('master.escolas.index')
+            ->with('success', 'Escola excluída!');
+
     }
 
     public function associarFilha(Request $request)
@@ -170,17 +226,6 @@ class EscolaController extends Controller
             'nomeMae'
         ));
     }
-
-
-    /*
-    public function associacoes()
-    {
-        $maes = Escola::whereNull('secretaria_id')->get();
-        $filhas = Escola::whereNotNull('secretaria_id')->get();
-
-        return view('master.escolas.associacoes', compact('maes', 'filhas'));
-    }
-    */
 
     //passo 2: esta função foi chamada pela rota ../master/escolas-associacoes2
     //ao terminar vai retornar compact(dados) para a view /master/escolas/associacoes2.blade.php

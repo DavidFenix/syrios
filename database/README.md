@@ -42,6 +42,21 @@ Executar o DevSeeder automaticamente.
 
 sempre tive interesse em criar testes automatizado para tornar o sistema a prova de falhas mas nunca tentei fazer isso por falta de tempo para pesquisar e ler sobre o assunto
 
+--------------------------------------------------------------------------
+testes rodados com sucesso:
+	set TEST_PREFIX=master. && php artisan test --filter=MasterFullProtectionBehaviorTest
+	set TEST_PREFIX=master. && php artisan test --filter=MasterSecurityBehaviorTest
+-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
 “Usuário está desenvolvendo o sistema Laravel Syrios, com prefixo de tabelas dinâmico (syrios_), migrations, factories e seeders completos, e está atualmente refinando o FullDevSeeder com lógica de relacionamentos automáticos entre escolas, usuários e papéis.”
 
 “Vamos continuar o projeto Laravel Syrios. Estamos na parte do FullDevSeeder, já com prefixo dinâmico e relacionamentos entre escolas, usuários e roles.”

@@ -32,15 +32,57 @@
       <td>{{ $e->cnpj }}</td>
       <td>{{ optional($e->mae)->nome_e }}</td>
       <td class="text-end">
-        <a class="btn btn-sm btn-outline-secondary" href="{{ route('master.escolas.edit', $e) }}">Editar</a>
-        @if($e->id !== 1)
-            <form action="{{ route('master.escolas.destroy', $e) }}" method="post" class="d-inline" onsubmit="return confirm('Excluir esta escola?');">
-              @csrf @method('DELETE')
-              <button class="btn btn-sm btn-outline-danger">Excluir</button>
+        @php
+            $auth = auth()->user();
+        @endphp
+
+        {{--regra:Bloqueia edição da escola master por usuario não-super_master--}}
+        {{-- Se for escola normal --}}
+        @if(!$e->is_master)
+            <a class="btn btn-sm btn-outline-secondary"
+               href="{{ route('master.escolas.edit', $e) }}">
+                Editar
+            </a>
+            <form action="{{ route('master.escolas.destroy', $e) }}" method="post"
+                  class="d-inline"
+                  onsubmit="return confirm('Excluir esta escola?');">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-outline-danger">Excluir</button>
             </form>
+
+        {{-- Se for a escola master --}}
         @else
-            <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir a escola principal">🔒</button>
+           @if($auth && $auth->is_super_master)
+                <a class="btn btn-sm btn-warning"
+                   href="{{ route('master.escolas.edit', $e) }}"
+                   title="Editar escola principal (apenas Super Master)">
+                    ⚙️ Editar Master
+                </a>
+            @else
+                <button class="btn btn-sm btn-secondary" disabled
+                        title="Somente o Super Master pode editar a escola principal">
+                    🔒
+                </button>
+            @endif
         @endif
+
+
+        {{--
+        @if(!$e->is_master)
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('master.escolas.edit', $e) }}">Editar</a>
+            @if($e->id !== 1)
+                <form action="{{ route('master.escolas.destroy', $e) }}" method="post" class="d-inline" onsubmit="return confirm('Excluir esta escola?');">
+                  @csrf @method('DELETE')
+                  <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                </form>
+            @else
+                <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir a escola principal">🔒</button>
+            @endif
+        @else
+            <button class="btn btn-sm btn-secondary" disabled title="A escola principal não pode ser editada nem excluída">
+                🔒
+            </button>
+        @endif--}}
       </td>
     </tr>
   @empty

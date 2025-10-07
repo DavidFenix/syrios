@@ -22,10 +22,14 @@
             <th>Status</th>
             <th>Escola</th>
             <th>Papel</th>
-            <th>Ações</th>
+            <th class="text-end">Ações</th>
         </tr>
     </thead>
     <tbody>
+        @php
+            $auth = auth()->user();
+        @endphp
+
         @foreach($usuarios as $usuario)
             <tr>
                 <td>{{ $usuario->id }}</td>
@@ -33,35 +37,72 @@
                 <td>{{ $usuario->cpf }}</td>
                 <td>{{ $usuario->status ? 'Ativo' : 'Inativo' }}</td>
                 <td>{{ $usuario->escola->nome_e ?? '-' }}</td>
-                <td>
-                    {{ $usuario->roles->pluck('role_name')->implode(', ') }}
-                </td>
-                <td>
-                    <a href="{{ route('master.usuarios.edit', $usuario->id) }}" class="btn btn-warning btn-sm">Dados</a>
-                    <a href="{{ route('master.usuarios.roles.edit', $usuario) }}" class="btn btn-sm btn-warning">Papeis</a>
-                    {{--regra:impedir que usuário exclua a si mesmo--}}
-                    @if($usuario->id !== auth()->id())
-                        @if($usuario->is_super_master)
-                            <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir usuário super master">🔒</button>
-                        @else
-                            <form action="{{ route('master.usuarios.destroy', $usuario->id) }}" method="POST" style="display:inline-block;">
+                <td>{{ $usuario->roles->pluck('role_name')->implode(', ') }}</td>
+
+                {{-- ✅ célula correta para ações --}}
+                <td class="text-end">
+
+                    {{-- 🚫 regra: Impede o usuário de excluir a si mesmo --}}
+                    @if($auth && $auth->id === $usuario->id)
+                        <a href="{{ route('master.usuarios.edit', $usuario) }}" class="btn btn-sm btn-outline-secondary">
+                            Editar
+                        </a>
+                        <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir sua própria conta">
+                            🔒
+                        </button>
+
+                    {{-- 🔒 regra: Super Master (proteções especiais) --}}
+                    @elseif($usuario->is_super_master)
+                        @if($auth && $auth->is_super_master && $auth->id !== $usuario->id)
+                            {{-- Super Master pode gerenciar outros Super Masters (não a si mesmo) --}}
+                            <a href="{{ route('master.usuarios.edit', $usuario) }}" class="btn btn-sm btn-warning" title="Editar Super Master">
+                                ⚙️ Editar Master
+                            </a>
+                            <form action="{{ route('master.usuarios.destroy', $usuario) }}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Excluir o Super Master?');">
                                 @csrf @method('DELETE')
-                                <!--button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Excluir este usuário?')">Excluir</button-->
-                                <a href="{{ route('master.usuarios.confirmDestroy', $usuario) }}" class="btn btn-sm btn-outline-danger">🗑</a>
-
-
+                                <button class="btn btn-sm btn-outline-danger">Excluir</button>
                             </form>
+                        @elseif($auth && $auth->id === $usuario->id)
+                            {{-- Ele mesmo --}}
+                            <a href="{{ route('master.usuarios.edit', $usuario) }}" class="btn btn-sm btn-warning">
+                                ⚙️ Editar Master
+                            </a>
+                            <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir sua própria conta">
+                                🔒
+                            </button>
+                        @else
+                            {{-- Qualquer outro tipo de usuário --}}
+                            <button class="btn btn-sm btn-secondary" disabled title="Somente o Super Master pode editar ou excluir este usuário">
+                                🔒
+                            </button>
                         @endif
+
+                    {{-- 🔒 regra: Um Master comum não pode editar ou excluir outro Master --}}
+                    @elseif($usuario->roles->pluck('role_name')->contains('master') && !$auth->is_super_master)
+                        <button class="btn btn-sm btn-secondary" disabled title="Apenas o Super Master pode gerenciar outros Masters">
+                            🔒
+                        </button>
+
+                    {{-- ✅ regra: Usuário comum (permitido editar/excluir) --}}
                     @else
-                    
-                        <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir a si mesmo">🔒</button>
+                        <a href="{{ route('master.usuarios.edit', $usuario) }}" class="btn btn-sm btn-outline-secondary">
+                            Editar
+                        </a>
+                        <form action="{{ route('master.usuarios.destroy', $usuario) }}" method="post" class="d-inline"
+                              onsubmit="return confirm('Excluir este usuário?');">
+                            @csrf @method('DELETE')
+                            <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                        </form>
                     @endif
 
                 </td>
+
             </tr>
         @endforeach
     </tbody>
 </table>
+
 
 
 {{-- Lista de Usuários -}}
