@@ -18,9 +18,13 @@ class DatabaseSeeder extends Seeder
             OcorrenciaSeeder::class,
             SessaoSeeder::class,
             VisaoAlunoSeeder::class,
+
+            // ✅ Adicione esta linha:
+            FullDevSeeder::class,
         ]);
     }
 }
+
 
 
 

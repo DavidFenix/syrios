@@ -32,6 +32,9 @@ class MasterSecurityBehaviorTest extends TestCase
         // 🔄 Garante ambiente de sessão e banco limpo
         $this->startSession();
 
+        // 🔹 Recria a base completa de desenvolvimento dentro do banco de teste
+        $this->artisan('db:seed', ['--class' => 'FullDevSeeder']);
+
         $rawPrefix = env('TEST_PREFIX', 'master.');
         $cleanPrefix = preg_replace('/[^a-zA-Z0-9_]+/', '', $rawPrefix);
         $this->prefix = $cleanPrefix . '.';

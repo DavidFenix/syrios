@@ -43,9 +43,13 @@ Executar o DevSeeder automaticamente.
 sempre tive interesse em criar testes automatizado para tornar o sistema a prova de falhas mas nunca tentei fazer isso por falta de tempo para pesquisar e ler sobre o assunto
 
 --------------------------------------------------------------------------
+cd c:\wamp64\www\syrios
 testes rodados com sucesso:
 	set TEST_PREFIX=master. && php artisan test --filter=MasterFullProtectionBehaviorTest
 	set TEST_PREFIX=master. && php artisan test --filter=MasterSecurityBehaviorTest
+
+agora posso rodar assim, para executar todos os testes de uma vez só:
+	php artisan test
 -------------------------------------------------------------------------
 
 
@@ -66,3 +70,7 @@ testes rodados com sucesso:
 você está desenvolvendo o sistema Laravel Syrios com prefixo dinâmico e está na fase de seeders complexos (FullDevSeeder, relacionamentos automáticos, multi-roles)?
 
 “Continuar o projeto Syrios”
+
+
+
+

@@ -20,6 +20,9 @@ class MasterFullProtectionBehaviorTest extends TestCase
         // 🧠 Garante que os testes tenham uma sessão ativa
         $this->startSession();
 
+        // 🔹 Recria a base completa de desenvolvimento dentro do banco de teste
+        $this->artisan('db:seed', ['--class' => 'FullDevSeeder']);
+
         // Lê o prefixo e remove todos os espaços e pontos extras antes/depois
         $rawPrefix = env('TEST_PREFIX', 'master.');
         
