@@ -47,6 +47,9 @@
                         <a href="{{ route('master.usuarios.edit', $usuario) }}" class="btn btn-sm btn-outline-secondary">
                             Editar
                         </a>
+                        <a href="{{ route('master.usuarios.roles.edit', $usuario) }}" class="btn btn-sm btn-outline-secondary">
+                            Roles
+                        </a>
                         <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir sua própria conta">
                             🔒
                         </button>
@@ -55,18 +58,24 @@
                     @elseif($usuario->is_super_master)
                         @if($auth && $auth->is_super_master && $auth->id !== $usuario->id)
                             {{-- Super Master pode gerenciar outros Super Masters (não a si mesmo) --}}
-                            <a href="{{ route('master.usuarios.edit', $usuario) }}" class="btn btn-sm btn-warning" title="Editar Super Master">
+                            <!--a href="{{ route('master.usuarios.edit', $usuario) }}" class="btn btn-sm btn-warning" title="Editar Super Master">
                                 ⚙️ Editar Master
+                            </a>
+                            <a href="{{ route('master.usuarios.roles.edit', $usuario) }}" class="btn btn-sm btn-outline-secondary">
+                                Roles
                             </a>
                             <form action="{{ route('master.usuarios.destroy', $usuario) }}" method="post" class="d-inline"
                                   onsubmit="return confirm('Excluir o Super Master?');">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-outline-danger">Excluir</button>
-                            </form>
+                            </form-->
                         @elseif($auth && $auth->id === $usuario->id)
                             {{-- Ele mesmo --}}
                             <a href="{{ route('master.usuarios.edit', $usuario) }}" class="btn btn-sm btn-warning">
                                 ⚙️ Editar Master
+                            </a>
+                            <a href="{{ route('master.usuarios.roles.edit', $usuario) }}" class="btn btn-sm btn-outline-secondary">
+                                Roles
                             </a>
                             <button class="btn btn-sm btn-secondary" disabled title="Você não pode excluir sua própria conta">
                                 🔒
@@ -88,6 +97,9 @@
                     @else
                         <a href="{{ route('master.usuarios.edit', $usuario) }}" class="btn btn-sm btn-outline-secondary">
                             Editar
+                        </a>
+                        <a href="{{ route('master.usuarios.roles.edit', $usuario) }}" class="btn btn-sm btn-outline-secondary">
+                            Roles
                         </a>
                         <form action="{{ route('master.usuarios.destroy', $usuario) }}" method="post" class="d-inline"
                               onsubmit="return confirm('Excluir este usuário?');">

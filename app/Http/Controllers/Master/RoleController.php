@@ -8,33 +8,39 @@ use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    
     public function index()
     {
         $roles = Role::all();
         return view('master.roles.index', compact('roles'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public function create() {
+        abort(403, 'Criação de roles não permitida.');
+    }
+
+    public function store(Request $request) {
+        abort(403, 'Criação de roles não permitida.');
+    }
+
+    public function edit(Role $role) {
+        abort(403, 'Edição de roles não permitida.');
+    }
+
+    public function update(Request $request, Role $role) {
+        abort(403, 'Edição de roles não permitida.');
+    }
+
+    public function destroy(Role $role) {
+        abort(403, 'Exclusão de roles não permitida.');
+    }
+
+    /*
     public function create()
     {
         return view('master.roles.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -47,37 +53,16 @@ class RoleController extends Controller
                          ->with('success', 'Role criada com sucesso!');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
         //
     }
 
-    
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  Role  $role
-     * @return \Illuminate\Http\Response
-     */
     public function edit(Role $role)
     {
         return view('master.roles.edit', compact('role'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  Role  $role
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, Role $role)
     {
         $request->validate([
@@ -90,12 +75,6 @@ class RoleController extends Controller
                          ->with('success', 'Role atualizada com sucesso!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  Role  $role
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Role $role)
     {
         $role->delete();
@@ -103,5 +82,6 @@ class RoleController extends Controller
         return redirect()->route('master.roles.index')
                          ->with('success', 'Role excluída com sucesso!');
     }
+    */
 }
 

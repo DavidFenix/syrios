@@ -1,3 +1,4 @@
+{{--
 @extends('layouts.app')
 
 @section('content')
@@ -13,3 +14,4 @@
     <button type="submit" class="btn btn-success">Atualizar</button>
 </form>
 @endsection
+--}}

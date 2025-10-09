@@ -56,6 +56,84 @@ class EscolaController extends Controller
 
     public function edit(Escola $escola)
     {
+        $auth = auth()->user();
+
+        // 🔒 Regra 1: regra:apenas Super Master pode editar a escola master
+        if ($escola->is_master && !$auth->is_super_master) {
+            return redirect()
+                ->route('master.escolas.index')
+                ->with('error', 'Apenas o Super Master pode editar a escola principal.');
+        }
+
+        // 🔒 Regra 2: regra:se for uma secretaria, o select de mãe não deve ser exibido
+        // (a view já faz isso, mas filtramos aqui também)
+        $maes = Escola::whereNull('secretaria_id')
+            ->where('id', '<>', $escola->id)
+            ->orderBy('nome_e')
+            ->get();
+
+        return view('master.escolas.edit', compact('escola', 'maes'));
+    }
+
+    public function update(Request $request, Escola $escola)
+    {
+        $auth = auth()->user();
+
+        // 🔒 1) Proteção: regra:somente Super Master pode alterar escola master
+        if ($escola->is_master && !$auth->is_super_master) {
+            return redirect()
+                ->route('master.escolas.index')
+                ->with('error', 'Apenas o Super Master pode atualizar a escola principal.');
+        }
+
+        // 🔹 Validação básica
+        $data = $request->validate([
+            'nome_e'        => 'required|string|max:150',
+            'inep'          => 'nullable|string|max:20',
+            'cnpj'          => 'nullable|string|max:20',
+            'cidade'        => 'nullable|string|max:100',
+            'estado'        => 'nullable|string|max:100',
+            'endereco'      => 'nullable|string|max:255',
+            'telefone'      => 'nullable|string|max:20',
+            'secretaria_id' => 'nullable|integer|exists:syrios_escola,id',
+        ]);
+
+        // 🔒 2) regra:Uma escola não pode ser sua própria secretaria
+        if (isset($data['secretaria_id']) && (int)$data['secretaria_id'] === (int)$escola->id) {
+            return back()->withErrors(['secretaria_id' => 'Uma escola não pode ser sua própria secretaria.'])
+                         ->withInput();
+        }
+
+        // 🔒 3) regra:Se for uma secretaria (mãe), ela não pode virar filha
+        if ($escola->secretaria_id === null && isset($data['secretaria_id']) && $data['secretaria_id'] !== null) {
+            return back()->withErrors(['secretaria_id' => 'Uma secretaria não pode ser vinculada a outra.'])
+                         ->withInput();
+        }
+
+        // 🔒 4) regra:Se for uma escola (filha), ela não pode deixar de ser filha
+        if ($escola->secretaria_id !== null && empty($data['secretaria_id'])) {
+            return back()->withErrors(['secretaria_id' => 'Uma escola não pode deixar de ter secretaria.'])
+                         ->withInput();
+        }
+
+        // 🔒 5) regra:Se o usuário não for Master, ele não pode trocar de mãe
+        $isMaster = $auth->is_super_master || $auth->hasRole('master');
+        if (!$isMaster && isset($data['secretaria_id']) && $data['secretaria_id'] != $escola->secretaria_id) {
+            return back()->withErrors(['secretaria_id' => 'Apenas usuários Master podem alterar a secretaria vinculada.'])
+                         ->withInput();
+        }
+
+        // ✅ Tudo certo, atualiza
+        $escola->update($data);
+
+        return redirect()->route('master.escolas.index')
+            ->with('success', 'Instituição atualizada com sucesso!');
+    }
+
+
+
+    /*public function edit(Escola $escola)
+    {
         
         $auth = auth()->user();
 
@@ -65,17 +143,6 @@ class EscolaController extends Controller
                 ->route('master.escolas.index')
                 ->with('error', 'Apenas o Super Master pode editar a escola principal.');
         }
-
-        // 🧩 regra:Bloqueia edição da escola master por não-super_master
-        // if ($escola->is_master) {
-        //     $usuario = auth()->user();
-
-        //     if (!$usuario || !$usuario->is_super_master) {
-        //         return redirect()
-        //             ->route('master.escolas.index')
-        //             ->with('error', 'A escola principal só pode ser editada pelo Super Master.');
-        //     }
-        // }
 
         $maes = Escola::whereNull('secretaria_id')
             ->where('id', '<>', $escola->id)
@@ -95,17 +162,6 @@ class EscolaController extends Controller
                 ->route('master.escolas.index')
                 ->with('error', 'Apenas o Super Master pode atualizar a escola principal.');
         }
-
-        // 🧩 regra:Bloqueia atualização da escola master por não-super_master
-        // if ($escola->is_master) {
-        //     $usuario = auth()->user();
-
-        //     if (!$usuario || !$usuario->is_super_master) {
-        //         return redirect()
-        //             ->route('master.escolas.index')
-        //             ->with('error', 'A escola principal só pode ser alterada pelo Super Master.');
-        //     }
-        // }
 
         //regra:validar os dados
         $data = $request->validate([
@@ -130,6 +186,7 @@ class EscolaController extends Controller
         return redirect()->route('master.escolas.index')
             ->with('success', 'Instituição atualizada!');
     }
+    */
 
     public function destroy(Escola $escola)
     {

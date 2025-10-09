@@ -15,6 +15,9 @@ Facilitar a popular o banco de dados de desenvolvimento e testes, criando:
 
 ## Comandos principais
 
+cd c:\wamp64\www\syrios
+composer dump-autoload -o
+
 Popular roles e base:
 	php artisan db:seed
 
@@ -50,6 +53,9 @@ testes rodados com sucesso:
 
 agora posso rodar assim, para executar todos os testes de uma vez só:
 	php artisan test
+
+outros comandos
+	composer dump-autoload
 -------------------------------------------------------------------------
 
 
