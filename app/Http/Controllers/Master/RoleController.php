@@ -35,7 +35,7 @@ class RoleController extends Controller
         abort(403, 'Exclusão de roles não permitida.');
     }
 
-    /*
+ /*
     public function create()
     {
         return view('master.roles.create');

@@ -242,6 +242,165 @@ class EscolaController extends Controller
 
     }
 
+    /*
+    ✅ Resumo do comportamento final
+    Ação     Super Master    Master comum    Secretaria / Escola
+    Ver lista de associações            ✅   ✅   ✅
+    Associar escola à secretaria Master ✅   🚫   🚫
+    Associar escolas filhas normais     ✅   ✅   🚫
+    Ver secretarias Master no select    ✅   🚫   🚫
+    */
+    public function associarFilha(Request $request)
+    {
+        $auth = auth()->user();
+
+        // 🔒 Regra 1: apenas Master pode fazer associações
+        if (!$auth->hasRole('master') && !$auth->is_super_master) {
+            return redirect()->route('master.escolas.associacoes')
+                             ->with('error', 'Somente usuários Master podem criar associações entre escolas.');
+        }
+
+        $request->validate([
+            'mae_id' => 'required|exists:syrios_escola,id',
+            'filha_id' => 'required|exists:syrios_escola,id',
+        ]);
+
+        $mae = Escola::findOrFail($request->mae_id);
+        $filha = Escola::findOrFail($request->filha_id);
+
+        // 🔒 Regra 2: apenas Super Master pode associar escolas à secretaria Master
+        if ($mae->is_master && !$auth->is_super_master) {
+            return redirect()->route('master.escolas.associacoes')
+                             ->with('error', 'Apenas o Super Master pode associar escolas à secretaria principal.');
+        }
+
+        // 🔒 Impede loop ou autoassociação
+        if ($mae->id === $filha->id) {
+            return redirect()->route('master.escolas.associacoes')
+                             ->with('error', 'Uma escola não pode ser sua própria mãe.');
+        }
+
+        // 🔒 Impede associar secretaria (mãe) como filha
+        if ($filha->is_master) {
+            return redirect()->route('master.escolas.associacoes')
+                             ->with('error', 'Uma secretaria principal não pode ser filha de outra escola.');
+        }
+
+        // ✅ Aplica associação
+        $filha->secretaria_id = $mae->id;
+        $filha->save();
+
+        return redirect()->route('master.escolas.associacoes')
+                         ->with('success', 'Escola filha associada com sucesso!');
+    }
+
+    public function associacoes()
+    {
+        $auth = auth()->user();
+
+        // 🔍 Escolas mãe (secretarias)
+        $escolasMaeQuery = Escola::whereNull('secretaria_id');
+
+        // 🔒 Oculta a secretaria master se não for super master
+        if (!$auth->is_super_master) {
+            $escolasMaeQuery->where('is_master', 0);
+        }
+
+        $escolasMae = $escolasMaeQuery->orderBy('nome_e')->get();
+
+        // 🔍 Identifica IDs de escolas que são mães (têm filhas)
+        $idsQueSaoMae = Escola::whereNotNull('secretaria_id')
+            ->pluck('secretaria_id')
+            ->unique()
+            ->toArray();
+
+        // ✅ Escolas disponíveis como filhas:
+        // - não são secretarias principais (is_master = 0)
+        // - não são mães de ninguém (não aparecem como secretaria_id)
+        $escolasFilhasDisponiveis = Escola::where('is_master', 0)
+            ->whereNotIn('id', $idsQueSaoMae)
+            ->orderBy('nome_e')
+            ->get();
+
+        // 🔎 Mãe selecionada (para exibir suas filhas)
+        $maeSelecionada = request('mae_id');
+        $escolasFilhas = collect();
+        $nomeMae = null;
+
+        if ($maeSelecionada) {
+            $mae = Escola::find($maeSelecionada);
+            if ($mae) {
+                $nomeMae = $mae->nome_e;
+                $escolasFilhas = $mae->filhas;
+            }
+        }
+
+        return view('master.escolas.associacoes', compact(
+            'escolasMae',
+            'maeSelecionada',
+            'escolasFilhas',
+            'escolasFilhasDisponiveis',
+            'nomeMae'
+        ));
+    }
+
+
+    /*public function associacoes()
+    {
+        $auth = auth()->user();
+
+        // 🔍 Filtra escolas-mãe
+        $escolasMaeQuery = Escola::whereNull('secretaria_id');
+
+        // 🔒 Regra 2: oculta a secretaria master se não for super master
+        if (!$auth->is_super_master) {
+            $escolasMaeQuery->where('is_master', 0);
+        }
+
+        $escolasMae = $escolasMaeQuery->orderBy('nome_e')->get();
+
+        // 🔍 Escolas que **não podem** ser filhas
+        $idsQueSaoMae = Escola::whereNotNull('secretaria_id')
+            ->pluck('secretaria_id')
+            ->unique()
+            ->toArray();
+
+        // 🔍 Escolas disponíveis como filhas:
+        // - não são secretarias (secretaria_id != null)
+        // - não são mães de ninguém
+        $escolasFilhasDisponiveis = Escola::whereNull('is_master')
+            ->where(function ($q) {
+                $q->whereNull('secretaria_id')->orWhereNotNull('secretaria_id');
+            })
+            ->whereNotIn('id', $idsQueSaoMae)
+            ->where('is_master', 0)
+            ->orderBy('nome_e')
+            ->get();
+
+        // Pega mãe selecionada (via GET ?mae_id=)
+        $maeSelecionada = request('mae_id');
+        $escolasFilhas = collect();
+        $nomeMae = null;
+
+        if ($maeSelecionada) {
+            $mae = Escola::find($maeSelecionada);
+            if ($mae) {
+                $nomeMae = $mae->nome_e;
+                $escolasFilhas = $mae->filhas;
+            }
+        }
+
+        return view('master.escolas.associacoes', compact(
+            'escolasMae',
+            'maeSelecionada',
+            'escolasFilhas',
+            'escolasFilhasDisponiveis',
+            'nomeMae'
+        ));
+    }*/
+
+
+    /*
     public function associarFilha(Request $request)
     {
         $request->validate([
@@ -282,7 +441,7 @@ class EscolaController extends Controller
             'escolasFilhas',
             'nomeMae'
         ));
-    }
+    }*/
 
     //passo 2: esta função foi chamada pela rota ../master/escolas-associacoes2
     //ao terminar vai retornar compact(dados) para a view /master/escolas/associacoes2.blade.php

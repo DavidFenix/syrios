@@ -48,8 +48,7 @@ Route::prefix('master')
         Route::get('/', fn () => redirect()->route('master.dashboard'));
 
         Route::resource('escolas', MasterEscolaController::class)->except(['show']);
-        //Route::resource('roles', MasterRoleController::class);
-        Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
+        Route::resource('roles', MasterRoleController::class)->only(['index']);
         Route::resource('usuarios', MasterUsuarioController::class);
 
         // Associações Escola Mãe ↔ Escola Filha
