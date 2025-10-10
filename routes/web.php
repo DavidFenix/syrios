@@ -48,6 +48,8 @@ Route::prefix('master')
         Route::get('/', fn () => redirect()->route('master.dashboard'));
 
         Route::resource('escolas', MasterEscolaController::class)->except(['show']);
+        Route::get('escolas/{escola}/detalhes', [MasterEscolaController::class, 'detalhes'])
+    ->name('escolas.detalhes');
         Route::resource('roles', MasterRoleController::class)->only(['index']);
         Route::resource('usuarios', MasterUsuarioController::class);
 
@@ -57,7 +59,6 @@ Route::prefix('master')
 
         Route::post('usuarios/{usuario}/vincular', [MasterUsuarioController::class, 'vincular'])
     ->name('usuarios.vincular');
-
 
     // Gestão de roles específicas por usuario
     Route::get('usuarios/{usuario}/roles', [MasterUsuarioController::class, 'editRoles'])

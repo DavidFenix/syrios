@@ -1,3 +1,96 @@
+{{-- resources/views/master/escolas/_list.blade.php --}}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">🏫 Lista de Escolas e Secretarias</h4>
+  {{-- <a href="{{ route('master.escolas.create') }}" class="btn btn-success">+ Nova Escola</a> --}}
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+
+    <table id="escolasTable" class="table table-striped table-bordered align-middle w-100">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>INEP</th>
+          <th>CNPJ</th>
+          <th>Secretaria (Mãe)</th>
+          <th class="text-end">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @php $auth = auth()->user(); @endphp
+
+        @foreach($escolas as $e)
+          <tr>
+            <td>{{ $e->id }}</td>
+            <td>
+              {{ $e->nome_e }}
+              @if($e->is_master)
+                <span class="badge bg-warning text-dark ms-1">Master</span>
+              @elseif(is_null($e->secretaria_id))
+                <span class="badge bg-primary ms-1">Secretaria</span>
+              @else
+                <span class="badge bg-info ms-1">Escola</span>
+              @endif
+            </td>
+            <td>{{ $e->inep ?? '-' }}</td>
+            <td>{{ $e->cnpj ?? '-' }}</td>
+            <td>{{ optional($e->mae)->nome_e ?? '—' }}</td>
+
+            {{-- AÇÕES --}}
+            <td class="text-end">
+              @if(!$e->is_master)
+                <a href="{{ route('master.escolas.detalhes', $e->id) }}" class="btn btn-sm btn-outline-info">
+                  🔍 Detalhes
+                </a>
+                <a href="{{ route('master.escolas.edit', $e) }}" class="btn btn-sm btn-outline-secondary">
+                  Editar
+                </a>
+                <form action="{{ route('master.escolas.destroy', $e) }}" method="post" class="d-inline"
+                      onsubmit="return confirm('Excluir esta escola?');">
+                  @csrf @method('DELETE')
+                  <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                </form>
+              @else
+                @if($auth && $auth->is_super_master)
+                  <a href="{{ route('master.escolas.edit', $e) }}" class="btn btn-sm btn-warning"
+                     title="Editar escola principal (apenas Super Master)">
+                    ⚙️ Editar Master
+                  </a>
+                @else
+                  <button class="btn btn-sm btn-secondary" disabled
+                          title="Somente o Super Master pode editar a escola principal">
+                    🔒
+                  </button>
+                @endif
+              @endif
+            </td>
+          </tr>
+        @endforeach
+      </tbody>
+
+      {{-- 🔍 filtros individuais nas colunas --}}
+      <tfoot>
+        <tr>
+          <th></th>
+          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar nome"></th>
+          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar INEP"></th>
+          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar CNPJ"></th>
+          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar secretaria"></th>
+          <th></th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+
+
+
+{{--
 <form method="get" class="row g-2 mb-3">
   <div class="col-auto">
     <select name="tipo" class="form-select">
@@ -36,9 +129,13 @@
             $auth = auth()->user();
         @endphp
 
-        {{--regra:Bloqueia edição da escola master por usuario não-super_master--}}
-        {{-- Se for escola normal --}}
+        {{--regra:Bloqueia edição da escola master por usuario não-super_master-}}
+        {{-- Se for escola normal -}}
         @if(!$e->is_master)
+            <a href="{{ route('master.escolas.detalhes', $e->id) }}" 
+               class="btn btn-sm btn-outline-info">
+               🔍 Detalhes
+            </a>
             <a class="btn btn-sm btn-outline-secondary"
                href="{{ route('master.escolas.edit', $e) }}">
                 Editar
@@ -50,7 +147,7 @@
                 <button class="btn btn-sm btn-outline-danger">Excluir</button>
             </form>
 
-        {{-- Se for a escola master --}}
+        {{-- Se for a escola master -}}
         @else
            @if($auth && $auth->is_super_master)
                 <a class="btn btn-sm btn-warning"
@@ -82,7 +179,7 @@
             <button class="btn btn-sm btn-secondary" disabled title="A escola principal não pode ser editada nem excluída">
                 🔒
             </button>
-        @endif--}}
+        @endif-}}
       </td>
     </tr>
   @empty
@@ -90,7 +187,7 @@
   @endforelse
   </tbody>
 </table>
-
+--}}
 
 
 

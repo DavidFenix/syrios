@@ -71,13 +71,20 @@ class Usuario extends BaseAuthModel
 
     // Usuário tem várias roles (multi-escola)
     public function roles()
-    {
+    {   
         return $this->belongsToMany(
-            Role::class,
-            'syrios_usuario_role',
-            'usuario_id',
+            Role::class, 
+            prefix('usuario_role'), 
+            'usuario_id', 
             'role_id'
         )->withPivot('school_id');
+
+        // return $this->belongsToMany(
+        //     Role::class,
+        //     'syrios_usuario_role',
+        //     'usuario_id',
+        //     'role_id'
+        // )->withPivot('school_id');
     }
 
     // App/Models/Usuario.php

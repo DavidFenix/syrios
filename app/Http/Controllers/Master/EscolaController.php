@@ -30,6 +30,21 @@ class EscolaController extends Controller
         return view('master.escolas.index', compact('escolas', 'maes', 'filtro'));
     }
 
+    public function detalhes(Escola $escola)
+    {
+        // Busca dados completos da escola
+        $escola->load(['mae', 'filhas', 'usuarios.roles']);
+
+        // Tipo textual
+        $tipo = $escola->is_master
+            ? 'Secretaria Master'
+            : ($escola->filhas->count() > 0
+                ? 'Escola Mãe'
+                : ($escola->mae ? 'Escola Filha' : 'Escola Isolada'));
+
+        return view('master.escolas.detalhes', compact('escola', 'tipo'));
+    }
+
     public function create()
     {
         $maes = Escola::whereNull('secretaria_id')->orderBy('nome_e')->get();
