@@ -5,8 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BaseModel extends Model
 {
-    public $timestamps = false;
-
+    
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -17,4 +16,17 @@ class BaseModel extends Model
             $this->table = $prefix . $this->basename;
         }
     }
+
+    // ✅ Accessor global - data de criação formatada em pt-BR
+    public function getCreatedAtBrAttribute()
+    {
+        return $this->created_at ? $this->created_at->format('d/m/Y H:i') : null;
+    }
+
+    // ✅ Accessor global - data de atualização formatada em pt-BR
+    public function getUpdatedAtBrAttribute()
+    {
+        return $this->updated_at ? $this->updated_at->format('d/m/Y H:i') : null;
+    }
+
 }

@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
             RolesSeeder::class,
             RegStatusSeeder::class,
             DevSeeder::class,
-            RegistrosSeeder::class,
+            ModeloMotivoSeeder::class,
             UsuarioRoleSeeder::class,
             OfertaSeeder::class,
             OcorrenciaSeeder::class,

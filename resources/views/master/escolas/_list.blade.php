@@ -16,6 +16,7 @@
           <th>INEP</th>
           <th>CNPJ</th>
           <th>Secretaria (Mãe)</th>
+          <th>Data</th>
           <th class="text-end">Ações</th>
         </tr>
       </thead>
@@ -39,6 +40,7 @@
             <td>{{ $e->inep ?? '-' }}</td>
             <td>{{ $e->cnpj ?? '-' }}</td>
             <td>{{ optional($e->mae)->nome_e ?? '—' }}</td>
+            <td>{{ $e->created_at_br ?? '-' }}</td>
 
             {{-- AÇÕES --}}
             <td class="text-end">

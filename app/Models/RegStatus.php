@@ -5,8 +5,7 @@ namespace App\Models;
 class RegStatus extends BaseModel
 {
     protected $basename   = 'regstatus'; // syrios_regstatus
-    public    $timestamps = false;
-
+    
     protected $fillable = [
         'id',        // PK manual (não auto-increment)
         'descr_s',

@@ -152,7 +152,7 @@ $(document).ready(function () {
         const target = $(this).data('target');
         const container = $(target).find('ul');
         const isHidden = container.hasClass('d-none');
-
+        
         if (isHidden) {
             container.removeClass('d-none');
             $(this).text('🔽 Ocultar filhas');

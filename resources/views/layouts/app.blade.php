@@ -170,22 +170,30 @@
     @yield('content')
 </div>
 
+{{-- ✅ jQuery primeiro --}}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+{{-- ✅ Depois Bootstrap --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-
-{{-- DataTables --}}
+{{-- ✅ DataTables (depois do jQuery e do Bootstrap) --}}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+
 <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
+{{-- ✅ Script local de inicialização --}}
 <script src="{{ asset('js/datatables-init.js') }}"></script>
 
+{{-- ✅ Scripts adicionados via @push('scripts') nos blades --}}
+@stack('scripts')
 
 </body>
 </html>
+
 

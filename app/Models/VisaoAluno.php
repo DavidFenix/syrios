@@ -5,8 +5,7 @@ namespace App\Models;
 class VisaoAluno extends BaseModel
 {
     protected $basename   = 'visao_aluno'; // syrios_visao_aluno
-    public    $timestamps = false;
-
+    
     protected $fillable = [
         'aluno_id',
         'dat_ult_visao',

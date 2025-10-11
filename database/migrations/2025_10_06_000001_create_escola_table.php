@@ -17,9 +17,10 @@ return new class extends Migration
             $table->string('estado', 100)->nullable();
             $table->string('endereco', 255)->nullable();
             $table->string('telefone', 20)->nullable();
-            $table->timestamp('criado_em')->useCurrent()->nullable();
+            //$table->timestamp('criado_em')->useCurrent()->nullable();
             $table->unsignedBigInteger('secretaria_id')->nullable();
             $table->boolean('is_master')->default(0);
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->foreign('secretaria_id')
                 ->references('id')

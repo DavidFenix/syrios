@@ -8,10 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create(prefix('registros'), function (Blueprint $table) {
+        Schema::create(prefix('modelo_motivo'), function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('school_id');
             $table->string('descr_r', 255);
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->foreign('school_id')
                 ->references('id')
@@ -22,6 +23,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(prefix('registros'));
+        Schema::dropIfExists(prefix('modelo_motivo'));
     }
 };

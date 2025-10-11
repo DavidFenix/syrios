@@ -3,6 +3,40 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\{Turma, Disciplina, Professor, Escola, Oferta};
+
+class OfertaSeeder extends Seeder
+{
+    public function run()
+    {
+        $contador = 0;
+
+        foreach (Escola::all() as $escola) {
+            $turma = Turma::where('school_id', $escola->id)->first();
+            $disc  = Disciplina::where('school_id', $escola->id)->first();
+            $prof  = Professor::where('school_id', $escola->id)->first();
+
+            if ($turma && $disc && $prof) {
+                Oferta::create([
+                    'school_id'     => $escola->id,
+                    'turma_id'      => $turma->id,
+                    'disciplina_id' => $disc->id,
+                    'professor_id'  => $prof->id,
+                    'status'        => 1,
+                ]);
+                $contador++;
+            }
+        }
+
+        $this->command->info("✅ {$contador} ofertas geradas para cada escola.");
+    }
+}
+
+
+/*
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\{Turma, Disciplina, Professor, Escola};
 
@@ -32,3 +66,4 @@ class OfertaSeeder extends Seeder
         $this->command->info('✅ Ofertas geradas para cada escola.');
     }
 }
+*/

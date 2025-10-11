@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nome_u', 100);
             $table->tinyInteger('status');
             $table->boolean('is_super_master')->default(0);
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->unique(['cpf', 'school_id'], 'uq_usuario_cpf_escola');
 

@@ -12,6 +12,7 @@ return new class extends Migration
             $table->unsignedBigInteger('usuario_id');
             $table->unsignedBigInteger('role_id');
             $table->unsignedBigInteger('school_id');
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->primary(['usuario_id', 'role_id', 'school_id']);
 

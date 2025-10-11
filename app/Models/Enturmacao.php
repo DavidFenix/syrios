@@ -5,8 +5,7 @@ namespace App\Models;
 class Enturmacao extends BaseModel
 {
     protected $basename   = 'enturmacao'; // syrios_enturmacao
-    public    $timestamps = false;
-
+    
     protected $fillable = [
         'school_id',
         'aluno_id',

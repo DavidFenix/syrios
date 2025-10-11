@@ -14,7 +14,7 @@ return new class extends Migration
             $table->unsignedBigInteger('professor_id');
             $table->unsignedBigInteger('aluno_id');
             $table->unsignedBigInteger('oferta_id');
-            $table->unsignedBigInteger('registro_id')->nullable();
+            $table->unsignedBigInteger('modelo_motivo_id')->nullable();
             $table->unsignedBigInteger('status_id')->default(1);
             $table->dateTime('data_ocorrencia')->useCurrent();
             $table->text('descricao');
@@ -26,10 +26,11 @@ return new class extends Migration
             $table->text('encaminhamento')->nullable();
             $table->dateTime('recebido_em')->nullable();
             $table->boolean('sync')->default(0);
-            $table->timestamp('criado_em')->useCurrent();
-            $table->timestamp('atualizado_em')->nullable()->useCurrentOnUpdate();
+            //$table->timestamp('criado_em')->useCurrent();
+            //$table->timestamp('atualizado_em')->nullable()->useCurrentOnUpdate();
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
-            $table->foreign('registro_id')->references('id')->on(prefix('registros'))->onDelete('set null');
+            $table->foreign('modelo_motivo_id')->references('id')->on(prefix('modelo_motivo'))->onDelete('set null');
             $table->foreign('professor_id')->references('id')->on(prefix('professor'))->onDelete('cascade');
             $table->foreign('aluno_id')->references('id')->on(prefix('aluno'))->onDelete('cascade');
             $table->foreign('oferta_id')->references('id')->on(prefix('oferta'))->onDelete('cascade');

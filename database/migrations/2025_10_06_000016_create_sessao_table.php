@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('usuario_id');
             $table->unsignedBigInteger('school_id');
-            $table->timestamp('criado_em')->useCurrent()->nullable();
+            //$table->timestamp('criado_em')->useCurrent()->nullable();
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->foreign('usuario_id')->references('id')->on(prefix('usuario'))->onDelete('cascade');
             $table->foreign('school_id')->references('id')->on(prefix('escola'))->onDelete('cascade');

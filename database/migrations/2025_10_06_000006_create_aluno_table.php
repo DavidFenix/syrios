@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('matricula', 10);
             $table->unsignedBigInteger('school_id');
             $table->string('nome_a', 100);
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->foreign('school_id')
                 ->references('id')

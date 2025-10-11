@@ -13,6 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('professor_id');
             $table->unsignedBigInteger('turma_id');
             $table->unsignedBigInteger('school_id');
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->unique(['professor_id', 'turma_id'], 'uq_diretor_turma');
 

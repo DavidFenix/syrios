@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create(prefix('regstatus'), function (Blueprint $table) {
             $table->id();
             $table->string('descr_s', 50);
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
         });
     }
 

@@ -222,7 +222,7 @@ class EscolaController extends Controller
             'turmas'        => DB::table('syrios_turma')->where('school_id', $escola->id)->count(),
             'disciplinas'   => DB::table('syrios_disciplina')->where('school_id', $escola->id)->count(),
             'ofertas'       => DB::table('syrios_oferta')->where('school_id', $escola->id)->count(),
-            'registros'     => DB::table('syrios_registros')->where('school_id', $escola->id)->count(),
+            'modelo_motivo'     => DB::table('syrios_modelo_motivo')->where('school_id', $escola->id)->count(),
             'enturmacao'    => DB::table('syrios_enturmacao')->where('school_id', $escola->id)->count(),
             'notificacao'   => DB::table('syrios_notificacao')->where('school_id', $escola->id)->count(),
             'sessao'        => DB::table('syrios_sessao')->where('school_id', $escola->id)->count(),

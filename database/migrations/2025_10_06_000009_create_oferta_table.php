@@ -15,6 +15,7 @@ return new class extends Migration
             $table->unsignedBigInteger('disciplina_id');
             $table->unsignedBigInteger('professor_id');
             $table->tinyInteger('status');
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->foreign('school_id')->references('id')->on(prefix('escola'))->onDelete('cascade');
             $table->foreign('turma_id')->references('id')->on(prefix('turma'))->onDelete('cascade');

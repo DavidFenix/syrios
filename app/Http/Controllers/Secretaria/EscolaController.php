@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Secretaria;
 use App\Http\Controllers\Controller;
 use App\Models\Escola;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class EscolaController extends Controller
@@ -68,6 +70,69 @@ class EscolaController extends Controller
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        // 🔒 1. Permissão: apenas usuários com role "secretaria" podem criar escolas
+        if (!$user->hasRole('secretaria')) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Você não tem permissão para criar escolas.');
+        }
+
+        // 🔒 2. Confirma que o usuário pertence a uma escola válida (secretaria)
+        $secretaria = $user->escola;
+        if (!$secretaria) {
+            return back()->with('error', 'Não foi possível identificar a secretaria vinculada ao seu usuário.');
+        }
+
+        // ✅ 3. Validação dos dados
+        $validated = $request->validate([
+            'nome_e' => 'required|string|max:150',
+            'inep'   => 'nullable|string|max:20',
+            'cnpj'   => 'nullable|string|max:20',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // ✅ 4. Cria a nova escola filha
+            $novaEscola = Escola::create([
+                'nome_e'        => $validated['nome_e'],
+                'inep'          => $validated['inep'] ?? null,
+                'cnpj'          => $validated['cnpj'] ?? null,
+                'secretaria_id' => $secretaria->id,
+            ]);
+
+            DB::commit();
+
+            // 🪵 5. Log opcional para auditoria
+            Log::info("Nova escola criada pela secretaria", [
+                'usuario_id' => $user->id,
+                'secretaria_id' => $secretaria->id,
+                'escola_id' => $novaEscola->id,
+            ]);
+
+            return redirect()
+                ->route('secretaria.escolas.index')
+                ->with('success', 'Escola criada com sucesso!');
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Erro ao criar escola', [
+                'usuario_id' => $user->id ?? null,
+                'mensagem'   => $e->getMessage(),
+            ]);
+
+            return back()
+                ->withInput()
+                ->with('error', 'Ocorreu um erro ao criar a escola. Talvez já existe uma escola cadastrada com esse CNPJ ou INEP ou são inválidos.');
+        }
+    }
+
+
+    /*public function store(Request $request)
+    {
         $secretaria = Auth::user()->escola;
 
         Escola::create([
@@ -78,7 +143,7 @@ class EscolaController extends Controller
         ]);
 
         return redirect()->route('secretaria.escolas.index')->with('success','Escola criada');
-    }
+    }*/
 
     public function edit(Escola $escola)
     {

@@ -13,6 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('aluno_id');
             $table->dateTime('dat_ult_visao')->nullable();
             $table->unsignedBigInteger('school_id');
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->foreign('aluno_id')->references('id')->on(prefix('aluno'))->onDelete('cascade');
             $table->foreign('school_id')->references('id')->on(prefix('escola'))->onDelete('cascade');

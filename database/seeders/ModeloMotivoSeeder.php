@@ -3,6 +3,46 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\{Escola, ModeloMotivo};
+
+class ModeloMotivoSeeder extends Seeder
+{
+    
+    public function run()
+    {
+        $descricoes = [
+            'Conversas paralelas durante a exposição do conteúdo',
+            'Brincadeiras durante a exposição do conteúdo',
+            'Falta de respeito com os colegas',
+            'Falta de respeito com os professores',
+            'Não fez nenhuma atividade proposta',
+            'Saiu de sala sem permissão',
+            'Mau comportamento',
+            'Não cumpriu o tempo do intervalo',
+        ];
+
+        $contador = 0;
+
+        foreach (Escola::all() as $escola) {
+            foreach ($descricoes as $texto) {
+                ModeloMotivo::create([
+                    'school_id' => $escola->id,
+                    'descr_r'   => "{$texto} ({$escola->nome_e})",
+                ]);
+                $contador++;
+            }
+        }
+
+        $this->command->info("✅ {$contador} modelo motivo criados para todas as escolas.");
+    }
+}
+
+
+
+/*
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\Escola;
 
@@ -34,7 +74,7 @@ class RegistrosSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('✅ Registros criados para todas as escolas.');
+        $this->command->info('✅ Modelo Motivo criados para todas as escolas.');
     }
 }
-
+*/

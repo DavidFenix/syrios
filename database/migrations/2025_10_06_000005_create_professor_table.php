@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('usuario_id');
             $table->unsignedBigInteger('school_id');
+            $table->timestamps(); // ✅ adiciona created_at e updated_at
 
             $table->foreign('usuario_id')
                 ->references('id')

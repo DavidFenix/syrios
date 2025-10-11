@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class Escola extends BaseModel
 {
@@ -36,7 +37,6 @@ class Escola extends BaseModel
             }
         });
     }
-
 
     // 🔎 Novo escopo de filtro
     public function scopeFiltrar($query, ?string $tipo)

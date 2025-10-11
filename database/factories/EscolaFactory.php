@@ -12,6 +12,34 @@ class EscolaFactory extends Factory
     public function definition()
     {
         return [
+            'inep'          => $this->faker->unique()->numerify('########'),
+            'cnpj'          => $this->faker->unique()->numerify('##.###.###/####-##'),
+            'nome_e'        => $this->faker->company(),
+            'cidade'        => $this->faker->city(),
+            'estado'        => $this->faker->stateAbbr(),
+            'endereco'      => $this->faker->streetAddress(),
+            'telefone'      => $this->faker->phoneNumber(),
+            'secretaria_id' => null,
+            'is_master'     => 0,
+        ];
+    }
+
+}
+
+
+/*
+namespace Database\Factories;
+
+use App\Models\Escola;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class EscolaFactory extends Factory
+{
+    protected $model = Escola::class;
+
+    public function definition()
+    {
+        return [
             'inep'         => $this->faker->unique()->numerify('########'),
             'cnpj'         => $this->faker->unique()->numerify('##.###.###/####-##'),
             'nome_e'       => $this->faker->company(),
@@ -25,3 +53,4 @@ class EscolaFactory extends Factory
         ];
     }
 }
+*/
