@@ -23,32 +23,159 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($usuarios as $usuario)
-                <tr>
+        @php
+            $currentUser = auth()->user();
+            $currentSchoolId = session('current_school_id');
+        @endphp
+
+        @foreach($usuarios as $usuario)
+            @foreach($usuario->roles as $role)
+                @php
+                    $pivotSchoolId = $role->pivot->school_id ?? $usuario->school_id;
+                    $escolaVinculo = \App\Models\Escola::find($pivotSchoolId);
+                    $isVinculado = $usuario->school_id !== $pivotSchoolId;
+
+                    // É o usuário logado com role secretaria ativa nesta escola
+                    $isSelfSecretaria = (
+                        $usuario->id === $currentUser->id &&
+                        $pivotSchoolId == $currentSchoolId &&
+                        $role->role_name === 'secretaria'
+                    );
+
+                    // É outro secretário atuando nesta secretaria
+                    $isColegaSecretaria = (
+                        $usuario->id !== $currentUser->id &&
+                        $role->role_name === 'secretaria' &&
+                        $pivotSchoolId == $currentSchoolId
+                    );
+
+                    // Se não pode excluir
+                    $naoPodeExcluir = $isSelfSecretaria || $isColegaSecretaria;
+                @endphp
+
+                <tr @if($isSelfSecretaria) class="table-warning fw-bold" @endif>
                     <td>{{ $usuario->id }}</td>
-                    <td>{{ $usuario->nome_u }}</td>
-                    <td>{{ $usuario->cpf }}</td>
-                    <td>{{ $usuario->escola->nome_e ?? '-' }}</td>
                     <td>
-                        @foreach($usuario->roles as $role)
-                            <span class="badge bg-secondary">{{ $role->role_name }}</span>
-                        @endforeach
+                        {{ $usuario->nome_u }}
+                        @if($isSelfSecretaria)
+                            <span class="text-muted ms-1">(você)</span>
+                        @endif
+                    </td>
+                    <td>{{ $usuario->cpf }}</td>
+                    <td>{{ $escolaVinculo->nome_e ?? '-' }}</td>
+                    <td>
+                        @php
+                            $badgeClass = $role->role_name === 'secretaria' ? 'bg-warning text-dark' : 'bg-secondary';
+                        @endphp
+
+                        <span class="badge {{ $badgeClass }}">
+                            {{ ucfirst($role->role_name) }}
+                            @if($isSelfSecretaria)
+                                🏛️
+                            @endif
+                        </span>
+
+                        @if($isVinculado)
+                            <span class="badge bg-info">🔗 Vinculado</span>
+                        @endif
+                    </td>
+
+                    <td class="text-end">
+                        <a href="{{ route('secretaria.usuarios.edit', $usuario) }}" 
+                           class="btn btn-sm btn-outline-secondary">Editar</a>
+
+                        @if($naoPodeExcluir)
+                            <button class="btn btn-sm btn-outline-secondary" disabled title="Você não pode excluir este vínculo.">
+                                🔒
+                            </button>
+                        @else
+                            <form action="{{ route('secretaria.usuarios.destroy', $usuario) }}" 
+                                  method="POST" 
+                                  class="d-inline"
+                                  onsubmit="return confirm('Excluir este vínculo/usuário?');">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                            </form>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+        @endforeach
+        </tbody>
+
+        {{--
+        <tbody>
+        @php
+            $currentUser = auth()->user();
+            $currentSchoolId = session('current_school_id');
+        @endphp
+
+        @foreach($usuarios as $usuario)
+            @foreach($usuario->roles as $role)
+                @php
+                    $pivotSchoolId = $role->pivot->school_id ?? $usuario->school_id;
+                    $escolaVinculo = \App\Models\Escola::find($pivotSchoolId);
+                    $isVinculado = $usuario->school_id !== $pivotSchoolId;
+
+                    // Verifica se é o usuário logado na secretaria atual
+                    $isCurrentSecretaria = (
+                        $usuario->id === $currentUser->id &&
+                        $pivotSchoolId == $currentSchoolId &&
+                        $role->role_name === 'secretaria'
+                    );
+                @endphp
+                <tr @if($isCurrentSecretaria) class="table-warning fw-bold" @endif>
+                    <td>{{ $usuario->id }}</td>
+                    <td>
+                        {{ $usuario->nome_u }}
+                        @if($isCurrentSecretaria)
+                            <span class="text-muted ms-1">(você)</span>
+                        @endif
+                    </td>
+                    <td>{{ $usuario->cpf }}</td>
+                    <td>{{ $escolaVinculo->nome_e ?? '-' }}</td>
+                    <td>
+                        @php
+                            $badgeClass = $role->role_name === 'secretaria' ? 'bg-warning text-dark' : 'bg-secondary';
+                        @endphp
+
+                        <span class="badge {{ $badgeClass }}">
+                            {{ ucfirst($role->role_name) }}
+                            @if($isCurrentSecretaria)
+                                🏛️
+                            @endif
+                        </span>
+
+                        @if($isVinculado)
+                            <span class="badge bg-info">🔗 Vinculado</span>
+                        @endif
                     </td>
                     <td class="text-end">
                         <a href="{{ route('secretaria.usuarios.edit', $usuario) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
-                        <form action="{{ route('secretaria.usuarios.destroy', $usuario) }}" method="POST" class="d-inline" onsubmit="return confirm('Excluir este usuário?');">
+                        <form action="{{ route('secretaria.usuarios.destroy', $usuario) }}" method="POST" class="d-inline" onsubmit="return confirm('Excluir este vínculo/usuário?');">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-outline-danger">Excluir</button>
                         </form>
                     </td>
                 </tr>
-            @empty
-                <tr><td colspan="6" class="text-center text-muted">Nenhum usuário encontrado.</td></tr>
-            @endforelse
+            @endforeach
+        @endforeach
         </tbody>
+        --}}
+
+
     </table>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltips = document.querySelectorAll('[title]');
+        tooltips.forEach(el => new bootstrap.Tooltip(el));
+    });
+</script>
+@endpush
 
 
 

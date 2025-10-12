@@ -29,52 +29,6 @@ class UsuarioController extends Controller
 
 
     /*
-    💡 O que este código evita
-    Situação                        Resultado
-    CPF pertence ao Super Master    ❌ Ninguém pode criar/vincular, exceto ele mesmo
-    CPF pertence a um Master        ❌ Só o próprio master ou o Super Master podem vincular/criar
-    CPF pertence a usuário comum    ✅ Permite vincular
-    Novo usuário com CPF inédito    ✅ Criação normal
-    Tentativa de criar outro Super Master   ❌ Bloqueado para todos, exceto o Super Master autenticado
-    */
-    public function vincular(Request $request, $usuarioId)
-    {
-        $usuario = Usuario::findOrFail($usuarioId);
-        $auth = auth()->user();
-
-        $request->validate([
-            'school_id' => 'required|integer',
-            'roles'     => 'array|required'
-        ]);
-
-        // 🔒 Proteções ao tentar vincular usuários sensíveis
-        if ($usuario->is_super_master && !$auth->is_super_master) {
-            return back()->with('error', 'Não é permitido vincular o Super Master a outras escolas.');
-        }
-
-        if ($usuario->roles->pluck('role_name')->contains('master') && !$auth->is_super_master) {
-            if ($auth->cpf !== $usuario->cpf) {
-                return back()->with('error', 'Apenas o próprio Master ou o Super Master podem vincular um usuário Master.');
-            }
-        }
-
-        foreach ($request->roles as $roleId) {
-            $jaTem = $usuario->roles()
-                ->where('role_id', $roleId)
-                ->wherePivot('school_id', $request->school_id)
-                ->exists();
-
-            if (!$jaTem) {
-                $usuario->roles()->attach($roleId, ['school_id' => $request->school_id]);
-            }
-        }
-
-        return redirect()
-            ->route('master.usuarios.index')
-            ->with('success', 'Usuário existente vinculado à escola selecionada!');
-    }
-
-    /*
     🧠 Novas regras incorporadas
     🚫 Ninguém pode criar (nem vincular) com o CPF de um Super Master, a não ser o próprio Super Master autenticado.
     🚫 Ninguém pode criar com CPF de um Master, a não ser o Super Master ou o próprio Master autenticado.
@@ -160,6 +114,54 @@ class UsuarioController extends Controller
             ->route('master.usuarios.index')
             ->with('success', 'Usuário criado com sucesso!');
     }
+    
+    /*
+    💡 O que este código evita
+    Situação                        Resultado
+    CPF pertence ao Super Master    ❌ Ninguém pode criar/vincular, exceto ele mesmo
+    CPF pertence a um Master        ❌ Só o próprio master ou o Super Master podem vincular/criar
+    CPF pertence a usuário comum    ✅ Permite vincular
+    Novo usuário com CPF inédito    ✅ Criação normal
+    Tentativa de criar outro Super Master   ❌ Bloqueado para todos, exceto o Super Master autenticado
+    */
+    public function vincular(Request $request, $usuarioId)
+    {
+        $usuario = Usuario::findOrFail($usuarioId);
+        $auth = auth()->user();
+
+        $request->validate([
+            'school_id' => 'required|integer',
+            'roles'     => 'array|required'
+        ]);
+
+        // 🔒 Proteções ao tentar vincular usuários sensíveis
+        if ($usuario->is_super_master && !$auth->is_super_master) {
+            return back()->with('error', 'Não é permitido vincular o Super Master a outras escolas.');
+        }
+
+        if ($usuario->roles->pluck('role_name')->contains('master') && !$auth->is_super_master) {
+            if ($auth->cpf !== $usuario->cpf) {
+                return back()->with('error', 'Apenas o próprio Master ou o Super Master podem vincular um usuário Master.');
+            }
+        }
+
+        foreach ($request->roles as $roleId) {
+            $jaTem = $usuario->roles()
+                ->where('role_id', $roleId)
+                ->wherePivot('school_id', $request->school_id)
+                ->exists();
+
+            if (!$jaTem) {
+                $usuario->roles()->attach($roleId, ['school_id' => $request->school_id]);
+            }
+        }
+
+        return redirect()
+            ->route('master.usuarios.index')
+            ->with('success', 'Usuário existente vinculado à escola selecionada!');
+    }
+
+    
 
 
     /*public function vincular(Request $request, $usuarioId)

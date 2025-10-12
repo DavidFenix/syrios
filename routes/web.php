@@ -90,6 +90,11 @@ Route::prefix('secretaria')
 
         Route::resource('escolas', SecretariaEscolaController::class)->except(['show']);
         Route::resource('usuarios', SecretariaUsuarioController::class)->except(['show']);
+
+        Route::post('usuarios/{usuario}/vincular', [SecretariaUsuarioController::class, 'vincular'])
+    ->name('usuarios.vincular');
+    
+
     });
 
 /*
