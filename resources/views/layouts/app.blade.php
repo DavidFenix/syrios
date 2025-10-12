@@ -187,6 +187,12 @@
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 
+{{--🔎 Exportar Excel/PDF: se você quer manter os botões “Excel” e “PDF”, garanta que esses 3 scripts também estejam no seu app.blade.php antes de buttons.html5.min.js:--}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+
 {{-- ✅ Script local de inicialização --}}
 <script src="{{ asset('js/datatables-init.js') }}"></script>
 

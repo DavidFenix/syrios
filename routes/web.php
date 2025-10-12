@@ -93,7 +93,13 @@ Route::prefix('secretaria')
 
         Route::post('usuarios/{usuario}/vincular', [SecretariaUsuarioController::class, 'vincular'])
     ->name('usuarios.vincular');
-    
+
+
+        Route::get('usuarios/{usuario}/roles', [SecretariaUsuarioController::class, 'editRoles'])
+        ->name('usuarios.roles.edit');
+        Route::post('usuarios/{usuario}/roles', [SecretariaUsuarioController::class, 'updateRoles'])
+        ->name('usuarios.roles.update');
+
 
     });
 

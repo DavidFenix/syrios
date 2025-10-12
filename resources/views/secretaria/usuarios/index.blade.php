@@ -22,6 +22,96 @@
                 <th class="text-end">Ações</th>
             </tr>
         </thead>
+
+        <tbody>
+        @php
+            $currentUser = auth()->user();
+            $currentSchoolId = session('current_school_id');
+        @endphp
+
+        @foreach($usuarios as $usuario)
+            @foreach($usuario->roles as $role)
+                @php
+                    $pivotSchoolId   = $role->pivot->school_id ?? $usuario->school_id;
+                    $escolaVinculo   = \App\Models\Escola::find($pivotSchoolId);
+                    $isVinculado     = $usuario->school_id !== $pivotSchoolId;
+
+                    // 🧱 Regra: o vínculo atual é a role de "secretaria" na escola ativa
+                    $isSelfSecretaria = (
+                        $usuario->id === $currentUser->id &&
+                        $pivotSchoolId == $currentSchoolId &&
+                        $role->role_name === 'secretaria'
+                    );
+
+                    // 🧱 Regra: é outro secretário da mesma secretaria ativa
+                    $isColegaSecretaria = (
+                        $usuario->id !== $currentUser->id &&
+                        $role->role_name === 'secretaria' &&
+                        $pivotSchoolId == $currentSchoolId
+                    );
+
+                    // 🔒 Só bloqueia se o vínculo for de role "secretaria" na escola ativa
+                    $naoPodeExcluir = $isSelfSecretaria || $isColegaSecretaria;
+                @endphp
+
+                <tr @if($isSelfSecretaria) class="table-warning fw-bold" @endif>
+                    <td>{{ $usuario->id }}</td>
+                    <td>
+                        {{ $usuario->nome_u }}
+                        @if($isSelfSecretaria)
+                            <span class="text-muted ms-1">(você)</span>
+                        @endif
+                    </td>
+                    <td>{{ $usuario->cpf }}</td>
+                    <td>{{ $escolaVinculo->nome_e ?? '-' }}</td>
+                    <td>
+                        @php
+                            $badgeClass = $role->role_name === 'secretaria' ? 'bg-warning text-dark' : 'bg-secondary';
+                        @endphp
+
+                        <span class="badge {{ $badgeClass }}">
+                            {{ ucfirst($role->role_name) }}
+                            @if($isSelfSecretaria)
+                                🏛️
+                            @endif
+                        </span>
+
+                        @if($isVinculado)
+                            <span class="badge bg-info">🔗 Vinculado</span>
+                        @endif
+                    </td>
+
+                    <td class="text-end">
+                        <a href="{{ route('secretaria.usuarios.edit', $usuario) }}" 
+                           class="btn btn-sm btn-outline-secondary">Editar</a>
+
+                        {{-- 🔒 Cadeado para vínculos protegidos --}}
+                        @if($naoPodeExcluir)
+                            <button class="btn btn-sm btn-outline-secondary" disabled title="Você não pode excluir este vínculo de Secretaria.">
+                                🔒
+                            </button>
+                        @else
+                            <form action="{{ route('secretaria.usuarios.destroy', $usuario) }}" 
+                                  method="POST" 
+                                  class="d-inline"
+                                  onsubmit="return confirm('Excluir este vínculo/usuário?');">
+                                @csrf @method('DELETE')
+                                {{-- Passa a escola e role que o usuário deseja excluir --}}
+                                <input type="hidden" name="school_id" value="{{ $pivotSchoolId }}">
+                                <input type="hidden" name="role_id" value="{{ $role->id }}">
+                                <button class="btn btn-sm btn-outline-danger" title="Excluir vínculo">
+                                    🗑️
+                                </button>
+                            </form>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+        @endforeach
+        </tbody>
+
+
+        {{--
         <tbody>
         @php
             $currentUser = auth()->user();
