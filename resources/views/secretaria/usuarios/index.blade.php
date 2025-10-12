@@ -11,7 +11,7 @@
 
     <a href="{{ route('secretaria.usuarios.create') }}" class="btn btn-primary mb-3">Novo Usuário</a>
 
-    <table class="table table-bordered table-striped align-middle">
+    <table class="table table-bordered table-striped align-middle" id="tabela-usuarios">
         <thead class="table-dark">
             <tr>
                 <th>ID</th>
@@ -266,6 +266,17 @@
     });
 </script>
 @endpush
+
+@push('scripts')
+<script>
+$(document).ready(function () {
+    // inicializa com o script global do public/js/datatables-init.js
+    // colunas filtráveis: Nome(1), Cidade(2), Data(3), INEP(4), CNPJ(5)
+    initDataTable('#tabela-usuarios', { order: [[1, 'asc']] }, [1, 2, 3, 4, 5]);
+});
+</script>
+@endpush
+
 
 
 
