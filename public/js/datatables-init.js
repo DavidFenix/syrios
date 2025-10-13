@@ -388,6 +388,7 @@ $(document).ready(function() {
 
     const defaultOptions = {
       responsive: true,
+      pageLength: 10, // 👈 número inicial de registros por página
       dom:
         '<"row mb-3"' +
           '<"col-md-4"l>' +
@@ -400,7 +401,7 @@ $(document).ready(function() {
           '<"col-md-7"p>' +
         '>',
       buttons: [
-        { extend: 'pageLength', text: 'Linhas' },
+        //{ extend: 'pageLength', text: 'Linhas' },
         { extend: 'copy', text: 'Copiar' },
         { extend: 'csv', text: 'CSV' },
         { extend: 'excel', text: 'Excel' },

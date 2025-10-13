@@ -89,7 +89,15 @@
   </div>
 </div>
 
-
+@push('scripts')
+<script>
+$(document).ready(function () {
+    // inicializa com o script global do public/js/datatables-init.js
+    // colunas filtráveis: Nome(1), CPF(2), Escola(3), Roles(4), CNPJ(5)
+    initDataTable('#escolasTable', { order: [[1, 'asc']] }, [1, 2, 3, 4, 5]);
+});
+</script>
+@endpush
 
 
 {{--

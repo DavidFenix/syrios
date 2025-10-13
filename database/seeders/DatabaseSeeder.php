@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
 
             // ✅ Adicione esta linha:
             FullDevSeeder::class,
+            SecretariaExemploSeeder::class, // 👈 Exemplos reais
         ]);
     }
 }

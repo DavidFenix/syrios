@@ -271,14 +271,11 @@
 <script>
 $(document).ready(function () {
     // inicializa com o script global do public/js/datatables-init.js
-    // colunas filtráveis: Nome(1), Cidade(2), Data(3), INEP(4), CNPJ(5)
-    initDataTable('#tabela-usuarios', { order: [[1, 'asc']] }, [1, 2, 3, 4, 5]);
+    // colunas filtráveis: Nome(1), CPF(2), Escola(3), Roles(4), CNPJ(5)
+    initDataTable('#tabela-usuarios', { order: [[1, 'asc']] }, [1, 2, 3, 4]);
 });
 </script>
 @endpush
-
-
-
 
 
 {{--
