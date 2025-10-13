@@ -130,6 +130,15 @@ Route::prefix('escola')
 
         // Alunos
         Route::resource('alunos', AlunoController::class)->except(['show']);
+
+
+        Route::get('usuarios/{usuario}/roles', [EscolaUsuarioController::class, 'editRoles'])
+            ->name('usuarios.roles.edit');
+        Route::post('usuarios/{usuario}/roles', [EscolaUsuarioController::class, 'updateRoles'])
+            ->name('usuarios.roles.update');
+
+
+
     });
 
 

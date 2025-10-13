@@ -5,6 +5,45 @@
 
     @if(session('usuario_existente'))
         <div class="alert alert-warning">
+            ⚠️ Este usuário já existe no sistema.
+            <form action="{{ route('escola.usuarios.vincular', session('usuario_existente')) }}" method="POST" class="mt-2">
+                @csrf
+                <label>Selecione os papéis para vincular:</label><br>
+
+                @php
+                    $usuarioExistente = \App\Models\Usuario::find(session('usuario_existente'));
+                    $rolesExistentes = $usuarioExistente
+                        ? $usuarioExistente->roles()->wherePivot('school_id', session('current_school_id'))->pluck('role_id')->toArray()
+                        : [];
+                @endphp
+
+                @foreach($roles as $role)
+                    @php $jaTem = in_array($role->id, $rolesExistentes); @endphp
+                    <div class="form-check">
+                        <input type="checkbox"
+                               name="roles[]"
+                               value="{{ $role->id }}"
+                               id="role_{{ $role->id }}"
+                               class="form-check-input"
+                               {{ $jaTem ? 'checked disabled' : '' }}>
+                        <label for="role_{{ $role->id }}" class="form-check-label">
+                            {{ ucfirst($role->role_name) }}
+                            @if($jaTem)
+                                <span class="text-muted small">(já vinculado)</span>
+                            @endif
+                        </label>
+                    </div>
+                @endforeach
+
+                <button type="submit" class="btn btn-sm btn-primary mt-3">🔗 Vincular à escola</button>
+            </form>
+        </div>
+    @endif
+
+
+    {{--
+    @if(session('usuario_existente'))
+        <div class="alert alert-warning">
             Usuário já existe no sistema.
             <form action="{{ route('escola.usuarios.vincular', session('usuario_existente')) }}" method="POST" class="mt-2">
                 @csrf
@@ -19,6 +58,7 @@
             </form>
         </div>
     @endif
+    --}}
 
 
     <form method="POST" action="{{ route('escola.usuarios.store') }}">
