@@ -1,19 +1,82 @@
+🧭 CONTEXTO: Usuário logado em uma escola
+
+O usuário da sessão (auth()->user()) está logado como gestor da escola (role escola) no contexto atual.
+
+Portanto, ele pode gerir os usuários da sua escola, mas dentro de limites.
+
+🧩 REGRAS DE EDIÇÃO — CLAREZA TOTAL
+Situação	Pode editar dados pessoais (nome, status)?	Pode alterar senha?	Pode gerenciar roles?	Observações
+👤 Usuário logado (ele mesmo)	❌ Não (mostra apenas leitura)	✅ Sim (alterar senha)	✅ Sim (pode mexer nas próprias roles permitidas, exceto escola)	Pode adicionar/remover “professor”, “aluno” etc., mas não pode remover ou mexer na role escola
+👥 Colega gestor (outro com role escola na mesma escola)	❌ Não	❌ Não	❌ Não	Não pode interferir em outro gestor
+👨‍🏫 Usuário comum (professor, aluno, pai etc.) da mesma escola	✅ Sim (nome, status, senha)	✅ Sim	✅ Sim	Pode gerenciar seus subordinados
+🧱 Usuário apenas vinculado (não criado pela escola, mas vinculado a ela)	❌ Não (modo leitura)	❌ Não	❌ Não	A escola só pode desvincular, não alterar dados
+🏛 Usuário superior (secretaria / master)	❌ Não	❌ Não	❌ Não	Intocável no nível escola
+🧱 REGRAS DE EXCLUSÃO
+Situação	Ação permitida?	Tipo de exclusão
+👤 Excluir a si mesmo	❌ Nunca	—
+👥 Excluir colega gestor (role escola na mesma escola)	❌ Nunca	—
+🧩 Excluir usuário comum criado pela escola	✅ Sim	Exclusão total (se não violar FK)
+🧩 Excluir usuário vinculado (não criado pela escola)	✅ Sim	Remove apenas o vínculo (pivot usuario_role e professor)
+🏛 Excluir secretaria / master	❌ Nunca	—
+🔐 REGRAS DE PROTEÇÃO DE ROLES
+Role	Quem pode atribuir / remover	Observações
+master	apenas super master	nível do sistema
+secretaria	apenas master	nível da secretaria
+escola	apenas secretaria	nível da escola
+professor, aluno, responsavel, etc.	gestor da escola	a escola pode livremente atribuir e remover
+(qualquer outra futura)	conforme hierarquia	manter coerência
+⚙️ CONCLUSÃO — O QUE DEVEMOS TER NAS TELAS
+🔹 Tela INDEX (listagem de usuários da escola)
+
+Mostrar editar/excluir apenas se permitido conforme tabela acima.
+
+Mostrar 🔒 para usuários protegidos.
+
+Para o usuário logado, mostrar botão especial: “Alterar senha” + “Gerenciar roles”.
+
+🔹 Tela EDIT
+
+Se for o próprio usuário, mostra apenas o campo de senha.
+
+Se for usuário comum da escola, mostra nome, status, senha.
+
+Se for colega gestor, vinculado, secretaria ou master, mostra tudo em modo leitura (view_only).
+
+🔹 Tela de ROLES
+
+Se o usuário logado editar a si mesmo:
+
+Pode marcar/desmarcar roles permitidas.
+
+O checkbox escola aparece desabilitado (cadeado).
+
+Se editar outro usuário:
+
+Aplicam-se as proteções hierárquicas (não mexer em superiores ou iguais).
+---------------------------------------------------------------------
+
 vamos para o edit
---usuario filho da escola podemos editar(nome, senha, status)
+--usuario filho da escola podemos editar(nome, senha, status) no edit.blade
 	--vamos exibir seus vinculos agrupado por escola igual fizemos em secretaria e master
-	--lá vamos colocar um botao para gerenciar as roles depois noutra pagina
+	--lá vamos colocar um botao para gerenciar as roles as roles na roles_edit
 
 --usuário apenas vinculado vamos apenas exibir seus dados
-	--lá vamos colocar um botao para gerenciar as roles depois noutra pagina
+	--lá vamos colocar um botao para gerenciar as roles na roles_edit
 
 --o proprio usuario logado na sessão pode editar (senha)
+	--e gerenciar suas roles permitidas na roles_edit exceto sua role escola
 
---seu colega que gerencia a mesma escola vamos apenas exibir seus dados
+--seu colega que gerencia a mesma escola vamos apenas 
+	--exibir seus dados na view_only
 
 --vamos proteger demais usuarios que não estão vinculados nem pertencem a escola, contra edição 
+	--exibir seus dados na view_only
 
 --faça outras regras que posso ter esquecido
 
+
+para corrigir
+--vamos deixar o usuario logado na escola alterar suas roles permitidas nessa escola, exceto a role escola, que já está protegida e só quem mexe é o secretario, que foi quem o criou
 
 
 -----------------------------------------------------------

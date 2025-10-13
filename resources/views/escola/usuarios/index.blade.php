@@ -18,24 +18,29 @@
             </tr>
         </thead>
         <tbody>
+        @php
+            $auth = auth()->user();
+            $schoolId = session('current_school_id');
+            $authTemRoleEscola = $auth->roles()
+                ->wherePivot('school_id', $schoolId)
+                ->where('role_name', 'escola')
+                ->exists();
+        @endphp
+
         @forelse($usuarios as $u)
             @php
-                $auth = auth()->user();
                 $roles = $u->roles->pluck('role_name')->toArray();
-                $isAuth = $auth->id === $u->id;
-                $temRoleEscolaAuth = $auth->roles()
-                    ->wherePivot('school_id', session('current_school_id'))
-                    ->where('role_name', 'escola')
-                    ->exists();
-                $temRoleEscolaAlvo = $u->roles()
-                    ->wherePivot('school_id', session('current_school_id'))
-                    ->where('role_name', 'escola')
-                    ->exists();
+                $ehMesmoUsuario = $auth->id === $u->id;
+                $temRoleEscolaAlvo = in_array('escola', $roles);
                 $bloqueadoPorHierarquia = in_array('master', $roles) || in_array('secretaria', $roles);
-                $naoPodeExcluir = $isAuth || ($temRoleEscolaAuth && $temRoleEscolaAlvo) || $bloqueadoPorHierarquia;
+
+                $soVisualizar = (
+                    ($authTemRoleEscola && $temRoleEscolaAlvo && !$ehMesmoUsuario)
+                    || $bloqueadoPorHierarquia
+                );
             @endphp
 
-            <tr class="{{ $isAuth ? 'table-secondary' : '' }}">
+            <tr class="{{ $ehMesmoUsuario ? 'table-secondary' : '' }}">
                 <td>{{ $u->id }}</td>
                 <td>{{ $u->nome_u }}</td>
                 <td>{{ $u->cpf }}</td>
@@ -61,26 +66,37 @@
                         <span class="badge bg-{{ $color }}">{{ ucfirst($r) }}</span>
                     @endforeach
                 </td>
-                <td class="text-end">
-                    {{-- ✏️ Editar --}}
-                    @if(!$isAuth)
-                        <a href="{{ route('escola.usuarios.edit',$u) }}" 
-                           class="btn btn-sm btn-outline-warning"
-                           title="Editar usuário">✏️</a>
-                    @else
-                        <button class="btn btn-sm btn-secondary" disabled title="Você não pode editar a si mesmo">🔒</button>
-                    @endif
 
-                    {{-- 🗑 Excluir --}}
-                    @if($naoPodeExcluir)
-                        <button class="btn btn-sm btn-secondary" disabled 
-                                title="Você não pode excluir este usuário">🔒</button>
+                <td class="text-end">
+                    {{-- Caso 1️⃣: Usuário logado (pode editar senha e roles) --}}
+                    @if($ehMesmoUsuario)
+                        <a href="{{ route('escola.usuarios.edit', $u) }}"
+                           class="btn btn-sm btn-success me-1"
+                           title="Alterar sua senha">✏️</a>
+                        <a href="{{ route('escola.usuarios.roles.edit', $u) }}"
+                           class="btn btn-sm btn-outline-primary"
+                           title="Gerenciar suas roles">⚙️</a>
+
+                    {{-- Caso 2️⃣: Protegido (master, secretaria, outro gestor) --}}
+                    @elseif($soVisualizar)
+                        <a href="{{ route('escola.usuarios.edit', $u) }}"
+                           class="btn btn-sm btn-secondary"
+                           title="Somente visualização">👁️</a>
+
+                    {{-- Caso 3️⃣: Usuário comum (professor, aluno etc.) --}}
                     @else
-                        <form action="{{ route('escola.usuarios.destroy', $u) }}" 
-                              method="POST" class="d-inline"
-                              onsubmit="return confirm('Remover este usuário ou vínculo?')">
+                        <a href="{{ route('escola.usuarios.edit', $u) }}"
+                           class="btn btn-sm btn-warning me-1"
+                           title="Editar usuário">✏️</a>
+
+                        <a href="{{ route('escola.usuarios.roles.edit', $u) }}"
+                           class="btn btn-sm btn-outline-primary me-1"
+                           title="Gerenciar roles">⚙️</a>
+
+                        <form action="{{ route('escola.usuarios.destroy', $u) }}" method="POST" class="d-inline"
+                              onsubmit="return confirm('Remover este usuário?')">
                             @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-outline-danger" title="Excluir usuário">🗑</button>
+                            <button class="btn btn-sm btn-danger" title="Excluir usuário">🗑</button>
                         </form>
                     @endif
                 </td>
@@ -97,13 +113,14 @@
 <script>
 $(document).ready(function () {
     // Aplica o DataTable com filtro nas colunas Nome(1), CPF(2), Status(3), Roles(4)
-    initDataTable('#tabela-usuarios-escola', { 
+    initDataTable('#tabela-usuarios-escola', {
         order: [[1, 'asc']],
         pageLength: 10 // inicia com 10 registros por página
     }, [1, 2, 3, 4]);
 });
 </script>
 @endpush
+
 
 
 

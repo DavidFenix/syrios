@@ -5,25 +5,55 @@
     <h1>Editar Usuário</h1>
 
     @php
+        use App\Models\Escola;
+
         $auth = auth()->user();
         $schoolId = session('current_school_id');
         $roles = $usuario->roles->pluck('role_name')->toArray();
 
         $isNativo = $usuario->school_id == $schoolId;
         $isSelf = $usuario->id === $auth->id;
+
         $temRoleEscolaAuth = $auth->roles()
             ->wherePivot('school_id', $schoolId)
             ->where('role_name', 'escola')
             ->exists();
+
         $temRoleEscolaAlvo = $usuario->roles()
             ->wherePivot('school_id', $schoolId)
             ->where('role_name', 'escola')
             ->exists();
 
-        $isVinculado = $usuario->roles()->wherePivot('school_id', $schoolId)->exists() && !$isNativo;
-        $bloqueadoPorHierarquia = in_array('master', $roles) || in_array('secretaria', $roles);
-        $somenteLeitura = (!$isNativo && !$isSelf) || $bloqueadoPorHierarquia || ($temRoleEscolaAuth && $temRoleEscolaAlvo);
+        $isVinculado = $usuario->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->exists() && !$isNativo;
+
+        $isSuperior = in_array('master', $roles) || in_array('secretaria', $roles);
+
+        // 🔒 Hierarquia de bloqueio base
+        $somenteLeitura =
+            (!$isNativo && !$isSelf) ||          // externos
+            $isSuperior ||                       // master/secretaria
+            ($temRoleEscolaAuth && $temRoleEscolaAlvo && !$isSelf); // colega gestor
+
+        // 💡 Permissões especiais
+        $podeAlterarSenha = $isSelf;
+        $podeGerenciarRoles = $isSelf || ($isNativo && !$isSuperior && !$temRoleEscolaAlvo);
+
+        // 🔓 Exceção: o próprio usuário nunca deve ser bloqueado totalmente
+        if ($isSelf) {
+            $somenteLeitura = false;
+        }
     @endphp
+
+    <pre class="bg-light p-2 small border rounded">
+$auth->id = {{ $auth->id }}
+$usuario->id = {{ $usuario->id }}
+$isSelf = {{ $isSelf ? 'true' : 'false' }}
+$podeAlterarSenha = {{ $podeAlterarSenha ? 'true' : 'false' }}
+$somenteLeitura = {{ $somenteLeitura ? 'true' : 'false' }}
+</pre>
+
 
     {{-- 🔹 Cabeçalho informativo --}}
     <div class="alert {{ $somenteLeitura ? 'alert-secondary' : 'alert-info' }}">
@@ -34,12 +64,14 @@
             <span>Usuário criado por esta escola.</span>
         @elseif($isVinculado)
             <span>Usuário apenas vinculado à sua escola.</span>
+        @elseif($isSuperior)
+            <span>Usuário de nível superior (Secretaria ou Master).</span>
         @else
-            <span>Usuário externo — não pertence nem está vinculado à sua escola.</span>
+            <span>Usuário externo — não pertence à sua escola.</span>
         @endif
     </div>
 
-    {{-- 🚫 Bloqueio total se não tiver permissão --}}
+    {{-- 🚫 Bloqueio total --}}
     @if(!$isNativo && !$isSelf && !$isVinculado)
         <div class="alert alert-danger">
             🚫 Você não tem permissão para editar este usuário.
@@ -63,16 +95,20 @@
         {{-- CPF --}}
         <div class="mb-3">
             <label class="form-label">CPF</label>
-            <input type="text" class="form-control"
-                   value="{{ $usuario->cpf }}" readonly>
+            <input type="text" class="form-control" value="{{ $usuario->cpf }}" readonly>
         </div>
 
-        {{-- Senha --}}
-        <div class="mb-3">
-            <label class="form-label">Senha (preencha se desejar alterar)</label>
-            <input type="password" name="senha" class="form-control"
-                   {{ $somenteLeitura ? 'readonly' : '' }}>
-        </div>
+        {{-- Senha (somente self) --}}
+        @if($podeAlterarSenha)
+            <div class="alert alert-info small py-2">
+                🔐 Você pode alterar sua senha aqui. Deixe em branco se não quiser mudar.
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nova senha</label>
+                <input type="password" name="senha" class="form-control" minlength="6"
+                       placeholder="Digite uma nova senha">
+            </div>
+        @endif
 
         {{-- Status --}}
         <div class="mb-3">
@@ -83,7 +119,151 @@
             </select>
         </div>
 
-        {{-- Roles agrupadas por escola --}}
+        {{-- Roles agrupadas --}}
+        <div class="mb-4">
+            <label class="form-label">Papéis (roles) por escola</label>
+
+            @forelse($usuario->roles->groupBy('pivot.school_id') as $sid => $rolesGrupo)
+                @php $escola = Escola::find($sid); @endphp
+                <div class="border rounded p-2 mb-2 bg-light">
+                    <strong>{{ $escola->nome_e ?? 'Escola desconhecida' }}</strong>
+                    <div class="mt-2">
+                        @foreach($rolesGrupo as $r)
+                            @php
+                                $color = match($r->role_name) {
+                                    'master' => 'danger',
+                                    'secretaria' => 'primary',
+                                    'escola' => 'info',
+                                    'professor' => 'success',
+                                    'aluno' => 'secondary',
+                                    default => 'light'
+                                };
+                            @endphp
+                            <span class="badge bg-{{ $color }}">{{ ucfirst($r->role_name) }}</span>
+                        @endforeach
+                    </div>
+                </div>
+            @empty
+                <p class="text-muted">Nenhum papel atribuído.</p>
+            @endforelse
+
+            {{-- Botão "Gerenciar roles" --}}
+            @if($podeGerenciarRoles && Route::has('escola.usuarios.roles.edit'))
+                <a href="{{ route('escola.usuarios.roles.edit', $usuario->id) }}"
+                   class="btn btn-outline-primary btn-sm mt-2">
+                    ⚙️ Gerenciar roles
+                </a>
+            @endif
+        </div>
+
+        {{-- Botões --}}
+        <div class="mt-4">
+            @if(!$somenteLeitura || $podeAlterarSenha)
+                <button type="submit" class="btn btn-success">💾 Salvar alterações</button>
+            @endif
+            <a href="{{ route('escola.usuarios.index') }}" class="btn btn-secondary">Voltar</a>
+        </div>
+    </form>
+</div>
+@endsection
+
+
+
+
+{{--
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <h1>Editar Usuário</h1>
+
+    @php
+        $auth = auth()->user();
+        $schoolId = session('current_school_id');
+        $roles = $usuario->roles->pluck('role_name')->toArray();
+
+        $isNativo = $usuario->school_id == $schoolId;
+        $isSelf = $usuario->id === $auth->id;
+        $temRoleEscolaAuth = $auth->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->where('role_name', 'escola')
+            ->exists();
+        $temRoleEscolaAlvo = $usuario->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->where('role_name', 'escola')
+            ->exists();
+
+        $isVinculado = $usuario->roles()->wherePivot('school_id', $schoolId)->exists() && !$isNativo;
+        $bloqueadoPorHierarquia = in_array('master', $roles) || in_array('secretaria', $roles);
+
+        $somenteLeitura = (!$isNativo && !$isSelf) || $bloqueadoPorHierarquia || ($temRoleEscolaAuth && $temRoleEscolaAlvo);
+
+    @endphp
+
+    {{-- 🔹 Cabeçalho informativo -}}
+    <div class="alert {{ $somenteLeitura ? 'alert-secondary' : 'alert-info' }}">
+        <strong>🧾 Tipo de vínculo:</strong>
+        @if($isSelf)
+            <span>Você está editando sua própria conta.</span>
+        @elseif($isNativo)
+            <span>Usuário criado por esta escola.</span>
+        @elseif($isVinculado)
+            <span>Usuário apenas vinculado à sua escola.</span>
+        @else
+            <span>Usuário externo — não pertence nem está vinculado à sua escola.</span>
+        @endif
+    </div>
+
+    {{-- 🚫 Bloqueio total se não tiver permissão -}}
+    @if(!$isNativo && !$isSelf && !$isVinculado)
+        <div class="alert alert-danger">
+            🚫 Você não tem permissão para editar este usuário.
+        </div>
+        <a href="{{ route('escola.usuarios.index') }}" class="btn btn-secondary">Voltar</a>
+        @php return; @endphp
+    @endif
+
+    <form method="POST" action="{{ route('escola.usuarios.update', $usuario) }}">
+        @csrf
+        @method('PUT')
+
+        {{-- Nome -}}
+        <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input type="text" name="nome_u" class="form-control"
+                   value="{{ old('nome_u', $usuario->nome_u) }}"
+                   {{ $somenteLeitura ? 'readonly' : '' }}>
+        </div>
+
+        {{-- CPF -}}
+        <div class="mb-3">
+            <label class="form-label">CPF</label>
+            <input type="text" class="form-control"
+                   value="{{ $usuario->cpf }}" readonly>
+        </div>
+
+        {{-- Senha -}}
+        @if($podeAlterarSenha)
+        <div class="alert alert-info small py-1">
+            🔐 Você pode alterar sua senha aqui. Deixe em branco se não quiser mudar.
+        </div>
+        @endif
+        <div class="mb-3">
+            <label class="form-label">Senha (preencha se desejar alterar)</label>
+            <input type="password" name="senha" class="form-control"
+                   {{ $somenteLeitura ? 'readonly' : '' }}>
+        </div>
+
+        {{-- Status -}}
+        <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select" {{ $somenteLeitura ? 'disabled' : '' }}>
+                <option value="1" {{ $usuario->status ? 'selected' : '' }}>Ativo</option>
+                <option value="0" {{ !$usuario->status ? 'selected' : '' }}>Inativo</option>
+            </select>
+        </div>
+
+        {{-- Roles agrupadas por escola -}}
         <div class="mb-4">
             <label class="form-label">Papéis (roles) por escola</label>
             @forelse($usuario->roles->groupBy('pivot.school_id') as $sid => $rolesGrupo)
@@ -112,7 +292,7 @@
                 <p class="text-muted">Nenhum papel atribuído.</p>
             @endforelse
 
-            {{-- Botão para gerenciar roles --}}
+            {{-- Botão para gerenciar roles -}}
             @if(Route::has('escola.usuarios.roles.edit'))
                 <a href="{{ route('escola.usuarios.roles.edit', $usuario->id) }}"
                    class="btn btn-outline-primary btn-sm mt-2">
@@ -121,7 +301,7 @@
             @endif
         </div>
 
-        {{-- Botões --}}
+        {{-- Botões -}}
         @if(!$somenteLeitura)
             <button type="submit" class="btn btn-success">💾 Salvar alterações</button>
         @endif
@@ -129,7 +309,7 @@
     </form>
 </div>
 @endsection
-
+--}}
 
 
 

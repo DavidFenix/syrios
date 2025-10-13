@@ -9,11 +9,6 @@
         <div class="alert alert-warning">{{ session('warning') }}</div>
     @endif
 
-    @php
-        $schoolId = session('current_school_id');
-        $roles = $usuario->roles->pluck('role_name')->toArray();
-    @endphp
-
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <h4 class="mb-3">📋 Dados do Usuário</h4>
@@ -40,12 +35,9 @@
         <div class="card-body">
             <h5 class="mb-3">🎓 Papéis (roles) vinculados</h5>
 
-            @forelse($usuario->roles->groupBy('pivot.school_id') as $sid => $rolesGrupo)
-                @php
-                    $escola = \App\Models\Escola::find($sid);
-                @endphp
+            @forelse($rolesPorEscola as $escola => $rolesGrupo)
                 <div class="border rounded p-2 mb-2 bg-light">
-                    <strong>{{ $escola->nome_e ?? 'Escola desconhecida' }}</strong>
+                    <strong>{{ $escola }}</strong>
                     <div class="mt-2">
                         @foreach($rolesGrupo as $r)
                             @php
@@ -68,9 +60,20 @@
         </div>
     </div>
 
-    {{-- Botão Gerenciar roles (apenas link visual) --}}
-    @if(Route::has('escola.usuarios.roles.edit'))
-        <a href="{{ route('escola.usuarios.roles.edit', $usuario->id) }}" class="btn btn-outline-primary btn-sm mt-3">
+    {{-- Botão Gerenciar roles (somente se autorizado) --}}
+    @php
+        $auth = auth()->user();
+        $self = $auth->id === $usuario->id;
+        $schoolId = session('current_school_id');
+        $authTemRoleEscola = $auth->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->where('role_name', 'escola')
+            ->exists();
+    @endphp
+
+    @if($self || $authTemRoleEscola)
+        <a href="{{ route('escola.usuarios.roles.edit', $usuario->id) }}"
+           class="btn btn-outline-primary btn-sm mt-3">
             ⚙️ Gerenciar roles
         </a>
     @endif

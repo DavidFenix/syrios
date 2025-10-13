@@ -610,7 +610,7 @@ class UsuarioController extends Controller
         Agrupamento de roles para exibição  edit()
         Redirecionamento seguro com mensagens amigáveis ✅
             */
-    public function edit(Usuario $usuario)
+    /*public function edit(Usuario $usuario)
     {
         $auth = auth()->user();
         $schoolId = session('current_school_id');
@@ -664,7 +664,7 @@ class UsuarioController extends Controller
 
         // ✅ Redireciona para view correta
         return view('escola.usuarios.edit', compact('usuario', 'rolesPorEscola'));
-    }
+    }*/
 
     public function update(Request $request, Usuario $usuario)
     {
@@ -736,7 +736,6 @@ class UsuarioController extends Controller
         return back()->with('warning', 'Usuário vinculado — apenas o proprietário pode alterar seus dados.');
     }
 
-
     /*
     🧠 Resumo lógico
         Regra   Efeito
@@ -785,9 +784,17 @@ class UsuarioController extends Controller
         // 🧱 3️⃣ Carrega apenas roles permitidas no contexto da escola
         $roles = Role::whereNotIn('role_name', ['master', 'secretaria'])->get();
 
-        return view('escola.usuarios.roles_edit', compact('usuario', 'roles', 'escolaAtual'));
-    }
+        // 🧱 4️⃣ Identifica quais roles estão ativas nesta escola
+        $rolesSelecionadas = $usuario->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->pluck('roles.id')
+            ->toArray();
 
+        return view('escola.usuarios.roles_edit', compact(
+            'usuario', 'roles', 'escolaAtual', 'rolesSelecionadas'
+        ));
+
+    }
 
     public function updateRoles(Request $request, Usuario $usuario)
     {
@@ -859,69 +866,6 @@ class UsuarioController extends Controller
         return redirect()->route('escola.usuarios.index')
             ->with('success', 'Roles do usuário atualizadas com sucesso.');
     }
-
-
-
-
-
-
-    /*public function edit(Usuario $usuario)
-    {
-        $this->authorizeEscola($usuario);
-
-        $roles = Role::whereNotIn('role_name', ['master','secretaria','escola'])->get();
-        $usuarioRoles = $usuario->roles()->pluck('role_id')->toArray();
-
-        return view('escola.usuarios.edit', compact('usuario','roles','usuarioRoles'));
-    }
-
-    public function update(Request $request, Usuario $usuario)
-    {
-        $this->authorizeEscola($usuario);
-
-        $request->validate([
-            'nome_u' => 'required|string|max:100',
-            'cpf' => 'required|string|max:11|unique:syrios_usuario,cpf,' . $usuario->id,
-            'status' => 'required|boolean',
-            'roles' => 'required|array'
-        ]);
-
-        // atualiza usuário
-        $usuario->update([
-            'cpf' => $request->cpf,
-            'nome_u' => $request->nome_u,
-            'status' => $request->status,
-        ]);
-
-        if ($request->filled('password')) {
-            $usuario->update([
-                'senha_hash' => Hash::make($request->password)
-            ]);
-        }
-
-        // sincroniza roles
-        $escolaId = auth()->user()->school_id;
-        $usuario->roles()->sync([]);
-        foreach ($request->roles as $roleId) {
-            $usuario->roles()->attach($roleId, ['school_id' => $escolaId]);
-        }
-
-        // sincroniza professor
-        $roleProfessorId = Role::where('role_name','professor')->first()->id;
-        $temProfessor = Professor::where('usuario_id', $usuario->id)->exists();
-        $querProfessor = in_array($roleProfessorId, $request->roles);
-
-        if ($temProfessor && !$querProfessor) {
-            Professor::where('usuario_id',$usuario->id)->delete();
-        } elseif (!$temProfessor && $querProfessor) {
-            Professor::create(['usuario_id'=>$usuario->id,'school_id'=>$escolaId]);
-        } elseif ($temProfessor && $querProfessor) {
-            Professor::where('usuario_id',$usuario->id)->update(['school_id'=>$escolaId]);
-        }
-
-        return redirect()->route('escola.usuarios.index')->with('success','Usuário atualizado com sucesso!');
-    }*/
-
 
     /*
     🧾 Resumo de todas as proteções aplicadas
@@ -1036,7 +980,125 @@ class UsuarioController extends Controller
         }
     }
 
+    //ultima tentativa
+    public function edit(Usuario $usuario)
+    {
+        $auth = auth()->user();
+        $schoolId = session('current_school_id');
 
+        if (!$schoolId) {
+            return redirect()->route('escola.dashboard')->with('error', 'Nenhuma escola selecionada.');
+        }
+
+        $roles = $usuario->roles->pluck('role_name')->toArray();
+
+        // 🧱 Identificações básicas
+        $isSelf = $usuario->id === $auth->id;
+        $isNativo = $usuario->school_id == $schoolId;
+        $isVinculado = $usuario->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->exists() && !$isNativo;
+
+        $authTemRoleEscola = $auth->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->where('role_name', 'escola')
+            ->exists();
+
+        $alvoTemRoleEscola = $usuario->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->where('role_name', 'escola')
+            ->exists();
+
+        $bloqueadoPorHierarquia = in_array('master', $roles) || in_array('secretaria', $roles);
+
+        // 🔹 Roles agrupadas (para exibir)
+        $rolesPorEscola = $usuario->roles()
+            ->select('role_name', prefix('usuario_role') . '.school_id')
+            ->get()
+            ->groupBy('school_id')
+            ->mapWithKeys(function ($grupo, $sid) {
+                $escola = \App\Models\Escola::find($sid);
+                return [$escola->nome_e ?? 'Escola desconhecida' => $grupo];
+            });
+
+        // 🚫 Proteções hierárquicas
+        if (!$isNativo && !$isVinculado && !$isSelf) {
+            return redirect()->route('escola.usuarios.index')
+                ->with('error', 'Usuário não pertence nem está vinculado à sua escola.');
+        }
+
+        if ($bloqueadoPorHierarquia) {
+            return view('escola.usuarios.view_only', compact('usuario', 'rolesPorEscola'))
+                ->with('warning', 'Usuário protegido por hierarquia superior.');
+        }
+
+        if ($authTemRoleEscola && $alvoTemRoleEscola && !$isSelf) {
+            return view('escola.usuarios.view_only', compact('usuario', 'rolesPorEscola'))
+                ->with('warning', 'Gestor escolar não pode editar outro gestor da mesma escola.');
+        }
+
+        // ✅ Redireciona para view correta
+        return view('escola.usuarios.edit', compact('usuario', 'rolesPorEscola'));
+    }
+
+
+
+    /*public function edit(Usuario $usuario)
+    {
+        $this->authorizeEscola($usuario);
+
+        $roles = Role::whereNotIn('role_name', ['master','secretaria','escola'])->get();
+        $usuarioRoles = $usuario->roles()->pluck('role_id')->toArray();
+
+        return view('escola.usuarios.edit', compact('usuario','roles','usuarioRoles'));
+    }
+
+    public function update(Request $request, Usuario $usuario)
+    {
+        $this->authorizeEscola($usuario);
+
+        $request->validate([
+            'nome_u' => 'required|string|max:100',
+            'cpf' => 'required|string|max:11|unique:syrios_usuario,cpf,' . $usuario->id,
+            'status' => 'required|boolean',
+            'roles' => 'required|array'
+        ]);
+
+        // atualiza usuário
+        $usuario->update([
+            'cpf' => $request->cpf,
+            'nome_u' => $request->nome_u,
+            'status' => $request->status,
+        ]);
+
+        if ($request->filled('password')) {
+            $usuario->update([
+                'senha_hash' => Hash::make($request->password)
+            ]);
+        }
+
+        // sincroniza roles
+        $escolaId = auth()->user()->school_id;
+        $usuario->roles()->sync([]);
+        foreach ($request->roles as $roleId) {
+            $usuario->roles()->attach($roleId, ['school_id' => $escolaId]);
+        }
+
+        // sincroniza professor
+        $roleProfessorId = Role::where('role_name','professor')->first()->id;
+        $temProfessor = Professor::where('usuario_id', $usuario->id)->exists();
+        $querProfessor = in_array($roleProfessorId, $request->roles);
+
+        if ($temProfessor && !$querProfessor) {
+            Professor::where('usuario_id',$usuario->id)->delete();
+        } elseif (!$temProfessor && $querProfessor) {
+            Professor::create(['usuario_id'=>$usuario->id,'school_id'=>$escolaId]);
+        } elseif ($temProfessor && $querProfessor) {
+            Professor::where('usuario_id',$usuario->id)->update(['school_id'=>$escolaId]);
+        }
+
+        return redirect()->route('escola.usuarios.index')->with('success','Usuário atualizado com sucesso!');
+    }*/
 
     //cuidado: delete absoluto de todas as escolas
         // public function destroy(Usuario $usuario)
