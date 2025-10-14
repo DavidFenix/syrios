@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 if (!function_exists('prefix')) {
-    function prefix(string $basename): string
+    function prefix(string $basename = ''): string
     {
         $prefix = config('prefix.tabelas', 'syrios_');
         return $prefix . $basename;

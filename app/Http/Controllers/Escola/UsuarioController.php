@@ -8,6 +8,20 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\{Usuario, Role, Professor, Escola};
 
+/**
+ * Controller consolidado para Edição de Usuário no contexto da ESCOLA.
+     *
+     * \u26a0\ufe0f Princípios preservados (ver Model Set Context):
+     * - Hierarquia de permissões: master → secretaria → escola → comuns.
+     * - Regras por contexto da escola atual (session('current_school_id')).
+     * - Self: só pode alterar a própria senha (não nome/status).
+     * - Nativo da escola: pode alterar nome, senha e status.
+     * - Vinculado (de outra escola): somente leitura (view-only).
+     * - Usuário com role master/secretaria: sempre protegido (sem edição no contexto da escola).
+     * - Gestor escolar (role "escola"): um gestor não pode editar outro gestor da mesma escola.
+     * - Usuários externos (sem vínculo com a escola atual): bloqueados.
+     * - Sem duplicar lógicas no Blade: o Controller decide o que é editável.
+     */
 class UsuarioController extends Controller
 {
     public function index()
@@ -666,7 +680,7 @@ class UsuarioController extends Controller
         return view('escola.usuarios.edit', compact('usuario', 'rolesPorEscola'));
     }*/
 
-    public function update(Request $request, Usuario $usuario)
+    /*public function update(Request $request, Usuario $usuario)
     {
         $auth = auth()->user();
         $schoolId = session('current_school_id');
@@ -687,6 +701,8 @@ class UsuarioController extends Controller
             ->where('role_name', 'escola')
             ->exists();
         $bloqueadoPorHierarquia = in_array('master', $roles) || in_array('secretaria', $roles);
+
+
 
         // 🚫 Bloqueios gerais
         if ($bloqueadoPorHierarquia) {
@@ -734,7 +750,81 @@ class UsuarioController extends Controller
 
         // 🔒 3️⃣ Caso seja vinculado (de outra escola)
         return back()->with('warning', 'Usuário vinculado — apenas o proprietário pode alterar seus dados.');
-    }
+    }*/
+
+    /*
+    public function update(Request $request, Usuario $usuario)
+    {
+        $auth     = auth()->user();
+        $schoolId = session('current_school_id');
+
+        if (!$schoolId) {
+            return redirect()->route('escola.dashboard')->with('error', 'Nenhuma escola selecionada.');
+        }
+
+        $roles   = $usuario->roles->pluck('role_name')->toArray();
+        $isSelf  = $usuario->id === $auth->id;
+        $isNativo = $usuario->school_id == $schoolId;
+
+        $authTemRoleEscola = $auth->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->where('role_name', 'escola')
+            ->exists();
+
+        $alvoTemRoleEscola = $usuario->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->where('role_name', 'escola')
+            ->exists();
+
+        $bloqueadoPorHierarquia = in_array('master', $roles) || in_array('secretaria', $roles);
+
+        // 1) 👤 Próprio usuário: permitir APENAS trocar senha
+        if ($isSelf) {
+            $request->validate([
+                'senha' => 'nullable|string|min:6', // se quiser confirmação: 'confirmed'
+            ]);
+
+            if ($request->filled('senha')) {
+                $usuario->update(['senha_hash' => bcrypt($request->senha)]);
+                return back()->with('success', 'Senha alterada com sucesso!');
+            }
+            return back()->with('info', 'Nada foi alterado.');
+        }
+
+        // 2) Bloqueios para edição de terceiros
+        if ($bloqueadoPorHierarquia) {
+            return back()->with('error', 'Usuário protegido — não pode ser alterado.');
+        }
+
+        if ($authTemRoleEscola && $alvoTemRoleEscola) {
+            return back()->with('error', 'Você não pode alterar outro gestor escolar.');
+        }
+
+        if (!$isNativo) {
+            return back()->with('error', 'Você não tem permissão para alterar este usuário.');
+        }
+
+        // 3) Edição de usuário nativo (não-self)
+        $validated = $request->validate([
+            'nome_u' => 'nullable|string|max:100',
+            'senha'  => 'nullable|string|min:6',
+            'status' => 'nullable|boolean',
+        ]);
+
+        $dados = [
+            'nome_u' => $validated['nome_u'] ?? $usuario->nome_u,
+            'status' => $validated['status'] ?? $usuario->status,
+        ];
+        if (!empty($validated['senha'])) {
+            $dados['senha_hash'] = bcrypt($validated['senha']);
+        }
+
+        $usuario->update($dados);
+
+        return redirect()->route('escola.usuarios.index')
+            ->with('success', 'Usuário atualizado com sucesso!');
+    }*/
+
 
     /*
     🧠 Resumo lógico
@@ -980,68 +1070,7 @@ class UsuarioController extends Controller
         }
     }
 
-    //ultima tentativa
-    public function edit(Usuario $usuario)
-    {
-        $auth = auth()->user();
-        $schoolId = session('current_school_id');
-
-        if (!$schoolId) {
-            return redirect()->route('escola.dashboard')->with('error', 'Nenhuma escola selecionada.');
-        }
-
-        $roles = $usuario->roles->pluck('role_name')->toArray();
-
-        // 🧱 Identificações básicas
-        $isSelf = $usuario->id === $auth->id;
-        $isNativo = $usuario->school_id == $schoolId;
-        $isVinculado = $usuario->roles()
-            ->wherePivot('school_id', $schoolId)
-            ->exists() && !$isNativo;
-
-        $authTemRoleEscola = $auth->roles()
-            ->wherePivot('school_id', $schoolId)
-            ->where('role_name', 'escola')
-            ->exists();
-
-        $alvoTemRoleEscola = $usuario->roles()
-            ->wherePivot('school_id', $schoolId)
-            ->where('role_name', 'escola')
-            ->exists();
-
-        $bloqueadoPorHierarquia = in_array('master', $roles) || in_array('secretaria', $roles);
-
-        // 🔹 Roles agrupadas (para exibir)
-        $rolesPorEscola = $usuario->roles()
-            ->select('role_name', prefix('usuario_role') . '.school_id')
-            ->get()
-            ->groupBy('school_id')
-            ->mapWithKeys(function ($grupo, $sid) {
-                $escola = \App\Models\Escola::find($sid);
-                return [$escola->nome_e ?? 'Escola desconhecida' => $grupo];
-            });
-
-        // 🚫 Proteções hierárquicas
-        if (!$isNativo && !$isVinculado && !$isSelf) {
-            return redirect()->route('escola.usuarios.index')
-                ->with('error', 'Usuário não pertence nem está vinculado à sua escola.');
-        }
-
-        if ($bloqueadoPorHierarquia) {
-            return view('escola.usuarios.view_only', compact('usuario', 'rolesPorEscola'))
-                ->with('warning', 'Usuário protegido por hierarquia superior.');
-        }
-
-        if ($authTemRoleEscola && $alvoTemRoleEscola && !$isSelf) {
-            return view('escola.usuarios.view_only', compact('usuario', 'rolesPorEscola'))
-                ->with('warning', 'Gestor escolar não pode editar outro gestor da mesma escola.');
-        }
-
-        // ✅ Redireciona para view correta
-        return view('escola.usuarios.edit', compact('usuario', 'rolesPorEscola'));
-    }
-
-
+    
 
     /*public function edit(Usuario $usuario)
     {
@@ -1144,6 +1173,277 @@ class UsuarioController extends Controller
             abort(403, 'Acesso negado.');
         }
     }
+
+    /**
+     * Exibe o formulário de edição respeitando as regras de contexto.
+     */
+    public function edit(string $id)
+    {
+        // 1) Identifica contexto (escola atual) e atores
+        $schoolId = (int) session('current_school_id'); // deve estar setado no middleware/contexto
+        $auth = auth()->user();
+
+        // 2) Carrega o usuário alvo; 404 se não existe
+        /** @var Usuario $alvo */
+        $alvo = Usuario::query()->findOrFail($id);
+
+        // 3) Calcula matriz de permissões/estado conforme regras do projeto
+        $matrix = $this->computeEditMatrix($auth->id, $alvo->id, $schoolId);
+
+        // 4) Usuário externo? (sem qualquer vínculo com a escola atual) → bloqueado
+        if (!$matrix['tem_vinculo_com_escola']) {
+            return redirect()
+                ->route('escola.usuarios.index')
+                ->with('error', 'Acesso bloqueado: usuário sem vínculo com a escola atual.');
+        }
+
+        // 5) Se protegido (master/secretaria) ou gestor protegido, apenas view-only
+        //    Não redirecionamos; mostramos a tela com os campos desabilitados e motivo.
+        $motivosBloqueio = $this->motivosBloqueio($matrix);
+
+        // 6) Define o payload para o Blade (sem duplicar lógica lá)
+        $payload = [
+            'usuario' => $alvo,
+            'flags' => [
+                'can_edit_password' => $matrix['can_edit_password'],
+                'can_edit_nome'     => $matrix['can_edit_nome'],
+                'can_edit_status'   => $matrix['can_edit_status'],
+                'view_only'         => !$matrix['can_edit_password'] && !$matrix['can_edit_nome'] && !$matrix['can_edit_status'],
+            ],
+            'contexto' => [
+                'is_self'       => $matrix['is_self'],
+                'is_nativo'     => $matrix['is_nativo_na_escola'],
+                'is_vinculado'  => $matrix['is_vinculado_na_escola'],
+                'is_protegido'  => $matrix['is_master_ou_secretaria'] || $matrix['protecao_entre_gestores'],
+                'motivos'       => $motivosBloqueio,
+            ],
+        ];
+
+        // 7) Renderiza o formulário único de edição (o Blade usará os flags acima)
+        return view('escola.usuarios.edit', $payload);
+    }
+
+    /**
+     * Processa atualização respeitando a mesma matriz de permissões usada no edit().
+     */
+    public function update(Request $request, string $id)
+    {
+        $schoolId = (int) session('current_school_id');
+        $auth = auth()->user();
+
+        /** @var Usuario $alvo */
+        $alvo = Usuario::query()->findOrFail($id);
+
+        // Matriz de regras/permissões
+        $matrix = $this->computeEditMatrix($auth->id, $alvo->id, $schoolId);
+
+        // Usuário externo? bloqueia
+        if (!$matrix['tem_vinculo_com_escola']) {
+            return back()->with('error', 'Ação negada: usuário sem vínculo com a escola atual.');
+        }
+
+        // Proteções gerais
+        if ($matrix['is_master_ou_secretaria'] || $matrix['protecao_entre_gestores']) {
+            return back()->with('error', 'Usuário protegido — não pode ser alterado.');
+        }
+
+        // Validações condicionais de acordo com o que é permitido
+        $rules = [];
+        if ($matrix['can_edit_nome']) {
+            $rules['nome'] = ['sometimes', 'string', 'min:2', 'max:255'];
+        }
+        if ($matrix['can_edit_status']) {
+            // status pode ser booleano ou enum textual conforme seu schema; aqui aceitamos boolean e textual
+            $rules['status'] = ['sometimes'];
+        }
+        if ($matrix['can_edit_password']) {
+            $rules['password'] = ['sometimes', 'confirmed', 'min:8'];
+        }
+
+        // Se nenhuma permissão de edição foi concedida, retorna erro cedo
+        if (empty($rules)) {
+            return back()->with('error', 'Não há campos que você possa editar neste contexto.');
+        }
+
+        $data = $request->validate($rules);
+
+        // Aplica atualizações permitidas
+        $mudouAlgo = false;
+
+        if ($matrix['can_edit_nome'] && $request->filled('nome')) {
+            $alvo->nome = $request->string('nome');
+            $mudouAlgo = true;
+        }
+
+        if ($matrix['can_edit_status'] && $request->has('status')) {
+            // Normaliza status para seu schema real (ajuste se for TINYINT/bool ou enum)
+            $status = $request->input('status');
+            // Exemplos de normalização comum:
+            if (is_string($status)) {
+                $status = in_array(strtolower($status), ['1','ativo','active','on','true'], true) ? 1 : 0;
+            }
+            $alvo->status = (int) !!$status;
+            $mudouAlgo = true;
+        }
+
+        if ($matrix['can_edit_password'] && $request->filled('password')) {
+            $alvo->senha = Hash::make($request->string('password'));
+            $mudouAlgo = true;
+        }
+
+        if ($mudouAlgo) {
+            $alvo->save();
+            return back()->with('success', 'Dados atualizados com sucesso.');
+        }
+
+        return back()->with('info', 'Nada para atualizar.');
+    }
+
+    /* ---------------------------------------------------------------------
+     |  Regras de negócio centralizadas (sem duplicar no Blade)
+     |---------------------------------------------------------------------*/
+
+    /**
+     * Calcula a matriz de permissões/estados para a edição no contexto da escola.
+     *
+     * @return array{
+     *   is_self: bool,
+     *   tem_vinculo_com_escola: bool,
+     *   is_nativo_na_escola: bool,
+     *   is_vinculado_na_escola: bool,
+     *   is_master_ou_secretaria: bool,
+     *   alvo_eh_gestor_da_escola: bool,
+     *   auth_eh_gestor_da_escola: bool,
+     *   protecao_entre_gestores: bool,
+     *   can_edit_password: bool,
+     *   can_edit_nome: bool,
+     *   can_edit_status: bool,
+     * }
+     */
+    /**
+     * Calcula a matriz de permissões/estados para a edição no contexto da escola.
+     */
+    protected function computeEditMatrix(int $authId, int $alvoId, int $schoolId): array
+    {
+        // Utilidades
+        $p = prefix(); // exemplo: 'syrios_'
+
+        // 1️⃣ Relações via pivot syrios_usuario_role
+        $pivot = DB::table($p.'usuario_role');
+
+        // 2️⃣ Flags base
+        $isSelf = ($authId === $alvoId);
+
+        // 3️⃣ Vínculo com a escola atual (coluna correta: school_id)
+        $temVinculo = $pivot
+            ->where('usuario_id', $alvoId)
+            ->where('school_id', $schoolId)
+            ->exists();
+
+        // 4️⃣ Master ou Secretaria (em qualquer escola)
+        $roleIdsMasterSecretaria = DB::table($p.'role')
+            ->whereIn('role_name', ['master', 'secretaria'])
+            ->pluck('id');
+
+        $isMasterOuSecretaria = DB::table($p.'usuario_role')
+            ->where('usuario_id', $alvoId)
+            ->whereIn('role_id', $roleIdsMasterSecretaria)
+            ->exists();
+
+        // 5️⃣ Gestores (role “escola”) — agora corretamente filtrados por school_id
+        $roleIdGestor = DB::table($p.'role')
+            ->where('role_name', 'escola')
+            ->value('id');
+
+        $alvoEhGestorEscola = $roleIdGestor
+            ? DB::table($p.'usuario_role')->where([
+                ['usuario_id', '=', $alvoId],
+                ['role_id', '=', $roleIdGestor],
+                ['school_id', '=', $schoolId],
+            ])->exists()
+            : false;
+
+        $authEhGestorEscola = $roleIdGestor
+            ? DB::table($p.'usuario_role')->where([
+                ['usuario_id', '=', $authId],
+                ['role_id', '=', $roleIdGestor],
+                ['school_id', '=', $schoolId],
+            ])->exists()
+            : false;
+
+        // 6️⃣ Proteção entre gestores — gestor não pode editar outro gestor da MESMA escola
+        $protecaoEntreGestores = ($alvoEhGestorEscola && $authEhGestorEscola && !$isSelf);
+
+        // 7️⃣ Nativo vs Vinculado
+        //    Usa a coluna real syrios_usuario.school_id
+        $isNativo = false;
+        $isVinculado = false;
+
+        $alvoRow = DB::table($p.'usuario')->where('id', $alvoId)->first();
+
+        if ($alvoRow) {
+            $isNativo = ((int) $alvoRow->school_id === $schoolId);
+        }
+
+        if ($temVinculo && !$isNativo) {
+            $isVinculado = true;
+        }
+
+        // 8️⃣ Permissões de edição
+        $canEditPassword = $isSelf || $isNativo;
+        $canEditNome     = $isNativo && !$isSelf;
+        $canEditStatus   = $isNativo && !$isSelf;
+
+        // 9️⃣ Travas absolutas — exceto para o próprio usuário (self) alterar senha
+        if ($isMasterOuSecretaria || $protecaoEntreGestores) {
+            $canEditNome   = false;
+            $canEditStatus = false;
+
+            // Master e Secretaria continuam podendo trocar sua própria senha
+            if (!$isSelf) {
+                $canEditPassword = false;
+            }
+        }
+
+
+        // 🔟 Retorna a matriz consolidada
+        return [
+            'is_self' => $isSelf,
+            'tem_vinculo_com_escola' => $temVinculo,
+            'is_nativo_na_escola' => $isNativo,
+            'is_vinculado_na_escola' => $isVinculado,
+            'is_master_ou_secretaria' => $isMasterOuSecretaria,
+            'alvo_eh_gestor_da_escola' => $alvoEhGestorEscola,
+            'auth_eh_gestor_da_escola' => $authEhGestorEscola,
+            'protecao_entre_gestores' => $protecaoEntreGestores,
+            'can_edit_password' => $canEditPassword,
+            'can_edit_nome' => $canEditNome,
+            'can_edit_status' => $canEditStatus,
+        ];
+    }
+
+
+    /**
+     * Lista os motivos de bloqueio (para exibir no Blade em alertas informativos).
+     */
+    protected function motivosBloqueio(array $m): array
+    {
+        $motivos = [];
+        if (!$m['tem_vinculo_com_escola']) {
+            $motivos[] = 'Sem vínculo com a escola atual';
+        }
+        if ($m['is_master_ou_secretaria']) {
+            $motivos[] = 'Usuário com role master/secretaria é protegido';
+        }
+        if ($m['protecao_entre_gestores']) {
+            $motivos[] = 'Gestor não pode editar outro gestor da mesma escola';
+        }
+        if (!$m['can_edit_nome'] && !$m['can_edit_status'] && !$m['can_edit_password']) {
+            $motivos[] = 'Nenhum campo é editável neste contexto';
+        }
+        return $motivos;
+    }
+
 }
 
 
