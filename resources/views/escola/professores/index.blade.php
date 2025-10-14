@@ -11,7 +11,7 @@
       </div>
     @endif
 
-    <table class="table table-striped">
+    <table class="table table-striped" id="tabela-professores-escola">
       <thead>
         <tr>
           <th>ID</th>
@@ -47,6 +47,22 @@
     </table>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function () {
+    // Aplica o DataTable com filtro nas colunas Nome(1), CPF(2), Status(3), Roles(4)
+    initDataTable('#tabela-professores-escola', {
+        order: [[1, 'asc']],
+        pageLength: 10
+    }, [1, 2]);
+});
+</script>
+@endpush
+
+
+
+
 
 
 {{--
