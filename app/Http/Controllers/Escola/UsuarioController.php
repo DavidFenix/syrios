@@ -877,7 +877,7 @@ class UsuarioController extends Controller
         // 🧱 4️⃣ Identifica quais roles estão ativas nesta escola
         $rolesSelecionadas = $usuario->roles()
             ->wherePivot('school_id', $schoolId)
-            ->pluck('roles.id')
+            ->pluck(prefix().'role.id')
             ->toArray();
 
         return view('escola.usuarios.roles_edit', compact(
@@ -886,7 +886,7 @@ class UsuarioController extends Controller
 
     }
 
-    public function updateRoles(Request $request, Usuario $usuario)
+   public function updateRoles(Request $request, Usuario $usuario)
     {
         $auth = auth()->user();
         $schoolId = session('current_school_id');
@@ -902,16 +902,16 @@ class UsuarioController extends Controller
 
         $rolesSelecionadas = $request->roles ?? [];
 
-        // 🧱 1️⃣ Protege hierarquia superior
+        // 🔹 Protege master e secretaria (não editáveis por ninguém)
         $rolesSuperiores = $usuario->roles()
             ->whereIn('role_name', ['master', 'secretaria'])
             ->exists();
 
-        if ($rolesSuperiores) {
+        if ($rolesSuperiores && $auth->id !== $usuario->id) {
             return back()->with('error', 'Usuário com role superior não pode ter roles alteradas pela escola.');
         }
 
-        // 🧱 2️⃣ Protege gestores (role escola) de outros gestores
+        // 🔹 Protege gestores de outros gestores
         $authTemRoleEscola = $auth->roles()
             ->wherePivot('school_id', $schoolId)
             ->where('role_name', 'escola')
@@ -926,36 +926,71 @@ class UsuarioController extends Controller
             return back()->with('error', 'Você não pode alterar as roles de outro gestor escolar.');
         }
 
-        // 🧱 3️⃣ Impede remover a própria role "escola"
-        $roleEscolaId = Role::where('role_name', 'escola')->value('id');
-        if ($auth->id === $usuario->id && !in_array($roleEscolaId, $rolesSelecionadas)) {
-            return back()->with('error', 'Você não pode remover sua própria role de gestor da escola.');
+        // 🔹 Obtém roles atuais do usuário nesta escola
+        $p = prefix();
+        $rolesAtuais = DB::table($p.'usuario_role')
+            ->join($p.'role', $p.'usuario_role.role_id', '=', $p.'role.id')
+            ->where($p.'usuario_role.usuario_id', $usuario->id)
+            ->where($p.'usuario_role.school_id', $schoolId)
+            ->pluck($p.'role.role_name', $p.'role.id')
+            ->toArray();
+
+        // 🔹 Identifica roles protegidas (devem ser mantidas sempre)
+        $rolesProtegidas = ['master', 'secretaria', 'escola'];
+
+        // 🔹 Mapeia IDs de roles protegidas
+        $rolesProtegidasIds = DB::table($p.'role')
+            ->whereIn('role_name', $rolesProtegidas)
+            ->pluck('id')
+            ->toArray();
+
+        // 🔹 Filtra roles permitidas para alteração
+        $rolesPermitidasIds = DB::table($p.'role')
+            ->whereNotIn('role_name', $rolesProtegidas)
+            ->pluck('id')
+            ->toArray();
+
+        // 🔹 Calcula roles que permanecerão após a atualização
+        $rolesFinais = [];
+
+        // Mantém sempre as protegidas que o usuário já tem
+        foreach ($rolesAtuais as $id => $nome) {
+            if (in_array($nome, $rolesProtegidas)) {
+                $rolesFinais[] = $id;
+            }
         }
 
-        // 🧱 4️⃣ Remove apenas roles dessa escola
-        DB::table(prefix('usuario_role'))
+        // Adiciona as novas roles selecionadas (somente permitidas)
+        foreach ($rolesSelecionadas as $id) {
+            if (in_array($id, $rolesPermitidasIds)) {
+                $rolesFinais[] = $id;
+            }
+        }
+
+        // Remove duplicatas
+        $rolesFinais = array_unique($rolesFinais);
+
+        // 🔹 Apaga todas as roles da escola atual
+        DB::table($p.'usuario_role')
             ->where('usuario_id', $usuario->id)
             ->where('school_id', $schoolId)
             ->delete();
 
-        // 🧱 5️⃣ Reinsere roles selecionadas (somente válidas)
-        $rolesPermitidas = Role::whereNotIn('role_name', ['master', 'secretaria'])
-            ->pluck('id')
-            ->toArray();
-
-        foreach ($rolesSelecionadas as $roleId) {
-            if (in_array($roleId, $rolesPermitidas)) {
-                DB::table(prefix('usuario_role'))->insertOrIgnore([
-                    'usuario_id' => $usuario->id,
-                    'role_id'    => $roleId,
-                    'school_id'  => $schoolId
-                ]);
-            }
+        // 🔹 Reinsere as roles finais
+        foreach ($rolesFinais as $roleId) {
+            DB::table($p.'usuario_role')->insert([
+                'usuario_id' => $usuario->id,
+                'role_id'    => $roleId,
+                'school_id'  => $schoolId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
 
         return redirect()->route('escola.usuarios.index')
             ->with('success', 'Roles do usuário atualizadas com sucesso.');
     }
+
 
     /*
     🧾 Resumo de todas as proteções aplicadas
@@ -1070,7 +1105,76 @@ class UsuarioController extends Controller
         }
     }
 
-    
+     /*public function updateRoles(Request $request, Usuario $usuario)
+    {
+        $auth = auth()->user();
+        $schoolId = session('current_school_id');
+        $escolaAtual = Escola::find($schoolId);
+
+        if (!$escolaAtual) {
+            return redirect()->route('escola.dashboard')->with('error', 'Nenhuma escola selecionada.');
+        }
+
+        $request->validate([
+            'roles' => 'nullable|array'
+        ]);
+
+        $rolesSelecionadas = $request->roles ?? [];
+
+        // 🧱 1️⃣ Protege hierarquia superior — exceto se o próprio usuário estiver alterando suas roles
+        $rolesSuperiores = $usuario->roles()
+            ->whereIn('role_name', ['master', 'secretaria'])
+            ->exists();
+
+        if ($rolesSuperiores && $auth->id !== $usuario->id) {
+            return back()->with('error', 'Usuário com role superior não pode ter roles alteradas pela escola.');
+        }
+
+        // 🧱 2️⃣ Protege gestores (role escola) de outros gestores
+        $authTemRoleEscola = $auth->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->where('role_name', 'escola')
+            ->exists();
+
+        $alvoTemRoleEscola = $usuario->roles()
+            ->wherePivot('school_id', $schoolId)
+            ->where('role_name', 'escola')
+            ->exists();
+
+        if ($authTemRoleEscola && $alvoTemRoleEscola && $auth->id !== $usuario->id) {
+            return back()->with('error', 'Você não pode alterar as roles de outro gestor escolar.');
+        }
+
+        // 🧱 3️⃣ Impede remover a própria role "escola"
+        $roleEscolaId = Role::where('role_name', 'escola')->value('id');
+        if ($auth->id === $usuario->id && !in_array($roleEscolaId, $rolesSelecionadas)) {
+            return back()->with('error', 'Você não pode remover sua própria role de gestor da escola.');
+        }
+
+        // 🧱 4️⃣ Remove apenas roles dessa escola
+        DB::table(prefix('usuario_role'))
+            ->where('usuario_id', $usuario->id)
+            ->where('school_id', $schoolId)
+            ->delete();
+
+        // 🧱 5️⃣ Reinsere roles selecionadas (somente válidas)
+        $rolesPermitidas = Role::whereNotIn('role_name', ['master', 'secretaria'])
+            ->pluck('id')
+            ->toArray();
+
+        foreach ($rolesSelecionadas as $roleId) {
+            if (in_array($roleId, $rolesPermitidas)) {
+                DB::table(prefix('usuario_role'))->insertOrIgnore([
+                    'usuario_id' => $usuario->id,
+                    'role_id'    => $roleId,
+                    'school_id'  => $schoolId
+                ]);
+            }
+        }
+
+        return redirect()->route('escola.usuarios.index')
+            ->with('success', 'Roles do usuário atualizadas com sucesso.');
+    }*/
 
     /*public function edit(Usuario $usuario)
     {
@@ -1189,7 +1293,7 @@ class UsuarioController extends Controller
 
         // 3) Calcula matriz de permissões/estado conforme regras do projeto
         $matrix = $this->computeEditMatrix($auth->id, $alvo->id, $schoolId);
-
+//dd($matrix);
         // 4) Usuário externo? (sem qualquer vínculo com a escola atual) → bloqueado
         if (!$matrix['tem_vinculo_com_escola']) {
             return redirect()
@@ -1223,9 +1327,6 @@ class UsuarioController extends Controller
         return view('escola.usuarios.edit', $payload);
     }
 
-    /**
-     * Processa atualização respeitando a mesma matriz de permissões usada no edit().
-     */
     public function update(Request $request, string $id)
     {
         $schoolId = (int) session('current_school_id');
@@ -1242,10 +1343,87 @@ class UsuarioController extends Controller
             return back()->with('error', 'Ação negada: usuário sem vínculo com a escola atual.');
         }
 
-        // Proteções gerais
-        if ($matrix['is_master_ou_secretaria'] || $matrix['protecao_entre_gestores']) {
+        // Proteções gerais (permite self trocar a própria senha)
+        if (($matrix['is_master_ou_secretaria'] || $matrix['protecao_entre_gestores']) && !$matrix['is_self']) {
             return back()->with('error', 'Usuário protegido — não pode ser alterado.');
         }
+
+        // Validações condicionais conforme permissões
+        $rules = [];
+        if ($matrix['can_edit_nome']) {
+            // o input do form continua sendo 'nome', mas a coluna é 'nome_u'
+            $rules['nome'] = ['sometimes', 'string', 'min:2', 'max:100'];
+        }
+        if ($matrix['can_edit_status']) {
+            $rules['status'] = ['sometimes']; // normalizamos abaixo
+        }
+        if ($matrix['can_edit_password']) {
+            // permite vazio; se vier preenchida, valida min/confirmed
+            $rules['password'] = ['sometimes', 'nullable', 'string', 'confirmed', 'min:6'];
+        }
+
+        if (empty($rules)) {
+            return back()->with('error', 'Não há campos que você possa editar neste contexto.');
+        }
+
+        $request->validate($rules);
+
+        // Aplica atualizações permitidas
+        $mudouAlgo = false;
+
+        if ($matrix['can_edit_nome'] && $request->filled('nome')) {
+            $alvo->nome_u = $request->input('nome');     // ✅ coluna correta
+            $mudouAlgo = true;
+        }
+
+        if ($matrix['can_edit_status'] && $request->has('status')) {
+            $status = $request->input('status');
+            if (is_string($status)) {
+                $status = in_array(strtolower($status), ['1','ativo','active','on','true'], true) ? 1 : 0;
+            }
+            $alvo->status = (int) !!$status;             // ✅ tinyint(1)
+            $mudouAlgo = true;
+        }
+
+        if ($matrix['can_edit_password'] && $request->filled('password')) {
+            $alvo->senha_hash = Hash::make($request->input('password')); // ✅ coluna correta
+            $mudouAlgo = true;
+        }
+
+        if ($mudouAlgo) {
+            $alvo->save();
+            return back()->with('success', 'Dados atualizados com sucesso.');
+        }
+
+        return back()->with('info', 'Nada para atualizar.');
+    }
+
+
+
+    /**
+     * Processa atualização respeitando a mesma matriz de permissões usada no edit().
+     */
+    /*public function update(Request $request, string $id)
+    {
+        $schoolId = (int) session('current_school_id');
+        $auth = auth()->user();
+
+        //@var Usuario $alvo
+        $alvo = Usuario::query()->findOrFail($id);
+
+        // Matriz de regras/permissões
+        $matrix = $this->computeEditMatrix($auth->id, $alvo->id, $schoolId);
+
+        // Usuário externo? bloqueia
+        if (!$matrix['tem_vinculo_com_escola']) {
+            return back()->with('error', 'Ação negada: usuário sem vínculo com a escola atual.');
+        }
+
+        // Proteções gerais
+        if (($matrix['is_master_ou_secretaria'] || $matrix['protecao_entre_gestores']) && !$matrix['is_self']) {
+            return back()->with('error', 'Usuário protegido — não pode ser alterado.');
+        }
+
 
         // Validações condicionais de acordo com o que é permitido
         $rules = [];
@@ -1256,8 +1434,8 @@ class UsuarioController extends Controller
             // status pode ser booleano ou enum textual conforme seu schema; aqui aceitamos boolean e textual
             $rules['status'] = ['sometimes'];
         }
-        if ($matrix['can_edit_password']) {
-            $rules['password'] = ['sometimes', 'confirmed', 'min:8'];
+        if ($matrix['can_edit_password'] && $request->filled('password')) {
+            $rules['password'] = ['string', 'confirmed', 'min:6'];
         }
 
         // Se nenhuma permissão de edição foi concedida, retorna erro cedo
@@ -1270,8 +1448,8 @@ class UsuarioController extends Controller
         // Aplica atualizações permitidas
         $mudouAlgo = false;
 
-        if ($matrix['can_edit_nome'] && $request->filled('nome')) {
-            $alvo->nome = $request->string('nome');
+        if ($matrix['can_edit_nome'] && $request->filled('nome_u')) {
+            $alvo->nome = $request->input('nome_u');
             $mudouAlgo = true;
         }
 
@@ -1287,7 +1465,7 @@ class UsuarioController extends Controller
         }
 
         if ($matrix['can_edit_password'] && $request->filled('password')) {
-            $alvo->senha = Hash::make($request->string('password'));
+            $alvo->senha_hash = Hash::make($request->input('password'));
             $mudouAlgo = true;
         }
 
@@ -1297,7 +1475,7 @@ class UsuarioController extends Controller
         }
 
         return back()->with('info', 'Nada para atualizar.');
-    }
+    }*/
 
     /* ---------------------------------------------------------------------
      |  Regras de negócio centralizadas (sem duplicar no Blade)
@@ -1323,7 +1501,7 @@ class UsuarioController extends Controller
     /**
      * Calcula a matriz de permissões/estados para a edição no contexto da escola.
      */
-    protected function computeEditMatrix(int $authId, int $alvoId, int $schoolId): array
+    /*protected function computeEditMatrix(int $authId, int $alvoId, int $schoolId): array
     {
         // Utilidades
         $p = prefix(); // exemplo: 'syrios_'
@@ -1371,8 +1549,15 @@ class UsuarioController extends Controller
             ])->exists()
             : false;
 
-        // 6️⃣ Proteção entre gestores — gestor não pode editar outro gestor da MESMA escola
+        // Gestores da mesma escola — bloqueio mútuo
         $protecaoEntreGestores = ($alvoEhGestorEscola && $authEhGestorEscola && !$isSelf);
+
+        // Bloqueia edição se for esse caso
+        if ($protecaoEntreGestores) {
+            $canEditPassword = false;
+            $canEditNome     = false;
+            $canEditStatus   = false;
+        }
 
         // 7️⃣ Nativo vs Vinculado
         //    Usa a coluna real syrios_usuario.school_id
@@ -1420,7 +1605,304 @@ class UsuarioController extends Controller
             'can_edit_nome' => $canEditNome,
             'can_edit_status' => $canEditStatus,
         ];
+    }*/
+
+    /*protected function computeEditMatrix(int $authId, int $alvoId, int $schoolId): array
+    {
+        $p = prefix(); // exemplo: 'syrios_'
+
+        // 1️⃣ Relações via pivot syrios_usuario_role
+        $pivot = DB::table($p.'usuario_role');
+
+        // 2️⃣ Flags base
+        $isSelf = ($authId === $alvoId);
+
+        // 3️⃣ Vínculo com a escola atual
+        $temVinculo = $pivot
+            ->where('usuario_id', $alvoId)
+            ->where('school_id', $schoolId)
+            ->exists();
+
+        // 4️⃣ Master ou Secretaria (em qualquer escola)
+        $roleIdsMasterSecretaria = DB::table($p.'role')
+            ->whereIn('role_name', ['master', 'secretaria'])
+            ->pluck('id');
+
+        $isMasterOuSecretaria = DB::table($p.'usuario_role')
+            ->where('usuario_id', $alvoId)
+            ->whereIn('role_id', $roleIdsMasterSecretaria)
+            ->exists();
+
+        // 5️⃣ Gestores (role “escola”) — filtrados por school_id
+        $roleIdGestor = DB::table($p.'role')
+            ->where('role_name', 'escola')
+            ->value('id');
+
+        $alvoEhGestorEscola = $roleIdGestor
+            ? DB::table($p.'usuario_role')->where([
+                ['usuario_id', '=', $alvoId],
+                ['role_id', '=', $roleIdGestor],
+                ['school_id', '=', $schoolId],
+            ])->exists()
+            : false;
+
+        $authEhGestorEscola = $roleIdGestor
+            ? DB::table($p.'usuario_role')->where([
+                ['usuario_id', '=', $authId],
+                ['role_id', '=', $roleIdGestor],
+                ['school_id', '=', $schoolId],
+            ])->exists()
+            : false;
+
+        // 6️⃣ Nativo vs Vinculado
+        $isNativo = false;
+        $isVinculado = false;
+
+        $alvoRow = DB::table($p.'usuario')->where('id', $alvoId)->first();
+
+        if ($alvoRow) {
+            $isNativo = ((int) $alvoRow->school_id === $schoolId);
+        }
+
+        if ($temVinculo && !$isNativo) {
+            $isVinculado = true;
+        }
+
+        // 7️⃣ Permissões básicas
+        $canEditPassword = $isSelf || $isNativo;
+        $canEditNome     = $isNativo && !$isSelf;
+        $canEditStatus   = $isNativo && !$isSelf;
+
+        // 8️⃣ Proteção entre gestores da mesma escola
+        $protecaoEntreGestores = ($alvoEhGestorEscola && $authEhGestorEscola && !$isSelf);
+
+        if ($protecaoEntreGestores) {
+            $canEditNome     = false;
+            $canEditStatus   = false;
+            $canEditPassword = false;
+        }
+
+        // 9️⃣ Travas absolutas — master/secretaria
+        if ($isMasterOuSecretaria) {
+            $canEditNome   = false;
+            $canEditStatus = false;
+
+            // Master e Secretaria continuam podendo trocar sua própria senha
+            if (!$isSelf) {
+                $canEditPassword = false;
+            }
+        }
+
+        // 🔟 Retorna matriz consolidada
+        return [
+            'is_self' => $isSelf,
+            'tem_vinculo_com_escola' => $temVinculo,
+            'is_nativo_na_escola' => $isNativo,
+            'is_vinculado_na_escola' => $isVinculado,
+            'is_master_ou_secretaria' => $isMasterOuSecretaria,
+            'alvo_eh_gestor_da_escola' => $alvoEhGestorEscola,
+            'auth_eh_gestor_da_escola' => $authEhGestorEscola,
+            'protecao_entre_gestores' => $protecaoEntreGestores,
+            'can_edit_password' => $canEditPassword,
+            'can_edit_nome' => $canEditNome,
+            'can_edit_status' => $canEditStatus,
+        ];
+    }*/
+
+    /*protected function computeEditMatrix(int $authId, int $alvoId, int $schoolId): array
+    {
+        $p = prefix(); // exemplo: 'syrios_'
+
+        // 1️⃣ Relações via pivot syrios_usuario_role
+        $pivot = DB::table($p.'usuario_role');
+
+        // 2️⃣ Flags base
+        $isSelf = ($authId === $alvoId);
+
+        // 3️⃣ Vínculo com a escola atual
+        $temVinculo = $pivot
+            ->where('usuario_id', $alvoId)
+            ->where('school_id', $schoolId)
+            ->exists();
+
+        // 4️⃣ Master ou Secretaria (em qualquer escola)
+        $roleIdsMasterSecretaria = DB::table($p.'role')
+            ->whereIn('role_name', ['master', 'secretaria'])
+            ->pluck('id');
+
+        $isMasterOuSecretaria = DB::table($p.'usuario_role')
+            ->where('usuario_id', $alvoId)
+            ->whereIn('role_id', $roleIdsMasterSecretaria)
+            ->exists();
+
+        // 5️⃣ Gestores (role “escola”) — filtrados por school_id
+        $roleIdGestor = DB::table($p.'role')
+            ->where('role_name', 'escola')
+            ->value('id');
+
+        $alvoEhGestorEscola = $roleIdGestor
+            ? DB::table($p.'usuario_role')->where([
+                ['usuario_id', '=', $alvoId],
+                ['role_id', '=', $roleIdGestor],
+                ['school_id', '=', $schoolId],
+            ])->exists()
+            : false;
+
+        $authEhGestorEscola = $roleIdGestor
+            ? DB::table($p.'usuario_role')->where([
+                ['usuario_id', '=', $authId],
+                ['role_id', '=', $roleIdGestor],
+                ['school_id', '=', $schoolId],
+            ])->exists()
+            : false;
+
+        // 6️⃣ Nativo vs Vinculado
+        $isNativo = false;
+        $isVinculado = false;
+
+        $alvoRow = DB::table($p.'usuario')->where('id', $alvoId)->first();
+
+        if ($alvoRow) {
+            $isNativo = ((int) $alvoRow->school_id === $schoolId);
+        }
+
+        if ($temVinculo && !$isNativo) {
+            $isVinculado = true;
+        }
+
+        // 7️⃣ Permissões básicas
+        $canEditPassword = $isSelf || $isNativo;
+        $canEditNome     = $isNativo && !$isSelf;
+        $canEditStatus   = $isNativo && !$isSelf;
+
+        // 8️⃣ Proteção entre gestores da mesma escola
+        $protecaoEntreGestores = ($alvoEhGestorEscola && $authEhGestorEscola && !$isSelf);
+
+        if ($protecaoEntreGestores) {
+            $canEditNome     = false;
+            $canEditStatus   = false;
+            $canEditPassword = false;
+        }
+
+        // 9️⃣ Travas absolutas — master/secretaria
+        if ($isMasterOuSecretaria) {
+            $canEditNome   = false;
+            $canEditStatus = false;
+
+            if (!$isSelf) {
+                $canEditPassword = false;
+            }
+        }
+
+        // 🔟 Deriva flag de visualização total
+        $viewOnly = !$canEditNome && !$canEditStatus && !$canEditPassword;
+
+        // ✅ Retorna matriz consolidada
+        return [
+            'is_self' => $isSelf,
+            'tem_vinculo_com_escola' => $temVinculo,
+            'is_nativo_na_escola' => $isNativo,
+            'is_vinculado_na_escola' => $isVinculado,
+            'is_master_ou_secretaria' => $isMasterOuSecretaria,
+            'alvo_eh_gestor_da_escola' => $alvoEhGestorEscola,
+            'auth_eh_gestor_da_escola' => $authEhGestorEscola,
+            'protecao_entre_gestores' => $protecaoEntreGestores,
+            'can_edit_password' => $canEditPassword,
+            'can_edit_nome' => $canEditNome,
+            'can_edit_status' => $canEditStatus,
+            'view_only' => $viewOnly, // <-- 💥 novo campo derivado
+        ];
+    }*/
+
+    protected function computeEditMatrix(int $authId, int $alvoId, int $schoolId): array
+    {
+        $p = prefix(); // ex: syrios_
+
+        // 1️⃣ Relações via pivot
+        $pivot = DB::table($p.'usuario_role');
+
+        // 2️⃣ Flags base
+        $isSelf = ($authId === $alvoId);
+
+        // 3️⃣ Vínculo com a escola atual
+        $temVinculo = $pivot
+            ->where('usuario_id', $alvoId)
+            ->where('school_id', $schoolId)
+            ->exists();
+
+        // 4️⃣ Master/Secretaria
+        $roleIdsMasterSecretaria = DB::table($p.'role')
+            ->whereIn('role_name', ['master', 'secretaria'])
+            ->pluck('id');
+
+        $isMasterOuSecretaria = DB::table($p.'usuario_role')
+            ->where('usuario_id', $alvoId)
+            ->whereIn('role_id', $roleIdsMasterSecretaria)
+            ->exists();
+
+        // 5️⃣ Gestores (role escola) na escola atual
+        $roleIdGestor = DB::table($p.'role')->where('role_name', 'escola')->value('id');
+
+        $alvoEhGestorEscola = $roleIdGestor
+            ? DB::table($p.'usuario_role')
+                ->where('usuario_id', $alvoId)
+                ->where('role_id', $roleIdGestor)
+                ->where('school_id', $schoolId)
+                ->exists()
+            : false;
+
+        $authEhGestorEscola = $roleIdGestor
+            ? DB::table($p.'usuario_role')
+                ->where('usuario_id', $authId)
+                ->where('role_id', $roleIdGestor)
+                ->where('school_id', $schoolId)
+                ->exists()
+            : false;
+
+        // 6️⃣ Nativo / Vinculado
+        $alvoRow = DB::table($p.'usuario')->where('id', $alvoId)->first();
+        $isNativo = $alvoRow && ((int)$alvoRow->school_id === $schoolId);
+        $isVinculado = $temVinculo && !$isNativo;
+
+        // 7️⃣ Permissões básicas
+        $canEditPassword = $isSelf || $isNativo;
+        $canEditNome     = $isNativo && !$isSelf;
+        $canEditStatus   = $isNativo && !$isSelf;
+
+        // 8️⃣ Proteção entre gestores da mesma escola (💥 regra mais importante)
+        $protecaoEntreGestores = ($authEhGestorEscola && $alvoEhGestorEscola && !$isSelf);
+
+        if ($protecaoEntreGestores) {
+            $canEditNome     = false;
+            $canEditStatus   = false;
+            $canEditPassword = false;
+        }
+
+        // 9️⃣ Master/Secretaria — só podem editar própria senha
+        if ($isMasterOuSecretaria) {
+            $canEditNome   = false;
+            $canEditStatus = false;
+            if (!$isSelf) {
+                $canEditPassword = false;
+            }
+        }
+
+        // 🔟 Retorno consolidado (sem alterar nada no controller)
+        return [
+            'is_self'                 => $isSelf,
+            'tem_vinculo_com_escola'  => $temVinculo,
+            'is_nativo_na_escola'     => $isNativo,
+            'is_vinculado_na_escola'  => $isVinculado,
+            'is_master_ou_secretaria' => $isMasterOuSecretaria,
+            'alvo_eh_gestor_da_escola'=> $alvoEhGestorEscola,
+            'auth_eh_gestor_da_escola'=> $authEhGestorEscola,
+            'protecao_entre_gestores' => $protecaoEntreGestores,
+            'can_edit_password'       => $canEditPassword,
+            'can_edit_nome'           => $canEditNome,
+            'can_edit_status'         => $canEditStatus,
+        ];
     }
+
 
 
     /**

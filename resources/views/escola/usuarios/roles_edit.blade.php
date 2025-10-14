@@ -31,7 +31,7 @@
                                                 'escola' => 'info',
                                                 'professor' => 'success',
                                                 'aluno' => 'secondary',
-                                                default => 'light'
+                                                default => 'dark'
                                             };
                                         @endphp
                                         <span class="badge bg-{{ $color }}">{{ ucfirst($r->role_name) }}</span>
@@ -61,6 +61,34 @@
 
                 @foreach($roles as $role)
                     @php
+                        // protege roles inalteráveis
+                        $isProtected = in_array($role->role_name, ['master', 'secretaria', 'escola']);
+                        $isChecked = in_array($role->id, $rolesSelecionadas);
+                    @endphp
+
+                    <div class="form-check mb-1">
+                        <input type="checkbox"
+                               class="form-check-input"
+                               name="roles[]"
+                               value="{{ $role->id }}"
+                               id="role_{{ $role->id }}"
+                               {{ $isChecked ? 'checked' : '' }}
+                               {{ $isProtected ? 'disabled' : '' }}>
+
+                        <label class="form-check-label {{ $isProtected ? 'text-muted' : '' }}"
+                               for="role_{{ $role->id }}">
+                            {{ ucfirst($role->role_name) }}
+                            @if($isProtected)
+                                <small class="text-muted">(protegida)</small>
+                            @endif
+                        </label>
+                    </div>
+                @endforeach
+
+
+                {{--
+                @foreach($roles as $role)
+                    @php
                         $checked = in_array($role->id, $rolesSelecionadas);
                         $isRestrita = in_array($role->role_name, ['master', 'secretaria']);
                         $disabled = $isRestrita ||
@@ -83,6 +111,7 @@
                         </label>
                     </div>
                 @endforeach
+                --}}
             </div>
         </div>
 

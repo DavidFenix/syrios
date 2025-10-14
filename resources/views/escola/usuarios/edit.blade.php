@@ -4,15 +4,6 @@
 <div class="container">
     <h1>Editar Usuário</h1>
 
-    {{-- ✅ Mensagens de status --}}
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @elseif(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @elseif(session('info'))
-        <div class="alert alert-info">{{ session('info') }}</div>
-    @endif
-
     {{-- 🔹 Cabeçalho informativo sobre o contexto --}}
     <div class="alert {{ $contexto['is_protegido'] ? 'alert-secondary' : 'alert-info' }}">
         <strong>🧾 Situação:</strong>
@@ -47,6 +38,12 @@
         </div>
     @endif
 
+    @php
+        // compatibilidade temporária com versões antigas
+        $somenteLeituraTerceiros = $flags['view_only'] ?? false;
+    @endphp
+
+
     <form method="POST" action="{{ route('escola.usuarios.update', $usuario) }}">
         @csrf
         @method('PUT')
@@ -55,7 +52,7 @@
         <div class="mb-3">
             <label class="form-label">Nome</label>
             <input type="text" name="nome" class="form-control"
-                   value="{{ old('nome', $usuario->nome) }}"
+                   value="{{ old('nome', $usuario->nome_u) }}"
                    {{ $flags['can_edit_nome'] ? '' : 'readonly' }}>
         </div>
 
@@ -78,32 +75,62 @@
         @if($flags['can_edit_password'])
             <div class="mb-3">
                 <label class="form-label">Nova senha</label>
-                <input type="password" name="password" class="form-control" minlength="8"
+                <input type="password" name="password" class="form-control" minlength="6"
                        placeholder="Deixe em branco se não quiser alterar">
-                <input type="password" name="password_confirmation" class="form-control mt-2" minlength="8"
+                <input type="password" name="password_confirmation" class="form-control mt-2" minlength="6"
                        placeholder="Confirme a nova senha">
             </div>
         @endif
 
-        {{-- Papéis (roles) --}}
+        {{-- Papéis (roles) agrupados por escola --}}
         <div class="mb-4">
-            <label class="form-label">Papéis (roles)</label>
-            <div class="border rounded p-3 bg-light">
-                @foreach($usuario->roles as $role)
-                    @php
-                        $color = match($role->role_name) {
-                            'master' => 'danger',
-                            'secretaria' => 'primary',
-                            'escola' => 'info',
-                            'professor' => 'success',
-                            'aluno' => 'secondary',
-                            default => 'light'
-                        };
-                    @endphp
-                    <span class="badge bg-{{ $color }} me-1">{{ ucfirst($role->role_name) }}</span>
-                @endforeach
-            </div>
+            <label class="form-label">Papéis (roles) por escola</label>
+
+            @php
+                use App\Models\Escola;
+
+                // Agrupa as roles por school_id via pivot
+                $rolesPorEscola = $usuario->roles->groupBy(fn($r) => $r->pivot->school_id);
+            @endphp
+
+            @forelse($rolesPorEscola as $schoolId => $rolesGrupo)
+                @php $escola = Escola::find($schoolId); @endphp
+
+                <div class="border rounded p-3 mb-3 bg-light">
+                    <strong class="d-block mb-2">
+                        🏫 {{ $escola->nome_e ?? 'Escola desconhecida (ID '.$schoolId.')' }}
+                    </strong>
+
+                    <div class="ms-2">
+                        @foreach($rolesGrupo as $role)
+                            @php
+                                $color = match($role->role_name) {
+                                    'master' => 'danger',
+                                    'secretaria' => 'primary',
+                                    'escola' => 'info',
+                                    'professor' => 'success',
+                                    'aluno' => 'secondary',
+                                    default => 'dark'
+                                };
+                            @endphp
+                            <span class="badge bg-{{ $color }} me-1">
+                                {{ ucfirst($role->role_name) }}
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+            @empty
+                <p class="text-muted">Nenhum papel atribuído a este usuário.</p>
+            @endforelse
         </div>
+
+        @if(Route::has('escola.usuarios.roles.edit') && !$flags['view_only'])
+            <a href="{{ route('escola.usuarios.roles.edit', $usuario->id) }}"
+               class="btn btn-outline-primary btn-sm mt-2">
+                ⚙️ Gerenciar roles
+            </a>
+        @endif
+
 
         {{-- Botões --}}
         <div class="mt-4">
@@ -115,7 +142,6 @@
     </form>
 </div>
 @endsection
-
 
 {{--
 @extends('layouts.app')
@@ -240,7 +266,7 @@
                                     'escola' => 'info',
                                     'professor' => 'success',
                                     'aluno' => 'secondary',
-                                    default => 'light'
+                                    default => 'dark'
                                 };
                             @endphp
                             <span class="badge bg-{{ $color }}">{{ ucfirst($r->role_name) }}</span>
@@ -402,7 +428,7 @@
                                     'escola' => 'info',
                                     'professor' => 'success',
                                     'aluno' => 'secondary',
-                                    default => 'light'
+                                    default => 'dark'
                                 };
                             @endphp
                             <span class="badge bg-{{ $color }}">{{ ucfirst($r->role_name) }}</span>
@@ -547,7 +573,7 @@
                                     'escola' => 'info',
                                     'professor' => 'success',
                                     'aluno' => 'secondary',
-                                    default => 'light'
+                                    default => 'dark'
                                 };
                             @endphp
                             <span class="badge bg-{{ $color }}">{{ ucfirst($r->role_name) }}</span>
