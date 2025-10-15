@@ -17,13 +17,27 @@ class DisciplinaController extends Controller
     //     return view('escola.disciplinas.index', compact('disciplinas', 'escola'));
     // }
 
+    // public function index()
+    // {
+    //     $schoolId = session('current_school_id');
+    //     $disciplinas = Disciplina::where('school_id', $schoolId)->get();
+
+    //     return view('escola.disciplinas.index', compact('disciplinas'));
+    // }
+
     public function index()
     {
         $schoolId = session('current_school_id');
-        $disciplinas = Disciplina::where('school_id', $schoolId)->get();
+
+        // Carrega disciplinas com a escola associada
+        $disciplinas = Disciplina::with('escola')
+            ->where('school_id', $schoolId)
+            ->orderBy('descr_d')
+            ->get();
 
         return view('escola.disciplinas.index', compact('disciplinas'));
     }
+
 
     public function create()
     {

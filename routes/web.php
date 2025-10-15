@@ -137,6 +137,11 @@ Route::prefix('escola')
         Route::post('usuarios/{usuario}/roles', [EscolaUsuarioController::class, 'updateRoles'])
             ->name('usuarios.roles.update');
 
+        // Vincular aluno existente à escola atual
+        Route::post('alunos/{aluno}/vincular', [AlunoController::class, 'vincular'])
+            ->name('alunos.vincular');
+
+
 
 
     });

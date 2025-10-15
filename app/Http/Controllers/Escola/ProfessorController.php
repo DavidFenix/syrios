@@ -95,7 +95,7 @@ class ProfessorController extends Controller
 
         $mensagem = !empty($mensagens)
             ? implode(' ', $mensagens)
-            : 'Nenhuma alteração necessária.';
+            : 'Lista Atualizada!';
 
         return view('escola.professores.index', compact('professores', 'mensagem'));
     }

@@ -15,4 +15,6 @@ class Enturmacao extends BaseModel
     public function escola() { return $this->belongsTo(Escola::class, 'school_id'); }
     public function aluno()  { return $this->belongsTo(Aluno::class, 'aluno_id'); }
     public function turma()  { return $this->belongsTo(Turma::class, 'turma_id'); }
+
+
 }

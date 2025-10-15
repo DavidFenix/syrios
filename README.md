@@ -1,3 +1,16 @@
+Continuar o desenvolvimento do projeto Syrios.
+O sistema já tem estrutura avançada com prefixo dinâmico (syrios_), BaseModel, helpers (prefix()), hierarquia de usuários (master → secretaria → escola → professor/aluno/pais) e fluxo completo de edição com as regras de contexto escolar.
+
+Quero continuar exatamente do ponto onde paramos: estamos aprimorando o index de disciplinas, que agora exibe também a coluna da escola.
+
+Quero seguir com o mesmo estilo de código, organização e compatibilidade total com o banco real.
+
+link simbolico para acessar pasta no storage
+	--cd c:\wamp64\www\syrios
+	--php artisan storage:link
+	--coloque as imagens dos alunos em storage/app/public/img-user
+
+
 🧭 CONTEXTO: Usuário logado em uma escola
 
 O usuário da sessão (auth()->user()) está logado como gestor da escola (role escola) no contexto atual.
