@@ -1,3 +1,4 @@
+Exclua esse aquivo que não está sendo usado
 @extends('layouts.app')
 
 @section('content')
