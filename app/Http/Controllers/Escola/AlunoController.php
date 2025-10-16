@@ -9,6 +9,8 @@ use App\Models\Turma;
 use App\Models\Ocorrencia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 
 class AlunoController extends Controller
 {
@@ -120,6 +122,7 @@ class AlunoController extends Controller
 
     public function store(Request $request)
     {
+        
         $schoolId = session('current_school_id');
 
         $request->validate([
@@ -493,72 +496,256 @@ class AlunoController extends Controller
         //         ->with('success', '✅ Aluno removido com sucesso.');
         // }
 
+    // public function destroy($id)
+    // {
+       
+    //     $schoolId = session('current_school_id');
+
+    //     // 🔍 Busca o aluno (nativo ou vinculado)
+    //     $aluno = Aluno::with(['enturmacao', 'ocorrencias'])
+    //         ->where(function ($query) use ($schoolId) {
+    //             $query->where('school_id', $schoolId)
+    //                   ->orWhereHas('enturmacao', function ($sub) use ($schoolId) {
+    //                       $sub->where('school_id', $schoolId);
+    //                   });
+    //         })
+    //         ->where('id', $id)
+    //         ->firstOrFail();
+
+    //     // 🔒 Proteção 1: aluno de outra escola sem vínculo
+    //     $temVinculo = $aluno->enturmacao()->where('school_id', $schoolId)->exists();
+    //     if ($aluno->school_id != $schoolId && !$temVinculo) {
+    //         return redirect()->route('escola.alunos.index')
+    //             ->with('warning', '🚫 Este aluno não pertence nem está vinculado a esta escola.');
+    //     }
+
+    //     // 🔒 Proteção 2: aluno com ocorrências
+    //     $temOcorrencias = \App\Models\Ocorrencia::where('aluno_id', $aluno->id)->exists();
+    //     if ($temOcorrencias) {
+    //         return redirect()->route('escola.alunos.index')
+    //             ->with('warning', '⚠️ Não é possível excluir. O aluno possui ocorrências registradas.');
+    //     }
+
+    //     // 🔒 Proteção 3: aluno com múltiplas enturmações (várias escolas)
+    //     $qtdEnturmacoes = \App\Models\Enturmacao::where('aluno_id', $aluno->id)->count();
+    //     if ($qtdEnturmacoes > 1 || ($qtdEnturmacoes == 1 && $aluno->school_id != $schoolId)) {
+    //         return redirect()->route('escola.alunos.index')
+    //             ->with('warning', '⚠️ Este aluno está vinculado a mais de uma escola. Remova o vínculo antes de excluir.');
+    //     }
+
+    //     // 🔄 Caso seja apenas vínculo (não nativo)
+    //     if ($aluno->school_id != $schoolId && $temVinculo) {
+
+    //         $enturmasRemovidas = Enturmacao::where('aluno_id', $aluno->id)
+    //             ->where('school_id', $schoolId)
+    //             ->delete();
+
+    //         if ($enturmasRemovidas > 0) {
+    //             return redirect()->route('escola.alunos.index')
+    //                 ->with('success', '🔗 Vínculo do aluno removido com sucesso.');
+    //         } else {
+    //             return redirect()->route('escola.alunos.index')
+    //                 ->with('warning', '⚠️ Nenhuma enturmação encontrada para remover.');
+    //         }
+    //     }
+
+    //     // 🧹 Caso seja nativo e sem dependências
+    //     $enturmasRemovidas = Enturmacao::where('aluno_id', $aluno->id)
+    //         ->where('school_id', $schoolId)
+    //         ->delete();
+
+    //     // 🧾 Se não tiver mais vínculos com nenhuma escola, pode apagar o aluno
+    //     $restaVinculo = Enturmacao::where('aluno_id', $aluno->id)->exists();
+
+    //     if (!$restaVinculo && $aluno->school_id == $schoolId) {
+    //         $aluno->delete();
+    //     }
+
+    //     return redirect()->route('escola.alunos.index')
+    //         ->with('success', '✅ Aluno removido com sucesso.');
+    // }
+
+    // public function destroy($id)
+    // {
+    //     $schoolId = session('current_school_id');
+    //     Log::info('🧭 [DEBUG] Início do destroy()', [
+    //         'id_recebido' => $id,
+    //         'school_id_sessao' => $schoolId
+    //     ]);
+
+    //     // 1️⃣ Busca o aluno (nativo ou vinculado)
+    //     $aluno = Aluno::with(['enturmacao', 'ocorrencias'])
+    //         ->where(function ($query) use ($schoolId) {
+    //             $query->where('school_id', $schoolId)
+    //                   ->orWhereHas('enturmacao', function ($sub) use ($schoolId) {
+    //                       $sub->where('school_id', $schoolId);
+    //                   });
+    //         })
+    //         ->where('id', $id)
+    //         ->first();
+
+    //     if (!$aluno) {
+    //         Log::warning('⚠️ [DEBUG] Aluno não encontrado');
+    //         dd('⚠️ Aluno não encontrado com o ID informado.');
+    //     }
+
+    //     Log::info('👤 [DEBUG] Aluno encontrado', $aluno->toArray());
+
+    //     // 2️⃣ Checa vínculo na enturmação
+    //     $temVinculo = $aluno->enturmacao()->where('school_id', $schoolId)->exists();
+    //     Log::info('🔗 [DEBUG] Verificação de vínculo', [
+    //         'tem_vinculo' => $temVinculo,
+    //         'school_id_aluno' => $aluno->school_id,
+    //         'school_id_sessao' => $schoolId
+    //     ]);
+
+    //     if ($aluno->school_id != $schoolId && !$temVinculo) {
+    //         Log::warning('🚫 [DEBUG] Aluno não pertence nem está vinculado a esta escola');
+    //         dd('🚫 Aluno não pertence nem está vinculado a esta escola.');
+    //     }
+
+    //     // 3️⃣ Verifica ocorrências
+    //     $temOcorrencias = \App\Models\Ocorrencia::where('aluno_id', $aluno->id)->exists();
+    //     Log::info('🧾 [DEBUG] Verificação de ocorrências', ['tem_ocorrencias' => $temOcorrencias]);
+
+    //     if ($temOcorrencias) {
+    //         Log::warning('⚠️ [DEBUG] Aluno tem ocorrências');
+    //         dd('⚠️ Aluno possui ocorrências — não pode ser excluído.');
+    //     }
+
+    //     // 4️⃣ Conta enturmações
+    //     $qtdEnturmacoes = \App\Models\Enturmacao::where('aluno_id', $aluno->id)->count();
+    //     Log::info('📊 [DEBUG] Contagem de enturmações', ['qtd_enturmacoes' => $qtdEnturmacoes]);
+
+    //     if ($qtdEnturmacoes > 1 || ($qtdEnturmacoes == 1 && $aluno->school_id != $schoolId)) {
+    //         Log::warning('⚠️ [DEBUG] Aluno vinculado a múltiplas escolas');
+    //         dd('⚠️ Este aluno está vinculado a mais de uma escola. Remova o vínculo antes de excluir.');
+    //     }
+
+    //     // 5️⃣ Caso seja apenas vínculo (não nativo)
+    //     if ($aluno->school_id != $schoolId && $temVinculo) {
+    //         Log::info('🧩 [DEBUG] Caso de vínculo detectado — removendo enturmação');
+    //         $enturmasRemovidas = \App\Models\Enturmacao::where('aluno_id', $aluno->id)
+    //             ->where('school_id', $schoolId)
+    //             ->delete();
+
+    //         Log::info('🧹 [DEBUG] Enturmações removidas', ['qtd' => $enturmasRemovidas]);
+
+    //         if ($enturmasRemovidas > 0) {
+    //             dd('✅ Vínculo do aluno removido com sucesso.');
+    //         } else {
+    //             dd('⚠️ Nenhuma enturmação encontrada para remover.');
+    //         }
+    //     }
+
+    //     // 6️⃣ Caso seja nativo
+    //     Log::info('🏫 [DEBUG] Aluno nativo — iniciando exclusão total');
+
+    //     $enturmasRemovidas = \App\Models\Enturmacao::where('aluno_id', $aluno->id)
+    //         ->where('school_id', $schoolId)
+    //         ->delete();
+
+    //     Log::info('🧹 [DEBUG] Enturmações deletadas', ['qtd' => $enturmasRemovidas]);
+
+    //     $restaVinculo = \App\Models\Enturmacao::where('aluno_id', $aluno->id)->exists();
+    //     Log::info('🔁 [DEBUG] Resta vínculo?', ['resta_vinculo' => $restaVinculo]);
+
+    //     if (!$restaVinculo && $aluno->school_id == $schoolId) {
+    //         $aluno->delete();
+    //         Log::info('✅ [DEBUG] Aluno deletado definitivamente', ['id' => $aluno->id]);
+    //         dd('✅ Aluno removido definitivamente.');
+    //     }
+
+    //     Log::warning('⚠️ [DEBUG] Nada foi removido — aluno ainda tem vínculos externos.');
+    //     dd('⚠️ Nenhum vínculo removido. O aluno ainda tem enturmações em outras escolas.');
+    // }
+
     public function destroy($id)
     {
         $schoolId = session('current_school_id');
+        Log::info('🧭 Início do destroy()', [
+            'id_recebido' => $id,
+            'school_id_sessao' => $schoolId
+        ]);
 
-        // 🔍 Busca o aluno (nativo ou vinculado)
-        $aluno = Aluno::where('school_id', $schoolId)
-            ->orWhereHas('enturmacao', function ($q) use ($schoolId) {
-                $q->where('school_id', $schoolId);
+        // 1️⃣ Busca o aluno (nativo ou vinculado)
+        $aluno = Aluno::with(['enturmacao', 'ocorrencias'])
+            ->where(function ($query) use ($schoolId) {
+                $query->where('school_id', $schoolId)
+                      ->orWhereHas('enturmacao', function ($sub) use ($schoolId) {
+                          $sub->where('school_id', $schoolId);
+                      });
             })
-            ->with(['enturmacao', 'ocorrencias'])
             ->where('id', $id)
-            ->firstOrFail();
+            ->first();
 
-        // 🔒 Proteção 1: aluno de outra escola sem vínculo
+        if (!$aluno) {
+            Log::warning('⚠️ Aluno não encontrado', ['id' => $id]);
+            return redirect()->route('escola.alunos.index')
+                ->with('warning', '⚠️ Aluno não encontrado.');
+        }
+
+        // 2️⃣ Verifica vínculo com a escola logada
         $temVinculo = $aluno->enturmacao()->where('school_id', $schoolId)->exists();
         if ($aluno->school_id != $schoolId && !$temVinculo) {
+            Log::warning('🚫 Aluno não pertence nem está vinculado à escola', [
+                'aluno_school_id' => $aluno->school_id,
+                'school_id_sessao' => $schoolId
+            ]);
             return redirect()->route('escola.alunos.index')
                 ->with('warning', '🚫 Este aluno não pertence nem está vinculado a esta escola.');
         }
 
-        // 🔒 Proteção 2: aluno com ocorrências
-        $temOcorrencias = \App\Models\Ocorrencia::where('aluno_id', $aluno->id)->exists();
-        if ($temOcorrencias) {
+        // 3️⃣ Bloqueia exclusão se tiver ocorrências
+        if (\App\Models\Ocorrencia::where('aluno_id', $aluno->id)->exists()) {
+            Log::warning('⚠️ Aluno com ocorrências detectado', ['id' => $aluno->id]);
             return redirect()->route('escola.alunos.index')
                 ->with('warning', '⚠️ Não é possível excluir. O aluno possui ocorrências registradas.');
         }
 
-        // 🔒 Proteção 3: aluno com múltiplas enturmações (várias escolas)
-        $qtdEnturmacoes = \App\Models\Enturmacao::where('aluno_id', $aluno->id)->count();
-        if ($qtdEnturmacoes > 1 || ($qtdEnturmacoes == 1 && $aluno->school_id != $schoolId)) {
-            return redirect()->route('escola.alunos.index')
-                ->with('warning', '⚠️ Este aluno está vinculado a mais de uma escola. Remova o vínculo antes de excluir.');
-        }
-
-        // // 🔄 Caso seja apenas vínculo (não nativo)
-        // if ($aluno->school_id != $schoolId && $temVinculo) {
-        //     \App\Models\Enturmacao::where('aluno_id', $aluno->id)
-        //         ->where('school_id', $schoolId)
-        //         ->delete();
-
-        //     return redirect()->route('escola.alunos.index')
-        //         ->with('success', '🔗 Vínculo do aluno removido com sucesso.');
-        // }
-
-        // 🔄 Caso seja apenas vínculo (não nativo)
-        if ($aluno->school_id != $schoolId && $temVinculo) {
-            $enturmasRemovidas = \App\Models\Enturmacao::where('aluno_id', $aluno->id)
+        // 4️⃣ Se tiver vínculo (enturmado na escola atual)
+        if ($temVinculo) {
+            $removidas = \App\Models\Enturmacao::where('aluno_id', $aluno->id)
                 ->where('school_id', $schoolId)
                 ->delete();
 
-            if ($enturmasRemovidas > 0) {
+            Log::info('🧹 Enturmações removidas desta escola', [
+                'aluno_id' => $aluno->id,
+                'removidas' => $removidas
+            ]);
+
+            // Verifica se ainda restam vínculos com outras escolas
+            $restaVinculo = \App\Models\Enturmacao::where('aluno_id', $aluno->id)->exists();
+
+            // Se o aluno for nativo e não tiver mais vínculos → pode excluir totalmente
+            if (!$restaVinculo && $aluno->school_id == $schoolId) {
+                $aluno->delete();
+                Log::info('✅ Aluno nativo deletado definitivamente', ['id' => $aluno->id]);
                 return redirect()->route('escola.alunos.index')
-                    ->with('success', '🔗 Vínculo do aluno removido com sucesso.');
-            } else {
-                return redirect()->route('escola.alunos.index')
-                    ->with('warning', '⚠️ Nenhuma enturmação encontrada para remover.');
+                    ->with('success', '✅ Aluno removido completamente, sem vínculos restantes.');
             }
+
+            // Caso contrário, apenas o vínculo local foi removido
+            return redirect()->route('escola.alunos.index')
+                ->with('success', '🔗 Vínculo com esta escola removido com sucesso.');
         }
 
+        // 5️⃣ Se for nativo e sem vínculos externos
+        $restaVinculo = \App\Models\Enturmacao::where('aluno_id', $aluno->id)->exists();
+        if (!$restaVinculo && $aluno->school_id == $schoolId) {
+            $aluno->delete();
+            Log::info('✅ Aluno nativo sem vínculos restantes — deletado', ['id' => $aluno->id]);
+            return redirect()->route('escola.alunos.index')
+                ->with('success', '✅ Aluno removido com sucesso.');
+        }
 
-        // 🧹 Caso seja nativo e sem dependências
-        \App\Models\Enturmacao::where('aluno_id', $aluno->id)->delete();
-        $aluno->delete();
-
+        // 6️⃣ Nenhuma condição de exclusão atendida
+        Log::warning('⚠️ Nenhuma exclusão realizada', [
+            'aluno_id' => $aluno->id,
+            'school_id_sessao' => $schoolId
+        ]);
         return redirect()->route('escola.alunos.index')
-            ->with('success', '✅ Aluno removido com sucesso.');
+            ->with('warning', '⚠️ Não foi possível excluir. O aluno ainda está vinculado a outras escolas.');
     }
 
 
