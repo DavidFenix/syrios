@@ -26,6 +26,8 @@ class Ocorrencia extends BaseModel
         'encaminhamento',
         'recebido_em',
         'sync',
+        'ano_letivo',
+        'vigente',
         // ❌ Removidos 'criado_em' e 'atualizado_em'
     ];
 
@@ -35,6 +37,8 @@ class Ocorrencia extends BaseModel
         'created_at'      => 'datetime', // ✅ novos nomes padrão
         'updated_at'      => 'datetime',
         'sync'            => 'boolean',
+        'vigente'         => 'boolean',
+        'ano_letivo'      => 'integer',
     ];
 
     // 🔗 Relacionamentos

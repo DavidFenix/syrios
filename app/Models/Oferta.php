@@ -11,6 +11,13 @@ class Oferta extends BaseModel
         'turma_id',
         'professor_id',
         'school_id',
+        'ano_letivo',
+        'vigente',
+    ];
+
+    protected $casts = [
+        'vigente' => 'boolean',
+        'ano_letivo' => 'integer',
     ];
 
     public function disciplina()

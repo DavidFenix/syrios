@@ -10,6 +10,13 @@ class DiretorTurma extends BaseModel
         'usuario_id',
         'turma_id',
         'school_id',
+        'ano_letivo',
+        'vigente',
+    ];
+
+    protected $casts = [
+        'vigente' => 'boolean',
+        'ano_letivo' => 'integer',
     ];
 
     public function usuario()

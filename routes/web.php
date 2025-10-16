@@ -141,6 +141,10 @@ Route::prefix('escola')
         Route::post('alunos/{aluno}/vincular', [AlunoController::class, 'vincular'])
             ->name('alunos.vincular');
 
+        // Enturmações (vínculos aluno–turma)
+        Route::resource('enturmacao', \App\Http\Controllers\Escola\EnturmacaoController::class)
+            ->except(['show']);
+
 
 
 

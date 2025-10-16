@@ -1,3 +1,10 @@
+migração para incluir ano_letivo e vigente nas tabelas
+--cd c:\wamp64\www\syrios
+--php artisan make:migration add_ano_vigente_to_temporais_tables --table=syrios_enturmacao
+--php artisan migrate
+
+
+
 Continuar o desenvolvimento do projeto Syrios.
 O sistema já tem estrutura avançada com prefixo dinâmico (syrios_), BaseModel, helpers (prefix()), hierarquia de usuários (master → secretaria → escola → professor/aluno/pais) e fluxo completo de edição com as regras de contexto escolar.
 
