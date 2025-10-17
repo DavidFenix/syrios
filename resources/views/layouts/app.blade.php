@@ -93,6 +93,12 @@
                             🏷️ Turmas
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/enturmacao*') ? 'active' : '' }}"
+                           href="{{ route('escola.enturmacao.index') }}">
+                            🏷️ Enturmacao
+                        </a>
+                    </li>
                 @endif
             </ul>
 

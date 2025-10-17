@@ -8,9 +8,11 @@ use App\Models\Enturmacao;
 use App\Models\Aluno;
 use App\Models\Turma;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class EnturmacaoController extends Controller
 {
+    
     public function index()
     {
         $schoolId = session('current_school_id');
@@ -25,14 +27,67 @@ class EnturmacaoController extends Controller
         return view('escola.enturmacao.index', compact('enturmacoes', 'anoLetivo'));
     }
 
-    public function create()
+    // public function create()
+        // {
+        //     $schoolId = session('current_school_id');
+        //     $alunos = Aluno::where('school_id', $schoolId)->orderBy('nome_a')->get();
+        //     $turmas = Turma::where('school_id', $schoolId)->orderBy('serie_turma')->get();
+
+        //     return view('escola.enturmacao.create', compact('alunos', 'turmas'));
+        // }
+
+    // public function create()
+        // {
+        //     $schoolId = session('current_school_id');
+        //     $anoLetivo = session('ano_letivo_atual') ?? date('Y');
+
+        //     $alunos = Aluno::where('school_id', $schoolId)
+        //         ->orderBy('nome_a')
+        //         ->get(['id','nome_a','matricula']);
+
+        //     $turmas = Turma::where('school_id', $schoolId)
+        //         ->orderBy('serie_turma')
+        //         ->get(['id','serie_turma','turno']);
+
+        //     return view('escola.enturmacao.create', compact('alunos', 'turmas', 'anoLetivo'));
+        // }
+
+    public function create(Request $request)
     {
         $schoolId = session('current_school_id');
-        $alunos = Aluno::where('school_id', $schoolId)->orderBy('nome_a')->get();
+        $anoLetivo = session('ano_letivo_atual') ?? date('Y');
+
         $turmas = Turma::where('school_id', $schoolId)->orderBy('serie_turma')->get();
 
-        return view('escola.enturmacao.create', compact('alunos', 'turmas'));
+        $alunosFiltrados = null;
+        $alunosTurmaOrigem = null;
+
+        // pesquisa geral
+        if ($request->filled('nome') || $request->filled('matricula')) {
+            $query = Aluno::where('school_id', $schoolId);
+            if ($request->filled('nome')) {
+                $query->where('nome_a', 'like', "%{$request->nome}%");
+            }
+            if ($request->filled('matricula')) {
+                $query->where('matricula', 'like', "%{$request->matricula}%");
+            }
+            $alunosFiltrados = $query->orderBy('nome_a')->get();
+        }
+
+        // pesquisa por turma
+        if ($request->filled('turma_origem')) {
+            $alunosTurmaOrigem = Aluno::whereHas('enturmacao', function ($q) use ($request, $schoolId) {
+                $q->where('turma_id', $request->turma_origem)
+                  ->where('school_id', $schoolId)
+                  ->where('ano_letivo', $request->ano_origem ?? date('Y') - 1);
+            })->orderBy('nome_a')->get();
+        }
+
+        return view('escola.enturmacao.create', compact(
+            'turmas', 'alunosFiltrados', 'alunosTurmaOrigem', 'anoLetivo'
+        ));
     }
+
 
     public function store(Request $request)
     {
@@ -66,6 +121,113 @@ class EnturmacaoController extends Controller
 
         return redirect()->route('escola.enturmacao.index')
             ->with('success', '✅ Aluno enturmado com sucesso!');
+    }
+
+    public function storeBatch(Request $request)
+    {
+        $schoolId = session('current_school_id');
+        $anoLetivo = $request->input('ano_letivo', session('ano_letivo_atual') ?? date('Y'));
+
+        $request->validate([
+            'turma_id'   => 'required|integer|exists:' . prefix() . 'turma,id',
+            'alunos'     => 'required|array|min:1',
+            'ano_letivo' => 'required|integer|min:2000|max:' . (date('Y') + 1),
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $turma = Turma::find($request->turma_id);
+
+            $totalInseridos = 0;
+            $jaExistiam = 0;
+
+            foreach ($request->alunos as $alunoId) {
+                // Evita duplicação: aluno já enturmado neste ano e escola
+                $existe = Enturmacao::where('aluno_id', $alunoId)
+                    ->where('turma_id', $request->turma_id)
+                    ->where('school_id', $schoolId)
+                    ->where('ano_letivo', $anoLetivo)
+                    ->exists();
+
+                if ($existe) {
+                    $jaExistiam++;
+                    continue;
+                }
+
+                Enturmacao::create([
+                    'aluno_id'   => $alunoId,
+                    'turma_id'   => $request->turma_id,
+                    'school_id'  => $schoolId,
+                    'ano_letivo' => $anoLetivo,
+                    'vigente'    => true,
+                ]);
+
+                $totalInseridos++;
+            }
+
+            DB::commit();
+
+            $msg = "✅ Enturmação concluída: {$totalInseridos} aluno(s) novos adicionados.";
+            if ($jaExistiam > 0) {
+                $msg .= " ({$jaExistiam} já estavam enturmados nesta turma e ano.)";
+            }
+
+            return redirect()
+                ->route('escola.enturmacao.index')
+                ->with('success', $msg);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Erro ao enturmar em lote', [
+                'erro' => $e->getMessage(),
+                'school_id' => $schoolId,
+                'user_id' => auth()->id(),
+            ]);
+
+            return back()
+                ->withInput()
+                ->with('error', '❌ Erro ao enturmar alunos. Detalhes no log.');
+        }
+    }
+
+    public function edit($id)
+    {
+        $schoolId = session('current_school_id');
+        $anoLetivo = session('ano_letivo_atual') ?? date('Y');
+
+        $enturmacao = Enturmacao::with(['aluno', 'turma'])
+            ->where('school_id', $schoolId)
+            ->findOrFail($id);
+
+        // turmas da escola atual (não filtramos por ano para permitir ajuste fino)
+        $turmas = Turma::where('school_id', $schoolId)
+            ->orderBy('serie_turma')
+            ->get(['id','serie_turma','turno']);
+
+        return view('escola.enturmacao.edit', compact('enturmacao', 'turmas', 'anoLetivo'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $schoolId = session('current_school_id');
+
+        $request->validate([
+            'turma_id'   => 'required|integer|exists:' . prefix() . 'turma,id',
+            'ano_letivo' => 'nullable|integer|min:2000|max:' . (date('Y') + 1),
+            'vigente'    => 'nullable|boolean',
+        ]);
+
+        $enturmacao = Enturmacao::where('school_id', $schoolId)->findOrFail($id);
+
+        $enturmacao->turma_id   = $request->turma_id;
+        // ano_letivo e aluno_id não se alteram aqui (histórico); se quiser permitir, remova este comentário e trate impacto.
+        $enturmacao->vigente    = (bool) $request->boolean('vigente', false);
+        $enturmacao->save();
+
+        return redirect()->route('escola.enturmacao.index')
+            ->with('success', '✅ Enturmação atualizada com sucesso.');
     }
 
     public function destroy($id)

@@ -145,6 +145,12 @@ Route::prefix('escola')
         Route::resource('enturmacao', \App\Http\Controllers\Escola\EnturmacaoController::class)
             ->except(['show']);
 
+        // Enturmação
+        Route::resource('enturmacao', \App\Http\Controllers\Escola\EnturmacaoController::class)->except(['show']);
+
+        // Rota especial para enturmação em lote
+        Route::post('enturmacao/storeBatch', [\App\Http\Controllers\Escola\EnturmacaoController::class, 'storeBatch'])
+            ->name('enturmacao.storeBatch');
 
 
 

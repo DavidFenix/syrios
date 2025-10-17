@@ -1,22 +1,37 @@
+
+
+
+
+🧱 FASE 1 — ENTURMAÇÃO MANUAL (1:1)
+no blade create
+vamos acrescentar um modo mais eficiente do que um select para achar um aluno. as duas opções a seguir podem ficar na mesma página
+    opção 1:caixar de pesquisa geral(um filtro por nome e outro filtro por matricula)
+    --localização imediata no sistema de um ou mais alunos ao clicar no botao de busca
+    --carregar lista de alunos com checkbox (com opçao de marcar e desmarcar todos)
+    --escolher o ano destino(ou propor o ano vigente) -> escolher a turma de destino
+    --botao enturmar
+    --enturma todos os alunos marcados na turma e ano escolhidos
+
+    opção 2:pesquisa por turma
+    --escolher o ano -> escolher a turma de origem
+    --escolher o ano destino(ou propor o ano vigente) -> escolher a turma de destino
+    --carregar lista de alunos com checkbox (com opçao de marcar e desmarcar todos) ao clicar no botao de busca
+    --botao enturmar
+    --enturma todos os alunos marcados na turma e ano escolhidos
+
+
+-----------------------------------------------------------------------------------------------
 migração para incluir ano_letivo e vigente nas tabelas
 --cd c:\wamp64\www\syrios
 --php artisan make:migration add_ano_vigente_to_temporais_tables --table=syrios_enturmacao
 --php artisan migrate
 
-
-
-Continuar o desenvolvimento do projeto Syrios.
-O sistema já tem estrutura avançada com prefixo dinâmico (syrios_), BaseModel, helpers (prefix()), hierarquia de usuários (master → secretaria → escola → professor/aluno/pais) e fluxo completo de edição com as regras de contexto escolar.
-
-Quero continuar exatamente do ponto onde paramos: estamos aprimorando o index de disciplinas, que agora exibe também a coluna da escola.
-
-Quero seguir com o mesmo estilo de código, organização e compatibilidade total com o banco real.
-
+------------------------------------------------------------------------------------------------
 link simbolico para acessar pasta no storage
 	--cd c:\wamp64\www\syrios
 	--php artisan storage:link
 	--coloque as imagens dos alunos em storage/app/public/img-user
-
+---------------------------------------------------------------------------------------------
 
 🧭 CONTEXTO: Usuário logado em uma escola
 
