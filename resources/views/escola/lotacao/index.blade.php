@@ -21,6 +21,8 @@
         </div>
     </form>
 
+    <div class="mb-3"><a href="{{ route('escola.lotacao.diretor_turma.index') }}" class="btn btn-success">Gerenciar Diretor de Turma</a></div>
+
     @if($professorSelecionado)
         @forelse($ofertas as $disciplinaId => $grupo)
             <div class="card mb-3">
@@ -40,5 +42,7 @@
             <div class="alert alert-info">Nenhuma oferta encontrada para este professor.</div>
         @endforelse
     @endif
+
+
 </div>
 @endsection

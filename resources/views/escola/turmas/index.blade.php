@@ -4,7 +4,7 @@
     <h1>Turmas</h1>
     <a href="{{ route('escola.turmas.create') }}" class="btn btn-primary mb-3">➕ Nova Turma</a>
 
-    <table class="table table-striped">
+    <table class="table table-striped" id="tabela-turmas">
         <thead><tr><th>ID</th><th>Série</th><th>Turno</th><th>Ações</th></tr></thead>
         <tbody>
         @forelse($turmas as $t)
@@ -28,6 +28,19 @@
     </table>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function () {
+    // Aplica o DataTable com filtro nas colunas Nome(1), CPF(2), Status(3), Roles(4)
+    initDataTable('#tabela-turmas', {
+        order: [[1, 'asc']],
+        pageLength: 10
+    }, [1, 2]);
+});
+</script>
+@endpush
+
 
 
 {{--

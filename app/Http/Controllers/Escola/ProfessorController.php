@@ -22,11 +22,28 @@ class ProfessorController extends Controller
         // 🔹 Role "professor"
         $roleProfessorId = Role::where('role_name', 'professor')->value('id');
 
+        // dd(
+        //     Usuario::whereHas('roles', function($q) use ($roleProfessorId, $schoolId) {
+        //         $q->where(prefix('usuario_role').'.role_id', $roleProfessorId)
+        //           ->where(prefix('usuario_role').'.school_id', $schoolId);
+        //     })->toSql()
+        // );
+
+
+        // sql_dump(
+        //     Usuario::whereHas('roles', function($q) use ($roleProfessorId, $schoolId) {
+        //         $q->where(prefix('usuario_role').'.role_id', $roleProfessorId)
+        //           ->where(prefix('usuario_role').'.school_id', $schoolId);
+        //     })
+        // );
+
+
         // 🔹 Busca todos os usuários com role "professor" nesta escola
         $usuariosComRole = Usuario::whereHas('roles', function($q) use ($roleProfessorId, $schoolId) {
             $q->where(prefix('usuario_role').'.role_id', $roleProfessorId)
               ->where(prefix('usuario_role').'.school_id', $schoolId);
         })->get();
+
 
         // 🔹 Lista de IDs com role (deve estar em syrios_professor)
         $idsComRole = $usuariosComRole->pluck('id')->toArray();

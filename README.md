@@ -1,4 +1,36 @@
 
+montando e usando um debug de query em helpers
+exemplos de uso
+$query = Usuario::whereHas('roles', function($q) use ($roleProfessorId, $schoolId) {
+    $q->where(prefix('usuario_role').'.role_id', $roleProfessorId)
+      ->where(prefix('usuario_role').'.school_id', $schoolId);
+});
+
+sql_dump($query);
+
+----------
+$q = DB::table(prefix('aluno'))
+    ->where('school_id', 5)
+    ->where('matricula', '12345');
+
+sql_dump($q);
+
+-----------
+Apenas visualizar sem interromper execução
+sql_dump($query, false);
+Isso apenas mostra no console, mas não para o código (útil em loops ou testes PHPUnit).
+
+------------
+Se quiser inspecionar todas as queries rodadas numa requisição:
+\DB::enableQueryLog();
+// ... suas operações Eloquent ...
+sql_dump(DB::getQueryLog(), false);
+
+
+
+
+------------------------------------------------------
+php artisan route:list
 
 
 
