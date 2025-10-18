@@ -4,7 +4,7 @@
     <h1>Enturmações — {{ $anoLetivo }}</h1>
     <a href="{{ route('escola.enturmacao.create') }}" class="btn btn-primary mb-3">➕ Nova Enturmação</a>
 
-    <table class="table table-striped">
+    <table class="table table-striped" id="tabela-enturmacao">
         <thead>
             <tr>
                 <th>#</th>
@@ -38,3 +38,15 @@
     </table>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function () {
+    // Aplica o DataTable com filtro nas colunas Nome(1), CPF(2), Status(3), Roles(4)
+    initDataTable('#tabela-enturmacao', {
+        order: [[2, 'asc'],[1, 'asc']],
+        pageLength: 10
+    }, [1, 2, 3, 4]);
+});
+</script>
+@endpush

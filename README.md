@@ -23,8 +23,8 @@ vamos acrescentar um modo mais eficiente do que um select para achar um aluno. a
 -----------------------------------------------------------------------------------------------
 migração para incluir ano_letivo e vigente nas tabelas
 --cd c:\wamp64\www\syrios
---php artisan make:migration add_ano_vigente_to_temporais_tables --table=syrios_enturmacao
---php artisan migrate
+--php artisan migrate --path=database/migrations/2025_10_16_122628_add_ano_vigente_to_temporais_tables.php
+
 
 ------------------------------------------------------------------------------------------------
 link simbolico para acessar pasta no storage
