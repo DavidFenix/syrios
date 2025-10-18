@@ -7,13 +7,15 @@ class Oferta extends BaseModel
     protected $basename = 'oferta';
 
     protected $fillable = [
+        'school_id',
+        'professor_id',
         'disciplina_id',
         'turma_id',
-        'professor_id',
-        'school_id',
         'ano_letivo',
         'vigente',
+        'status',
     ];
+
 
     protected $casts = [
         'vigente' => 'boolean',

@@ -152,6 +152,18 @@ Route::prefix('escola')
         Route::post('enturmacao/storeBatch', [\App\Http\Controllers\Escola\EnturmacaoController::class, 'storeBatch'])
             ->name('enturmacao.storeBatch');
 
+        Route::resource('lotacao', \App\Http\Controllers\Escola\LotacaoController::class)->except(['show']);
+
+        Route::prefix('lotacao')->name('lotacao.')->group(function () {
+            Route::get('diretor_turma', [\App\Http\Controllers\Escola\DiretorTurmaController::class, 'index'])
+                ->name('diretor_turma.index');
+            Route::post('diretor_turma/update', [\App\Http\Controllers\Escola\DiretorTurmaController::class, 'update'])
+                ->name('diretor_turma.update');
+            Route::delete('diretor_turma/{id}', [\App\Http\Controllers\Escola\DiretorTurmaController::class, 'destroy'])
+                ->name('diretor_turma.destroy');
+        });
+
+
 
 
     });

@@ -26,6 +26,16 @@
                 🏫 Turmas
             </a>
         </div>
+        <div class="col-md-3 mb-3">
+            <a href="{{ route('escola.enturmacao.index') }}" class="btn btn-warning w-100">
+                📚 Enturmação
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="{{ route('escola.lotacao.index') }}" class="btn btn-warning w-100">
+                📚 Lotação
+            </a>
+        </div>
     </div>
 </div>
 @endsection

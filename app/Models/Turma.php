@@ -20,4 +20,10 @@ class Turma extends BaseModel
     {
         return $this->belongsTo(Escola::class, 'school_id');
     }
+
+    public function diretores()
+    {
+        return $this->hasMany(\App\Models\DiretorTurma::class, 'turma_id');
+    }
+
 }

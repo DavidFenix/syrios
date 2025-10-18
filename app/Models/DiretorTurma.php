@@ -7,7 +7,7 @@ class DiretorTurma extends BaseModel
     protected $basename = 'diretor_turma';
 
     protected $fillable = [
-        'usuario_id',
+        'professor_id',
         'turma_id',
         'school_id',
         'ano_letivo',
@@ -18,7 +18,7 @@ class DiretorTurma extends BaseModel
         'vigente' => 'boolean',
         'ano_letivo' => 'integer',
     ];
-
+    
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'usuario_id');
@@ -33,4 +33,10 @@ class DiretorTurma extends BaseModel
     {
         return $this->belongsTo(Escola::class, 'school_id');
     }
+
+    public function professor()
+    {
+        return $this->belongsTo(Professor::class, 'professor_id');
+    }
+
 }

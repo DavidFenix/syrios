@@ -2,7 +2,7 @@
 // ===============================
 // CONFIGURAÇÃO DO BANCO
 // ===============================
-$host = "localhost:3307";
+$host = "localhost:3306";
 $user = "323966";
 $pass = "deivide12";
 $db   = "syrios"; // ajuste para o nome exato do seu banco
@@ -31,7 +31,43 @@ $tables = $conn->query("SHOW TABLES");
         Este documento resume as principais regras de negócio e decisões de modelagem já implementadas
         no sistema Syrios. Serve como referência rápida para desenvolvedores e administradores.
     </div>
+    <div>
+      <ul>
+        Lotação:
+        <li>
+            no nosso caso a lotação do professor ja existe em cada escola que for usar o sistema
+o que temos que fazer é só registrar no syrios tal qual ela está
+vamos fazer o escola/lotacao/ com os blades index, create, edit
 
+--o index tem um select com os professores disponiveis na escola e um botao para buscar a sua lotacao
+--mostra a lista de oferta do professor na escola(pode está vazia)
+
+--para exibir várias ofertas de uma vez só, mostra-se as turmas que o professor leciona agrupadas por disciplina. exemplo:
+
+Disciplina | Turma(s)         | Ação
+Matemática | Olho para ver    | Editar
+
+--Ao clicar no olho na tabela exibe-se as turmas: 
+  1ª Série A
+  1ª Série B
+  2ª Série C
+
+--Um botao para nova oferta vai para o blade create
+  --um select para disciplina
+  --uma lista de checkbox para escolher as turmas
+  --o botao para salvar e voltar para o index
+  --o index já começa exibindo o professor que ganhou a nova oferta e ja carrega todas suas ofertas
+
+--o botao editar vai para o blade edit
+  --exibe-se todas em turmas disponiveis com checkbox para marcar/desmarcar aquelas onde o professor vai lecionar ou nao aquela disciplina que se está editando
+  --turmas podem ser acrescentadas ou removidas
+  --o botao para salvar e voltar para o index que já começa exibindo o professor que foi editado e ja carrega todas suas ofertas
+
+        </li>
+      </ul>
+      
+    </div>
+    
     <div>Tarefas agora: ✅ Sugestão de ordem prática para implementar<br>
 
 Criar ContextService (com decideAfterLogin, setContext, clearContext).<br>

@@ -99,6 +99,12 @@
                             🏷️ Enturmacao
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/lotacao*') ? 'active' : '' }}"
+                           href="{{ route('escola.lotacao.index') }}">
+                            🏷️ Lotação
+                        </a>
+                    </li>
                 @endif
             </ul>
 
