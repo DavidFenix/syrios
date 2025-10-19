@@ -34,6 +34,8 @@ class LotacaoController extends Controller
                 ->groupBy('disciplina_id');
         }
 
+        //sql_dump($ofertas);
+
         return view('escola.lotacao.index', compact(
             'professores',
             'professorSelecionado',

@@ -178,9 +178,56 @@ Route::prefix('professor')
     ->middleware(['auth', 'role:professor', 'ensure.context'])
     ->name('professor.')
     ->group(function () {
+        
+        // 🏠 Painel do professor
         Route::get('dashboard', [App\Http\Controllers\Professor\DashboardController::class, 'index'])
             ->name('dashboard');
+
+        // 📚 Ofertas (disciplinas/turmas)
+        Route::get('ofertas', [App\Http\Controllers\Professor\OfertaController::class, 'index'])
+            ->name('ofertas.index');
+
+        // 👥 Alunos da turma selecionada
+        Route::get('ofertas/{oferta}/alunos', [App\Http\Controllers\Professor\OfertaController::class, 'alunos'])
+            ->name('ofertas.alunos');
+
+        // 📝 Aplicar ocorrência em alunos selecionados
+        Route::get('ocorrencias/create', [App\Http\Controllers\Professor\OcorrenciaController::class, 'create'])
+            ->name('ocorrencias.create');
+
+        Route::post('ocorrencias', [App\Http\Controllers\Professor\OcorrenciaController::class, 'store'])
+            ->name('ocorrencias.store');
+
+        // 📄 Histórico de ocorrências de um aluno
+        Route::get('ocorrencias/{aluno}/historico', [App\Http\Controllers\Professor\OcorrenciaController::class, 'historico'])
+            ->name('ocorrencias.historico');
+
+         // 🧩 Ocorrências
+        Route::resource('ocorrencias', App\Http\Controllers\Professor\OcorrenciaController::class)
+            ->except(['edit', 'update']);
+
+        // routes/web.php
+        Route::post('ofertas/{oferta}/alunos', [App\Http\Controllers\Professor\OfertaController::class, 'alunosPost'])
+            ->name('ofertas.alunos.post');
+
+
+
     });
+
+
+
+
+
+
+
+// Route::prefix('professor')
+//     ->middleware(['auth', 'role:professor', 'ensure.context'])
+//     ->name('professor.')
+//     ->group(function () {
+//         Route::get('dashboard', [App\Http\Controllers\Professor\DashboardController::class, 'index'])
+//             ->name('dashboard');
+
+//     });
 
 
 

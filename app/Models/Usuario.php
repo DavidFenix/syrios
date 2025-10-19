@@ -40,6 +40,12 @@ class Usuario extends BaseAuthModel
         'senha_hash', 'remember_token',
     ];
 
+    public function professor()
+    {
+        return $this->hasOne(\App\Models\Professor::class, 'usuario_id');
+    }
+
+
     // Laravel espera "password"
     public function getAuthPassword()
     {
