@@ -23,18 +23,18 @@
     </div>
 
     {{-- ⚙️ Filtros e ações --}}
-    <form method="POST" action="#" id="formOcorrencias">
-        @csrf
+    <form method="GET" action="{{ route('professor.ofertas.ocorrencias.create', $oferta->id) }}" id="formOcorrencias">
 
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <input type="checkbox" id="checkAll" class="form-check-input me-1">
-                <label for="checkAll">Selecionar todos</label>
+                <label for="checkAll" class="fw-semibold">Selecionar todos</label>
             </div>
-            <button type="submit" class="btn btn-primary">
-                📋 Aplicar Ocorrência
+            <button type="submit" class="btn btn-success">
+                ✅ Aplicar Ocorrência
             </button>
         </div>
+
 
         {{-- 📋 Tabela de alunos --}}
         <table class="table table-striped align-middle">
@@ -87,7 +87,10 @@
                             <span class="badge bg-{{ $cor }}">{{ $total }}</span>
                         </td>
                         <td>
-                            <a href="#" class="btn btn-outline-info btn-sm">📜 Histórico</a>
+                            <a href="{{ route('professor.ocorrencias.historico', $a->id) }}" class="btn btn-outline-info btn-sm">
+                                📜 Histórico
+                            </a>
+
                             <a href="#" class="btn btn-outline-secondary btn-sm">📄 PDF</a>
                         </td>
                     </tr>

@@ -179,38 +179,86 @@ Route::prefix('professor')
     ->name('professor.')
     ->group(function () {
         
-        // 🏠 Painel do professor
-        Route::get('dashboard', [App\Http\Controllers\Professor\DashboardController::class, 'index'])
-            ->name('dashboard');
+        Route::prefix('ofertas')->name('ofertas.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Professor\OfertaController::class, 'index'])
+            ->name('index');
 
-        // 📚 Ofertas (disciplinas/turmas)
-        Route::get('ofertas', [App\Http\Controllers\Professor\OfertaController::class, 'index'])
-            ->name('ofertas.index');
+        Route::get('{oferta}/alunos', [App\Http\Controllers\Professor\OfertaController::class, 'alunos'])
+            ->name('alunos');
 
-        // 👥 Alunos da turma selecionada
-        Route::get('ofertas/{oferta}/alunos', [App\Http\Controllers\Professor\OfertaController::class, 'alunos'])
-            ->name('ofertas.alunos');
-
-        // 📝 Aplicar ocorrência em alunos selecionados
-        Route::get('ocorrencias/create', [App\Http\Controllers\Professor\OcorrenciaController::class, 'create'])
+        // Ocorrências
+        Route::get('{oferta}/ocorrencias/create', [App\Http\Controllers\Professor\OcorrenciaController::class, 'create'])
             ->name('ocorrencias.create');
 
-        Route::post('ocorrencias', [App\Http\Controllers\Professor\OcorrenciaController::class, 'store'])
+        Route::post('ocorrencias/store', [App\Http\Controllers\Professor\OcorrenciaController::class, 'store'])
             ->name('ocorrencias.store');
+    });
 
-        // 📄 Histórico de ocorrências de um aluno
-        Route::get('ocorrencias/{aluno}/historico', [App\Http\Controllers\Professor\OcorrenciaController::class, 'historico'])
-            ->name('ocorrencias.historico');
+    Route::get('ocorrencias', [App\Http\Controllers\Professor\OcorrenciaController::class, 'index'])
+        ->name('ocorrencias.index');
 
-         // 🧩 Ocorrências
-        Route::resource('ocorrencias', App\Http\Controllers\Professor\OcorrenciaController::class)
-            ->except(['edit', 'update']);
+    Route::get('ocorrencias/{id}', [App\Http\Controllers\Professor\OcorrenciaController::class, 'show'])
+        ->name('ocorrencias.show');
 
-        // routes/web.php
-        Route::post('ofertas/{oferta}/alunos', [App\Http\Controllers\Professor\OfertaController::class, 'alunosPost'])
-            ->name('ofertas.alunos.post');
+    Route::patch('ocorrencias/{id}/status', [App\Http\Controllers\Professor\OcorrenciaController::class, 'updateStatus'])
+        ->name('ocorrencias.updateStatus');
+
+    Route::get('ocorrencias/historico/{aluno}', [OcorrenciaController::class, 'historico'])
+    ->name('ocorrencias.historico');
 
 
+
+        //antes da mudança no banco
+            // 🏠 Painel do professor
+            Route::get('dashboard', [App\Http\Controllers\Professor\DashboardController::class, 'index'])
+                ->name('dashboard');
+
+            // 📚 Ofertas (disciplinas/turmas)
+            Route::get('ofertas', [App\Http\Controllers\Professor\OfertaController::class, 'index'])
+                ->name('ofertas.index');
+
+            // 👥 Alunos da turma selecionada
+            Route::get('ofertas/{oferta}/alunos', [App\Http\Controllers\Professor\OfertaController::class, 'alunos'])
+                ->name('ofertas.alunos');
+
+            // 📝 Aplicar ocorrência em alunos selecionados
+            Route::get('ocorrencias/create', [App\Http\Controllers\Professor\OcorrenciaController::class, 'create'])
+                ->name('ocorrencias.create');
+
+            Route::post('ocorrencias', [App\Http\Controllers\Professor\OcorrenciaController::class, 'store'])
+                ->name('ocorrencias.store');
+
+            // 📄 Histórico de ocorrências de um aluno
+            Route::get('ocorrencias/{aluno}/historico', [App\Http\Controllers\Professor\OcorrenciaController::class, 'historico'])
+                ->name('ocorrencias.historico');
+
+             // 🧩 Ocorrências
+            Route::resource('ocorrencias', App\Http\Controllers\Professor\OcorrenciaController::class)
+                ->except(['edit', 'update']);
+
+            // routes/web.php
+            Route::post('ofertas/{oferta}/alunos', [App\Http\Controllers\Professor\OfertaController::class, 'alunosPost'])
+                ->name('ofertas.alunos.post');
+
+
+        //sugeridas agora no final
+            Route::get('dashboard', [App\Http\Controllers\Professor\DashboardController::class, 'index'])
+                ->name('dashboard');
+
+            Route::get('ofertas', [App\Http\Controllers\Professor\OfertaController::class, 'index'])
+                ->name('ofertas.index');
+
+            Route::get('ofertas/{id}/alunos', [App\Http\Controllers\Professor\OfertaController::class, 'alunos'])
+                ->name('ofertas.alunos');
+
+            Route::get('ocorrencias', [App\Http\Controllers\Professor\OcorrenciaController::class, 'index'])
+                ->name('ocorrencias.index');
+
+            Route::get('relatorios', [App\Http\Controllers\Professor\RelatorioController::class, 'index'])
+                ->name('relatorios.index');
+
+            Route::get('perfil', [App\Http\Controllers\Professor\PerfilController::class, 'index'])
+                ->name('perfil');
 
     });
 

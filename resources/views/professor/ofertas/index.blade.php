@@ -5,12 +5,13 @@
 
     <h1 class="mb-4">📚 Minhas Ofertas</h1>
 
-    {{-- ✅ Mensagens de feedback --}}
+    {{-- ✅ Mensagens de feedback::ja tenho no layout padrao
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @elseif(session('warning'))
         <div class="alert alert-warning">{{ session('warning') }}</div>
     @endif
+    --}}
 
     {{-- 🧮 Resumo rápido --}}
     @if($ofertas->count() > 0)

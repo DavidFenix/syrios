@@ -22,6 +22,7 @@ class Professor extends BaseModel
         return $this->belongsTo(Usuario::class, 'usuario_id');
     }
 
+
     public function escola()
     {
         return $this->belongsTo(Escola::class, 'school_id');
