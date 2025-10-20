@@ -49,50 +49,50 @@ vamos construir os blades para views/professor/ofertas/index.blade
 
 -------------------------------------------------------
 vamos montar outro histórico, dessa vez resumido, em formato de tabela
---cabeçalho do resumo
-    --imagem 40x40px, circular, da instituição
-    --nome da instituição
-    --frase de efeito da instituição
---sessão informações do aluno
-    --pode ser destacada dentro de um retangulo com bordas e cantos arredondados
-    --dentro do retangulo do lado esquerdo coloca-se a foto do aluno circular
-    --a direita da foto, proximo a ela, ainda linhado a esquerda, coloca-se Turma:??
-    e abaixo de turma coloca-se talvez matricula, não sei, ajuda ai
---abaixo da sessão de informação do aluno vem o titulo da tabela "Histórico de Ocorrências do Aluno"
---agora vem a tabela com as seguintes colunas
-    --numeros cardinais + Data dd/mm/AAAA + Descrição que foi digitada da ocorrencias concatenado com cada um dos outros motivos sendo eles separados por uma barra / + Abreviação da Disciplina presente no banco + Nome Sobrenome do professor + status da ocorrencia(Ativa/Arquivada)
-    --ordenar as ocorrencias com a data mais recente em cima
---Disponibilizar lá emcima botões para imprimir ou baixar pdf(não deixar aparecer botões ou outros poluentes na impressão ou pdf)
-cada linha da tabela
+    --cabeçalho do resumo
+        --imagem 40x40px, circular, da instituição
+        --nome da instituição
+        --frase de efeito da instituição
+    --sessão informações do aluno
+        --pode ser destacada dentro de um retangulo com bordas e cantos arredondados
+        --dentro do retangulo do lado esquerdo coloca-se a foto do aluno circular
+        --a direita da foto, proximo a ela, ainda linhado a esquerda, coloca-se Turma:??
+        e abaixo de turma coloca-se talvez matricula, não sei, ajuda ai
+    --abaixo da sessão de informação do aluno vem o titulo da tabela "Histórico de Ocorrências do Aluno"
+    --agora vem a tabela com as seguintes colunas
+        --numeros cardinais + Data dd/mm/AAAA + Descrição que foi digitada da ocorrencias concatenado com cada um dos outros motivos sendo eles separados por uma barra / + Abreviação da Disciplina presente no banco + Nome Sobrenome do professor + status da ocorrencia(Ativa/Arquivada)
+        --ordenar as ocorrencias com a data mais recente em cima
+    --Disponibilizar lá emcima botões para imprimir ou baixar pdf(não deixar aparecer botões ou outros poluentes na impressão ou pdf)
+    cada linha da tabela
 
 
 -----------------------------------------------------------------------------
 montando e usando um debug de query em helpers
-exemplos de uso
-$query = Usuario::whereHas('roles', function($q) use ($roleProfessorId, $schoolId) {
-    $q->where(prefix('usuario_role').'.role_id', $roleProfessorId)
-      ->where(prefix('usuario_role').'.school_id', $schoolId);
-});
+    exemplos de uso
+    $query = Usuario::whereHas('roles', function($q) use ($roleProfessorId, $schoolId) {
+        $q->where(prefix('usuario_role').'.role_id', $roleProfessorId)
+          ->where(prefix('usuario_role').'.school_id', $schoolId);
+    });
 
-sql_dump($query);
+    sql_dump($query);
 
-----------
-$q = DB::table(prefix('aluno'))
-    ->where('school_id', 5)
-    ->where('matricula', '12345');
+    ----------
+    $q = DB::table(prefix('aluno'))
+        ->where('school_id', 5)
+        ->where('matricula', '12345');
 
-sql_dump($q);
+    sql_dump($q);
 
------------
-Apenas visualizar sem interromper execução
-sql_dump($query, false);
-Isso apenas mostra no console, mas não para o código (útil em loops ou testes PHPUnit).
+    -----------
+    Apenas visualizar sem interromper execução
+    sql_dump($query, false);
+    Isso apenas mostra no console, mas não para o código (útil em loops ou testes PHPUnit).
 
-------------
-Se quiser inspecionar todas as queries rodadas numa requisição:
-\DB::enableQueryLog();
-// ... suas operações Eloquent ...
-sql_dump(DB::getQueryLog(), false);
+    ------------
+    Se quiser inspecionar todas as queries rodadas numa requisição:
+    \DB::enableQueryLog();
+    // ... suas operações Eloquent ...
+    sql_dump(DB::getQueryLog(), false);
 
 
 

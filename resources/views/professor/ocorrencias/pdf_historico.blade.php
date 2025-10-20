@@ -63,6 +63,7 @@
                 display: none !important;
             }
         }
+
     </style>
 </head>
 <body>
@@ -77,9 +78,9 @@
     @endphp
 
     <div class="cabecalho">
-        <img src="{{ public_path('storage/img-user/logo1_ubiratan.png') }}" alt="Logo">
-        <h2>{{ $escola->nome_e ?? 'Escola' }}</h2>
-        <small>“Educar é transformar o mundo.”</small>
+        <img src="{{ public_path('storage/img-user/logo1_ubiratan.png') }}" alt="Logo" style="margin:1;padding:1;">
+        <h2 style="margin:0;padding:0;">{{ $escola->nome_e ?? 'Escola' }}</h2>
+        <small style="margin:1;padding:1;">“Educar é transformar o mundo.”</small>
     </div>
 
     @php
@@ -91,18 +92,39 @@
         }
     @endphp
 
-    <div class="dados-aluno">
-        <img src="{{ $fotoAbsoluto }}" alt="Foto de {{ $aluno->nome_a }}" style="width:70px; height:70px; border-radius:50%;">
-        <div>
-            <strong>Aluno:</strong> {{ $aluno->nome_a }}<br>
-            <strong>Matrícula:</strong> {{ $aluno->matricula }}<br>
-            <strong>Turma:</strong> {{ $aluno->turma->serie_turma ?? '-' }}
-        </div>
-    </div>
+    @php
+        $fotoPath = public_path("storage/img-user/{$aluno->matricula}.png");
+        $fotoFinal = file_exists($fotoPath)
+            ? "file://{$fotoPath}"
+            : "file://" . public_path('storage/img-user/padrao.png');
+    @endphp
+
+    <table width="100%" cellpadding="0" cellspacing="0" 
+            style="
+              margin-bottom:14px;
+              border: 1px solid #333; 
+              border-radius: 8px; 
+              border-collapse: separate; 
+              border-spacing: 0; 
+              margin-bottom: 14px;">
+      <tr>
+        <td width="40" valign="middle" align="center" style="padding-right:2px;border:none;">
+          <img src="{{ $fotoFinal }}" alt="Foto"
+               style="padding:0px; margin: 1px; width:70px;height:70px;border-radius:50%;object-fit:cover;">
+        </td>
+        <td valign="middle" align="left" style="line-height:1.4;border:none;">
+          <div><strong>Aluno:</strong> {{ $aluno->nome_a }}</div>
+          <div><strong>Matrícula:</strong> {{ $aluno->matricula }}</div>
+          <div><strong>Turma:</strong> {{ $aluno->turma->serie_turma ?? '-' }}</div>
+        </td>
+      </tr>
+    </table>
+
+
 
     <h3 style="text-align:center;">Histórico de Ocorrências</h3>
 
-    <table>
+    <table style="text-align:center;">
         <thead>
             <tr>
                 <th>#</th>
@@ -114,19 +136,26 @@
             </tr>
         </thead>
         <tbody>
+            
             @foreach($ocorrencias as $i => $o)
+                @php
+                    $nome = $o->professor->usuario->nome_u ?? '';
+                    $partes = explode(' ', trim($nome));
+                    $primeiro = $partes[0] ?? '';
+                    $ultimo = count($partes) > 1 ? end($partes) : '';
+                @endphp
                 <tr>
-                    <td>{{ $i + 1 }}</td>
-                    <td>{{ $o->created_at->format('d/m/Y') }}</td>
-                    <td>
+                    <td style="text-align:center;">{{ $i + 1 }}</td>
+                    <td style="text-align:center;">{{ $o->created_at->format('d/m/Y') }}</td>
+                    <td style="text-align:center;">
                         {{ $o->descricao }}
                         @if($o->motivos->isNotEmpty())
                             / {{ $o->motivos->pluck('descricao')->implode(' / ') }}
                         @endif
                     </td>
-                    <td>{{ $o->oferta->disciplina->abr ?? '-' }}</td>
-                    <td>{{ $o->professor->nome_u ?? '-' }}</td>
-                    <td>{{ $o->status == 1 ? 'Ativa' : 'Arquivada' }}</td>
+                    <td style="text-align:center;">{{ $o->oferta->disciplina->abr ?? '-' }}</td>
+                    <td style="text-align:center;">{{ $primeiro }} {{ $ultimo }}</td>
+                    <td style="text-align:center;">{{ $o->status == 1 ? 'Ativa' : 'Arquivada' }}</td>
                 </tr>
             @endforeach
         </tbody>

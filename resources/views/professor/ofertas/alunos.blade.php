@@ -73,18 +73,18 @@
                         <td>{{ $a->matricula }}</td>
                         <td>{{ $a->nome_a }}</td>
                         <td>
-                            @php
-                                $total = $a->total_ocorrencias ?? 0;
-                                $cor = match(true) {
-                                    $total == 0 => 'secondary',
-                                    $total == 1 => 'light',
-                                    $total == 2 => 'warning',
-                                    $total == 3 => 'orange',
-                                    $total >= 4 => 'danger',
-                                    default => 'secondary',
+                            @php                                
+                                $total = $a->total_ocorrencias_ativas ?? 0;
+                                [$cor, $texto] = match (true) {
+                                    $total == 0 => ['light', 'text-dark'],
+                                    $total == 1 => ['secondary', 'text-dark'],     // 👈 texto escuro para fundo claro
+                                    $total == 2 => ['warning', 'text-dark'],   // idem
+                                    $total == 3 => ['orange', 'text-white'],
+                                    $total >= 4 => ['danger', 'text-white'],
+                                    default => ['secondary', 'text-white'],
                                 };
                             @endphp
-                            <span class="badge bg-{{ $cor }}">{{ $total }}</span>
+                            <span class="badge bg-{{ $cor }} {{ $texto }}">{{ $total }}</span>
                         </td>
                         <td>
                             <a href="{{ route('professor.ocorrencias.historico', $a->id) }}" class="btn btn-outline-info btn-sm">
@@ -115,6 +115,15 @@
 </div>
 
 @endsection
+
+@push('styles')
+<style>
+.bg-orange {
+    background-color: #ff9800 !important; /* 🔸 tom laranja forte */
+    color: #fff !important;
+}
+</style>
+@endpush
 
 @section('scripts')
 <script>

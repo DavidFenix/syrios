@@ -64,14 +64,24 @@ class OfertaController extends Controller
             ->findOrFail($ofertaId);
 
         // 🔍 Alunos enturmados na turma dessa oferta
-        $alunos = Aluno::select('id', 'matricula', 'nome_a', 'school_id')
-            ->whereHas('enturmacao', function ($q) use ($oferta, $schoolId, $anoLetivo) {
-                $q->where('turma_id', $oferta->turma_id)
-                  ->where('school_id', $schoolId)
-                  ->where('ano_letivo', $anoLetivo);
-            })
-            ->orderBy('nome_a')
-            ->get();
+        // $alunos = Aluno::select('id', 'matricula', 'nome_a', 'school_id')
+        //     ->whereHas('enturmacao', function ($q) use ($oferta, $schoolId, $anoLetivo) {
+        //         $q->where('turma_id', $oferta->turma_id)
+        //           ->where('school_id', $schoolId)
+        //           ->where('ano_letivo', $anoLetivo);
+        //     })
+        //     ->orderBy('nome_a')
+        //     ->get();
+
+        $alunos = Aluno::whereHas('enturmacao', function ($q) use ($oferta) {
+            $q->where('turma_id', $oferta->turma_id);
+        })
+        ->withCount(['ocorrencias as total_ocorrencias_ativas' => function ($q) {
+            $q->where('status', 1); // apenas ativas
+        }])
+        ->orderBy('nome_a')
+        ->get();
+
 
         // 🔢 Contagem simulada de ocorrências (substituir futuramente)
         foreach ($alunos as $a) {

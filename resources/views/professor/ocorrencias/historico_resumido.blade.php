@@ -5,7 +5,7 @@
 
     {{-- ===================== CABEÇALHO DA ESCOLA ===================== --}}
     <div class="text-center mb-4">
-        <img src="{{ asset('storage/img-user/logo_escola.png') }}" width="60" height="60"
+        <img src="{{ asset('storage/img-user/logo1_ubiratan.png') }}" width="60" height="60"
              class="rounded-circle mb-2" alt="Logo da escola">
         <h4 class="mb-1">{{ $escola->nome_e ?? 'Nome da Escola' }}</h4>
         <p class="text-muted fst-italic small">
@@ -34,7 +34,7 @@
 
     {{-- ===================== TABELA ===================== --}}
     <div class="table-responsive">
-        <table class="table table-bordered align-middle table-striped">
+        <table class="table table-bordered align-middle table-striped text-center">
             <thead class="table-light text-center">
                 <tr>
                     <th>#</th>
@@ -55,6 +55,12 @@
                             2 => ['Anulada', 'danger'],
                             default => ['Desconhecido', 'dark']
                         };
+
+                        $nome = $oc->professor->usuario->nome_u ?? '';
+                        $partes = explode(' ', trim($nome));
+                        $primeiro = $partes[0] ?? '';
+                        $ultimo = count($partes) > 1 ? end($partes) : '';
+
                     @endphp
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
@@ -63,7 +69,7 @@
                             @if($motivos) <span class="text-muted">/ {{ $motivos }}</span> @endif
                         </td>
                         <td class="text-center">{{ $oc->oferta->disciplina->abr ?? '-' }}</td>
-                        <td>{{ $oc->professor->nome_u ?? '-' }}</td>
+                        <td>{{ $primeiro }} {{ $ultimo }}</td>
                         <td class="text-center">
                             <span class="badge bg-{{ $status[1] }}">{{ $status[0] }}</span>
                         </td>
