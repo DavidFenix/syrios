@@ -3,6 +3,8 @@
 @section('content')
 <div class="container py-3">
 
+    @include('components.pdf_header')
+    
     {{-- 🔙 Cabeçalho --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>📜 Histórico de Ocorrências</h2>

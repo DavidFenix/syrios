@@ -3,7 +3,31 @@
 @section('content')
 <div class="container py-4" id="historicoOcorrencias">
 
-    {{-- ===================== CABEÇALHO DA ESCOLA ===================== --}}
+    @include('components.pdf_header')
+
+    {{-- ===================== CABEÇALHO DINÂMICO DA ESCOLA ===================== -}}
+    <div class="text-center mb-4">
+        @if($escola->logo_path && file_exists(public_path('storage/'.$escola->logo_path)))
+          <img src="{{ asset('storage/'.$escola->logo_path) }}" 
+               alt="Logo da Escola"
+               style="width:80px; height:80px; object-fit:contain; border-radius:8px;">
+          <h4 class="mb-1">{{ $escola->nome_e ?? 'Nome da Escola' }}</h4>
+          <p class="text-muted fst-italic small">
+                "{{ $escola->frase_efeito ?? '' }}"
+          </p>
+        @else
+          <img src="{{ asset('storage/img-user/padrao.png') }}" 
+               alt="Logo padrão"
+               style="width:80px; height:80px; object-fit:contain; border-radius:8px;">
+          <h4 class="mb-1">{{ $escola->nome_e ?? 'Nome da Escola' }}</h4>
+          <p class="text-muted fst-italic small">
+                "{{ $escola->frase_efeito ?? '' }}"
+          </p>
+        @endif
+        <hr class="mt-3 mb-4">
+    </div>
+
+    {{-- ===================== CABEÇALHO DA ESCOLA ===================== -}}
     <div class="text-center mb-4">
         <img src="{{ asset('storage/img-user/logo1_ubiratan.png') }}" width="60" height="60"
              class="rounded-circle mb-2" alt="Logo da escola">
@@ -13,6 +37,7 @@
         </p>
         <hr class="mt-3 mb-4">
     </div>
+    --}}
 
     {{-- ===================== INFORMAÇÕES DO ALUNO ===================== --}}
     <div class="card shadow-sm border-0 mb-4">

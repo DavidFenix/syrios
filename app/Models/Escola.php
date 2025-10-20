@@ -22,6 +22,8 @@ class Escola extends BaseModel
         'endereco',
         'telefone',
         'secretaria_id',
+        'frase_efeito', 
+        'logo_path',
         // 'is_master' 👈 não incluímos por segurança
     ];
 

@@ -12,7 +12,7 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
-    {{-- 🔍 Filtros de pesquisa --}}
+    {{-- 🔍 Filtros de pesquisa -}}
     <form method="GET" class="mb-4">
         <div class="row g-2 align-items-end">
             <div class="col-md-3">
@@ -37,11 +37,11 @@
                 <a href="{{ route('professor.ocorrencias.index') }}" class="btn btn-outline-secondary">🔄 Limpar</a>
             </div>
         </div>
-    </form>
+    </form>--}}
 
     {{-- 🧱 Tabela de ocorrências --}}
     <div class="table-responsive shadow-sm rounded">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" id="tabela-ocorrencias">
             <thead class="table-light">
                 <tr>
                     <th>#</th>
@@ -149,3 +149,11 @@
 </style>
 
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function () {
+    initDataTable('#tabela-ocorrencias', { order: [[4, 'asc'],[1, 'asc']] }, [1, 2, 3, 4, 5, 6]);
+});
+</script>
+@endpush

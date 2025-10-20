@@ -1,5 +1,12 @@
+
 mudanças na base de dados
 -----------------------------------------------
+ALTER TABLE syrios_escola
+ADD COLUMN frase_efeito VARCHAR(255) NULL AFTER nome_e,
+ADD COLUMN logo_path VARCHAR(255) NULL AFTER frase_efeito;
+--migração
+  --php artisan migrate --path=database/migrations/2025_10_20_200117_add_frase_efeito_to_escola_table.php
+
 CREATE TABLE `syrios_ocorrencia` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   

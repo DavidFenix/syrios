@@ -163,6 +163,12 @@ Route::prefix('escola')
                 ->name('diretor_turma.destroy');
         });
 
+        Route::get('identidade', [App\Http\Controllers\Escola\IdentidadeController::class, 'edit'])
+            ->name('identidade.edit');
+
+        Route::post('identidade', [App\Http\Controllers\Escola\IdentidadeController::class, 'update'])
+            ->name('identidade.update');
+
 
 
 

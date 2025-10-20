@@ -77,6 +77,8 @@
         }
     @endphp
 
+    {{--@include('components.pdf_header')--}}
+
     <div class="cabecalho">
         <img src="{{ public_path('storage/img-user/logo1_ubiratan.png') }}" alt="Logo" style="margin:1;padding:1;">
         <h2 style="margin:0;padding:0;">{{ $escola->nome_e ?? 'Escola' }}</h2>

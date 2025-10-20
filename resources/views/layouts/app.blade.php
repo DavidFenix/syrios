@@ -144,6 +144,12 @@
                             📊 Relatórios
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/identidade*') ? 'active' : '' }}"
+                           href="{{ route('escola.identidade.edit') }}">
+                            🏫 Identidade da Escola
+                        </a>
+                    </li>
                     <!--li class="nav-item">
                         <a class="nav-link {{ request()->is('professor/perfil*') ? 'active' : '' }}"
                            href="{{ route('professor.perfil') }}">
