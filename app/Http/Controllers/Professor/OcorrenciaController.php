@@ -10,12 +10,83 @@ use App\Models\{
     Ocorrencia,
     ModeloMotivo,
     Oferta,
-    Aluno
+    Aluno,
+    Escola
 };
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class OcorrenciaController extends Controller
 {
     
+    public function gerarPdf($alunoId)
+    {
+        $aluno = Aluno::findOrFail($alunoId);
+        $turma = $aluno->turma()->first();
+        $escola = Escola::find(session('current_school_id'));
+
+        $fotoPath = public_path('storage/img-user/' . $aluno->matricula . '.png');
+        $fotoUrl = file_exists($fotoPath)
+            ? asset('storage/img-user/' . $aluno->matricula . '.png')
+            : asset('storage/img-user/padrao.png');
+
+        $ocorrencias = Ocorrencia::with(['motivos', 'oferta.disciplina', 'professor'])
+            ->where('aluno_id', $aluno->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        // // Gera o PDF com base na mesma view
+        // $pdf = Pdf::loadView('professor.ocorrencias.historico_resumido', [
+        //     'aluno' => $aluno,
+        //     'turma' => $turma,
+        //     'escola' => $escola,
+        //     'fotoUrl' => $fotoUrl,
+        //     'ocorrencias' => $ocorrencias,
+        // ]);
+
+        // // Configurações opcionais
+        // $pdf->setPaper('a4', 'portrait');
+
+        // $nomeArquivo = 'Historico_' . preg_replace('/\s+/', '_', $aluno->nome_a) . '.pdf';
+
+        // // Faz download direto
+        // return $pdf->download($nomeArquivo);
+
+        $pdf = \PDF::loadView('professor.ocorrencias.pdf_historico', [
+            'escola' => $escola,
+            'aluno' => $aluno,
+            'ocorrencias' => $ocorrencias,
+            'fotoUrl' => $fotoUrl,
+        ]);
+
+        $pdf->setPaper('a4');
+        return $pdf->download('historico_ocorrencias_'.$aluno->matricula.'.pdf');
+
+    }
+
+
+    public function historicoResumido($alunoId)
+    {
+        $aluno = Aluno::findOrFail($alunoId);
+        $turma = $aluno->turma()->first();
+        $escola = Escola::find(session('current_school_id'));
+
+        $fotoPath = public_path('storage/img-user/' . $aluno->matricula . '.png');
+        $fotoUrl = file_exists($fotoPath)
+            ? asset('storage/img-user/' . $aluno->matricula . '.png')
+            : asset('storage/img-user/padrao.png');
+
+        $ocorrencias = Ocorrencia::with(['motivos', 'oferta.disciplina', 'professor'])
+            ->where('aluno_id', $aluno->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('professor.ocorrencias.historico_resumido', compact(
+            'aluno', 'turma', 'escola', 'fotoUrl', 'ocorrencias'
+        ));
+    }
+
+
     public function historico($alunoId)
     {
         $schoolId = session('current_school_id');

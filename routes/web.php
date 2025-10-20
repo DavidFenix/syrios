@@ -260,6 +260,16 @@ Route::prefix('professor')
             Route::get('perfil', [App\Http\Controllers\Professor\PerfilController::class, 'index'])
                 ->name('perfil');
 
+            Route::get('dashboard', [App\Http\Controllers\Professor\DashboardController::class, 'index'])
+                ->name('dashboard');
+
+            Route::get('ocorrencias/historico/{aluno}', [App\Http\Controllers\Professor\OcorrenciaController::class, 'historicoResumido'])
+                ->name('ocorrencias.historico_resumido');
+
+            // PDF (opcional)
+            Route::get('ocorrencias/pdf/{aluno}', [App\Http\Controllers\Professor\OcorrenciaController::class, 'gerarPdf'])
+                ->name('ocorrencias.pdf');
+
     });
 
 

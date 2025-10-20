@@ -88,6 +88,9 @@
                         </td>
                         <td>
                             <a href="{{ route('professor.ocorrencias.historico', $a->id) }}" class="btn btn-outline-info btn-sm">
+                                📜 Detalhes
+                            </a>
+                            <a href="{{ route('professor.ocorrencias.historico_resumido', $a->id) }}" class="btn btn-outline-info btn-sm">
                                 📜 Histórico
                             </a>
 

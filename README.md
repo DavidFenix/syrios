@@ -1,4 +1,72 @@
 
+instalação do laravel-dompdf
+-- cd c:\wamp64\www\syrios
+-- composer require barryvdh/laravel-dompdf
+-- php artisan optimize:clear
+-- php artisan cache:clear
+-- php artisan view:clear
+-- php artisan config:clear
+-- php artisan route:clear
+-- php artisan optimize:clear
+-----------------------------------------------------
+
+vamos construir os blades para views/professor/ofertas/index.blade
+   --vai exibir as ofertas do professor, i.e., cada class="btn-group" (uma linha retangular com cantos arredondados que combina texto e botões) terá:
+      --número cardinal + nome disciplina(serve de botão para ver lista de alunos noutra página) + turma(primeiros 10 digitos) + "Visão Geral:|1|2|5|3|0(serve de botao para abrir acordion e ver explicação dos badges colorido com número dentro);
+
+   --os badges é um resumo informativo com números em seu interior e cores específicas
+   --exemplo dos badges com os números: |1|2|5|3|0 com as seguintes cores e significados:
+      --badge cor cinza:representa a quantidade de alunos da turma com 1 ocorrencia ativa: $qtd1=1
+      --badge cor amarelo claro:representa a quantidade de alunos da turma com 2 ocorrencias ativas: $qtd2=2
+      --badge cor amarelo escuro:representa a quantidade de alunos da turma com 3 ocorrencias ativas: $qtd3=5
+      --badge cor laranja:representa a quantidade de alunos da turma com 4 ocorrencias ativas: $qtd4=3
+      --badge cor vermelha:representa a quantidade de alunos da turma com 5 ocorrencias ativas ou mais: $qtd5=0
+   --ao clicar no texto "Visão Geral" o acordion se abre com os 5 badges e os textos explicativos como se fosse a legenda do significado das cores descritos anteriormente e a quantidade de cada ocorrencia vinda do banco de dados
+   --cada oferta possui seu acordion e iniciam todos fechados
+
+   --Exemplo das linhas com textos e botões usando class="btn-group" ou algo similar do bootstrap
+      --| 1 | Matemática | 2ª Série A ! Visão Geral:|1|2|5|3|0|
+      --| 2 | Matemática | 2ª Série B | Visão Geral:|0|0|1|2|8| 
+
+   --Ao clicar encima da disciplina exibi-se acima de todas as linhas(botões das ofertas) a lista de alunos da turma correspondente ao botão clicado
+   --cada linha contem: numero + checkbox + foto do aluno com cantos arredondados + matricula + nome do aluno + Total geral de ocorrencias ativas + botao para depois abrir,em outra página, historico de ocorrencias ativas + botao para depois baixar PDF do histórico de ocorrencias ativas e arquivadas + Turma + Disciplina
+   --ao clicar ou passar o mouse sobre a foto permite-se dá zoom para ver melhor o rosto do aluno
+   --um botao no topo da pagina para confirmar as escolhas dos alunos que serão aplicadas as ocorrencias(vai para outra página para continuar os detalhes da aplicação da ocorrencia)
+
+   --os botões com a lista de ofertas do professor continuam abaixo da tabela para caso o professor decida acionar outra turma ao inves da primeira que escolheu
+
+--quanto a aplicação da ocorrencia baseada nos campos do banco de dados temos
+   --exibe uma listas de checkbox para que o professor escolha um ou mais itens da tabela modelo_motivo, de forma bem rápida.
+   --talvez a lista possa ficar retraido dentro de um acrodion pra economizar espaço
+   --uma caixa de texto para digitar outra descrição(caso o motivo da ocorrencia não se encaixe na lista definida na tabela modelo_motivo)
+   --Opções complementares que podem ficar null no banco de dados como:
+      --Local(pode ser um select com a primeira opção já marcada): Sala de aula | Ambientes de apoio | Pátio da escola | Quadra poliesportiva | Galerias | Outro
+      --Atitude do professor(pode ser um select com a primeira opção já marcada): Advertencia | Ordem de saida de sala | Outra
+      --Outra atitude: local para escrever outra atitude que não estiver no select
+      --Comportamento do aluno(pode ser um select com a primeira opção já marcada): 1ª vez | Reincidente (pouco frequente) | Reincidente (frequente)
+      --Sugestão de medidas a serem tomadas: local para escrever a sugestão
+
+
+-------------------------------------------------------
+vamos montar outro histórico, dessa vez resumido, em formato de tabela
+--cabeçalho do resumo
+    --imagem 40x40px, circular, da instituição
+    --nome da instituição
+    --frase de efeito da instituição
+--sessão informações do aluno
+    --pode ser destacada dentro de um retangulo com bordas e cantos arredondados
+    --dentro do retangulo do lado esquerdo coloca-se a foto do aluno circular
+    --a direita da foto, proximo a ela, ainda linhado a esquerda, coloca-se Turma:??
+    e abaixo de turma coloca-se talvez matricula, não sei, ajuda ai
+--abaixo da sessão de informação do aluno vem o titulo da tabela "Histórico de Ocorrências do Aluno"
+--agora vem a tabela com as seguintes colunas
+    --numeros cardinais + Data dd/mm/AAAA + Descrição que foi digitada da ocorrencias concatenado com cada um dos outros motivos sendo eles separados por uma barra / + Abreviação da Disciplina presente no banco + Nome Sobrenome do professor + status da ocorrencia(Ativa/Arquivada)
+    --ordenar as ocorrencias com a data mais recente em cima
+--Disponibilizar lá emcima botões para imprimir ou baixar pdf(não deixar aparecer botões ou outros poluentes na impressão ou pdf)
+cada linha da tabela
+
+
+-----------------------------------------------------------------------------
 montando e usando um debug de query em helpers
 exemplos de uso
 $query = Usuario::whereHas('roles', function($q) use ($roleProfessorId, $schoolId) {
