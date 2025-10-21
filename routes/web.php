@@ -20,20 +20,17 @@ use App\Http\Controllers\Escola\DisciplinaController;
 use App\Http\Controllers\Escola\ProfessorController;
 use App\Http\Controllers\Escola\TurmaController;
 use App\Http\Controllers\Escola\UsuarioController as EscolaUsuarioController;
+use App\Http\Controllers\Escola\RegimentoController;
 
-/*
-|--------------------------------------------------------------------------
-| Rotas Públicas (sem login)
-|--------------------------------------------------------------------------
-*/
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+use App\Http\Controllers\Professor\{
+    DashboardController as ProfessorDashboardController,
+    OfertaController,
+    OcorrenciaController,
+    RelatorioController,
+    PerfilController
+};
 
-// Seleção de contexto (após login, caso haja múltiplos vínculos)
-Route::get('/choose-school', [LoginController::class, 'chooseSchool'])->name('choose.school');
-Route::get('/choose-role/{schoolId}', [LoginController::class, 'chooseRole'])->name('choose.role');
-Route::post('/set-context', [LoginController::class, 'setContextPost'])->name('set.context');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -169,10 +166,12 @@ Route::prefix('escola')
         Route::post('identidade', [App\Http\Controllers\Escola\IdentidadeController::class, 'update'])
             ->name('identidade.update');
 
-
-
-
+        Route::get('regimento', [RegimentoController::class, 'index'])->name('regimento.index');
+        Route::post('regimento', [RegimentoController::class, 'update'])->name('regimento.update');
+           
     });
+
+
 
 
 /*
@@ -181,6 +180,135 @@ Route::prefix('escola')
 |--------------------------------------------------------------------------
 */
 Route::prefix('professor')
+    ->middleware(['auth', 'role:professor', 'ensure.context'])
+    ->name('professor.')
+    ->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | DASHBOARD E PERFIL
+        |--------------------------------------------------------------------------
+        */
+        // Route::get('dashboard', [DashboardController::class, 'index'])
+        //     ->name('dashboard');
+
+        // 🏠 Painel do professor
+        Route::get('dashboard', [ProfessorDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        Route::get('perfil', [PerfilController::class, 'index'])
+            ->name('perfil');
+
+        /*
+        |--------------------------------------------------------------------------
+        | OFERTAS (disciplinas/turmas)
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('ofertas')->name('ofertas.')->group(function () {
+            Route::get('/', [OfertaController::class, 'index'])
+                ->name('index');
+
+            Route::get('{oferta}/alunos', [OfertaController::class, 'alunos'])
+                ->name('alunos');
+
+            Route::post('{oferta}/alunos', [OfertaController::class, 'alunosPost'])
+                ->name('alunos.post');
+
+            // Aplicar ocorrência em alunos selecionados (tela e gravação)
+            Route::get('{oferta}/ocorrencias/create', [OcorrenciaController::class, 'create'])
+                ->name('ocorrencias.create');
+
+            Route::post('ocorrencias/store', [OcorrenciaController::class, 'store'])
+                ->name('ocorrencias.store');
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | OCORRÊNCIAS
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('ocorrencias')->name('ocorrencias.')->group(function () {
+
+            // Listagem geral (autor + diretor de turma)
+            Route::get('/', [OcorrenciaController::class, 'index'])
+                ->name('index');
+
+            // Detalhes
+            Route::get('{id}', [OcorrenciaController::class, 'show'])
+                ->name('show');
+
+            // Edição
+            Route::get('{id}/edit', [OcorrenciaController::class, 'edit'])
+                ->name('edit');
+            Route::put('{id}', [OcorrenciaController::class, 'update'])
+                ->name('update');
+
+            // Exclusão
+            Route::delete('{id}', [OcorrenciaController::class, 'destroy'])
+                ->name('destroy');
+
+            // Atualização de status (arquivar/anular)
+            Route::patch('{id}/status', [OcorrenciaController::class, 'updateStatus'])
+                ->name('updateStatus');
+
+            // Encaminhar / arquivar (somente diretor)
+            Route::get('{id}/encaminhar', [OcorrenciaController::class, 'encaminhar'])
+                ->name('encaminhar');
+            Route::post('{id}/encaminhar', [OcorrenciaController::class, 'salvarEncaminhamento'])
+                ->name('encaminhar.salvar');
+
+            // Histórico do aluno
+            Route::get('historico/{aluno}', [OcorrenciaController::class, 'historico'])
+                ->name('historico');
+
+            // Histórico resumido (visual e PDF)
+            Route::get('historico-resumido/{aluno}', [OcorrenciaController::class, 'historicoResumido'])
+                ->name('historico_resumido');
+            Route::get('pdf/{aluno}', [OcorrenciaController::class, 'gerarPdf'])
+                ->name('pdf');
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | RELATÓRIOS
+        |--------------------------------------------------------------------------
+        */
+        Route::get('relatorios', [RelatorioController::class, 'index'])
+            ->name('relatorios.index');
+
+
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Rotas Públicas (sem login)
+|--------------------------------------------------------------------------
+*/
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Seleção de contexto (após login, caso haja múltiplos vínculos)
+Route::get('/choose-school', [LoginController::class, 'chooseSchool'])->name('choose.school');
+Route::get('/choose-role/{schoolId}', [LoginController::class, 'chooseRole'])->name('choose.role');
+Route::post('/set-context', [LoginController::class, 'setContextPost'])->name('set.context');
+
+// 📘 Rota pública (professores e outros)
+Route::get('regimento/{school}', [RegimentoController::class, 'visualizar'])
+    ->middleware('auth')
+    ->name('regimento.visualizar');
+
+
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Rotas do Professor
+|--------------------------------------------------------------------------
+*/
+/*Route::prefix('professor')
     ->middleware(['auth', 'role:professor', 'ensure.context'])
     ->name('professor.')
     ->group(function () {
@@ -198,19 +326,20 @@ Route::prefix('professor')
 
         Route::post('ocorrencias/store', [App\Http\Controllers\Professor\OcorrenciaController::class, 'store'])
             ->name('ocorrencias.store');
+    
     });
 
-    Route::get('ocorrencias', [App\Http\Controllers\Professor\OcorrenciaController::class, 'index'])
-        ->name('ocorrencias.index');
+        Route::get('ocorrencias', [App\Http\Controllers\Professor\OcorrenciaController::class, 'index'])
+            ->name('ocorrencias.index');
 
-    Route::get('ocorrencias/{id}', [App\Http\Controllers\Professor\OcorrenciaController::class, 'show'])
-        ->name('ocorrencias.show');
+        Route::get('ocorrencias/{id}', [App\Http\Controllers\Professor\OcorrenciaController::class, 'show'])
+            ->name('ocorrencias.show');
 
-    Route::patch('ocorrencias/{id}/status', [App\Http\Controllers\Professor\OcorrenciaController::class, 'updateStatus'])
-        ->name('ocorrencias.updateStatus');
+        Route::patch('ocorrencias/{id}/status', [App\Http\Controllers\Professor\OcorrenciaController::class, 'updateStatus'])
+            ->name('ocorrencias.updateStatus');
 
-    Route::get('ocorrencias/historico/{aluno}', [OcorrenciaController::class, 'historico'])
-    ->name('ocorrencias.historico');
+        Route::get('ocorrencias/historico/{aluno}', [OcorrenciaController::class, 'historico'])
+        ->name('ocorrencias.historico');
 
 
 
@@ -276,8 +405,33 @@ Route::prefix('professor')
             Route::get('ocorrencias/pdf/{aluno}', [App\Http\Controllers\Professor\OcorrenciaController::class, 'gerarPdf'])
                 ->name('ocorrencias.pdf');
 
-    });
+         Route::prefix('ocorrencias')->name('ocorrencias.')->group(function () {
+            Route::get('{id}/show', [\App\Http\Controllers\Professor\OcorrenciaController::class, 'show'])
+                ->name('show');
+            Route::get('{id}/edit', [\App\Http\Controllers\Professor\OcorrenciaController::class, 'edit'])
+                ->name('edit');
+            Route::put('{id}', [\App\Http\Controllers\Professor\OcorrenciaController::class, 'update'])
+                ->name('update');
+            Route::delete('{id}', [\App\Http\Controllers\Professor\OcorrenciaController::class, 'destroy'])
+                ->name('destroy');
+        });
 
+        Route::prefix('ocorrencias')->name('ocorrencias.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Professor\OcorrenciaController::class, 'index'])->name('index');
+            Route::get('{id}/show', [App\Http\Controllers\Professor\OcorrenciaController::class, 'show'])->name('show');
+            Route::get('{id}/edit', [App\Http\Controllers\Professor\OcorrenciaController::class, 'edit'])->name('edit');
+            Route::put('{id}', [App\Http\Controllers\Professor\OcorrenciaController::class, 'update'])->name('update');
+            Route::delete('{id}', [App\Http\Controllers\Professor\OcorrenciaController::class, 'destroy'])->name('destroy');
+            Route::get('{id}/encaminhar', [App\Http\Controllers\Professor\OcorrenciaController::class, 'encaminhar'])->name('encaminhar');
+        });
+
+        Route::resource('ocorrencias', App\Http\Controllers\Professor\OcorrenciaController::class);
+
+
+
+
+    });
+*/
 
 
 

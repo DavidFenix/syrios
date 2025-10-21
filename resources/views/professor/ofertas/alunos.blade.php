@@ -13,11 +13,11 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title mb-0">
-                <strong>Disciplina:</strong> {{ $oferta->disciplina->descr_d ?? '—' }}
-                <br>
+                <strong>Disciplina/Turma/Ano:</strong> {{ $oferta->disciplina->descr_d ?? '—' }}::{{ $oferta->turma->serie_turma ?? '—' }}::{{ $oferta->ano_letivo }}
+                <!--br>
                 <strong>Turma:</strong> {{ $oferta->turma->serie_turma ?? '—' }}
                 <br>
-                <strong>Ano Letivo:</strong> {{ $oferta->ano_letivo }}
+                <strong>Ano Letivo:</strong> {{ $oferta->ano_letivo }}-->
             </h5>
         </div>
     </div>
@@ -46,6 +46,7 @@
                     <th>Matrícula</th>
                     <th>Nome</th>
                     <th>Ocorrências Ativas</th>
+                    <th>Total Geral</th>
                     <th>Ações</th>
                 </tr>
             </thead>
@@ -77,7 +78,7 @@
                                 $total = $a->total_ocorrencias_ativas ?? 0;
                                 [$cor, $texto] = match (true) {
                                     $total == 0 => ['light', 'text-dark'],
-                                    $total == 1 => ['secondary', 'text-dark'],     // 👈 texto escuro para fundo claro
+                                    $total == 1 => ['secondary', 'text-white'],     // 👈 texto escuro para fundo claro
                                     $total == 2 => ['warning', 'text-dark'],   // idem
                                     $total == 3 => ['orange', 'text-white'],
                                     $total >= 4 => ['danger', 'text-white'],
@@ -87,14 +88,24 @@
                             <span class="badge bg-{{ $cor }} {{ $texto }}">{{ $total }}</span>
                         </td>
                         <td>
+                            @php
+                                $totalGeral = $a->total_ocorrencias_geral ?? 0;
+                                [$corGeral, $textoGeral] = ['gray', 'text-dark'];
+                            @endphp
+                            <span class="badge bg-{{ $corGeral }} {{ $textoGeral }}">
+                                {{ $totalGeral }}
+                            </span>
+                        </td>
+
+                        <td>
                             <a href="{{ route('professor.ocorrencias.historico', $a->id) }}" class="btn btn-outline-info btn-sm">
                                 📜 Detalhes
                             </a>
                             <a href="{{ route('professor.ocorrencias.historico_resumido', $a->id) }}" class="btn btn-outline-info btn-sm">
-                                📜 Histórico
+                                📄 Resumo
                             </a>
 
-                            <a href="#" class="btn btn-outline-secondary btn-sm">📄 PDF</a>
+                            <!--a href="#" class="btn btn-outline-secondary btn-sm">📄 PDF</a-->
                         </td>
                     </tr>
                 @empty
@@ -122,10 +133,14 @@
     background-color: #ff9800 !important; /* 🔸 tom laranja forte */
     color: #fff !important;
 }
+.bg-gray {
+    background-color: #adb5bd !important; /* 🔸 tom laranja forte */
+    color: #000 !important;
+}
 </style>
 @endpush
 
-@section('scripts')
+@push('scripts')
 <script>
 document.getElementById('checkAll').addEventListener('change', function() {
     document.querySelectorAll('.aluno-checkbox').forEach(cb => cb.checked = this.checked);
@@ -138,4 +153,4 @@ function abrirImagem(src) {
     modal.show();
 }
 </script>
-@endsection
+@endpush

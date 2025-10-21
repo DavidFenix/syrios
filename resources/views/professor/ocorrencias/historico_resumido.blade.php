@@ -42,12 +42,24 @@
     {{-- ===================== INFORMAÇÕES DO ALUNO ===================== --}}
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body d-flex align-items-center">
+            @php
+                $fotoNome = $aluno->matricula . '.png';
+                $fotoPath = public_path('storage/img-user/' . $fotoNome);
+                $fotoUrl = file_exists($fotoPath)
+                    ? asset('storage/img-user/' . $fotoNome)
+                    : asset('storage/img-user/padrao.png');
+
+                $turma = optional($aluno->enturmacao()->with('turma')->first())->turma->serie_turma ?? '-';
+            @endphp
             <img src="{{ $fotoUrl }}" class="rounded-circle me-3"
                  width="70" height="70" style="object-fit: cover;">
             <div>
                 <h5 class="mb-1">{{ $aluno->nome_a }}</h5>
+                @php
+                    $turma = optional($aluno->enturmacao()->with('turma')->first())->turma->serie_turma ?? '-';
+                @endphp
                 <p class="mb-0 text-muted small">
-                    <strong>Turma:</strong> {{ $turma->serie_turma ?? '-' }} <br>
+                    <strong>Turma:</strong> {{ $turma }} <br>
                     <strong>Matrícula:</strong> {{ $aluno->matricula }}
                 </p>
             </div>

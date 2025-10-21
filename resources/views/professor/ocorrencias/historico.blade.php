@@ -11,14 +11,32 @@
         <a href="{{ url()->previous() }}" class="btn btn-secondary">⬅ Voltar</a>
     </div>
 
+    
+
     {{-- 👨‍🎓 Informações do aluno --}}
     <div class="card mb-4 shadow-sm">
+        <div class="card-body d-flex align-items-center">
+        @php
+            $fotoNome = $aluno->matricula . '.png';
+            $fotoPath = public_path('storage/img-user/' . $fotoNome);
+            $fotoUrl = file_exists($fotoPath)
+                ? asset('storage/img-user/' . $fotoNome)
+                : asset('storage/img-user/padrao.png');
+
+            $turma = optional($aluno->enturmacao()->with('turma')->first())->turma->serie_turma ?? '-';
+        @endphp
+        <img src="{{ $fotoUrl }}" class="rounded-circle me-3"
+                 width="70" height="70" style="object-fit: cover;">
         <div class="card-body">
             <h5 class="card-title mb-2"><strong>{{ $aluno->nome_a }}</strong></h5>
+            @php
+                $turma = optional($aluno->enturmacao()->with('turma')->first())->turma->serie_turma ?? '-';
+            @endphp
             <p class="mb-0">
                 <strong>Matrícula:</strong> {{ $aluno->matricula }}<br>
-                <strong>Turma:</strong> {{ $aluno->turma->serie_turma ?? '-' }}
+                <strong>Turma:</strong> {{ $turma }}
             </p>
+        </div>
         </div>
     </div>
 

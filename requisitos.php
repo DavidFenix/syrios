@@ -2,7 +2,7 @@
 // ===============================
 // CONFIGURAÇÃO DO BANCO
 // ===============================
-$host = "localhost:3306";
+$host = "localhost:3307";
 $user = "323966";
 $pass = "deivide12";
 $db   = "syrios"; // ajuste para o nome exato do seu banco

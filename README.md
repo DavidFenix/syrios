@@ -1,4 +1,51 @@
 
+------------------------------------------------------------------------
+vamos construir uma página para que se possa disponibilizar o regimento escolar de cada escola.
+--cada escola deve ter seu proprio regimento 
+--a escola logada pode alterar documento. 
+--o professor logado, ou outros usuarios podem abrir o documento(ele é livre para consulta)
+--não sei se seria bom criar uma tela de edição para a escola digitar, inserir marcadores, numeração romana, inserir uma imagem, alterar fonte, cores, tamanhos, etc, e salvar, não sei onde, vinculando à escola.
+--ou se seria melhor só permitir enviar um documento pdf mesmo. o que vc sugere?
+
+--exemplo de regimento digitado::
+[logo da escola]
+[nome da escola]
+[frase de efeito da escola]
+Regimento Escolar - Fevereiro/2025
+
+DO CORPO DOCENTE
+
+Art. 36º - O corpo discente será composto por todos os alunos regulamente matriculados.
+
+Art. 37º - São direitos do Corpo Discente:
+
+    Conhecer o regimento escolar, especificamente no que se refere ao corpo discente.
+    Receber em igualdade de condições a orientação necessária para realizar suas atividades escolares e usufruir de todos os benefícios de caráter religiosos, educativo, recreativo e social, sendo respeitados também em sua individualidade, sem comparação nem preferências por toda a comunidade escolar.
+...
+vamos enviar pdf mesmo
+migração-------------------
+--cd c:\wamp64\www\syrios
+--php artisan migrate --path=database/migrations/2025_10_21_000000_create_regimento_table.php
+
+---------------------------------------------------------------
+mais ideias:::
+vamos pensar no seguinte: no meio da aula do professor ele quer aplicar uma ocorrencia mas não quer perder muito tempo elaborando-a. ele precisa de rapidez e eficiencia para não esquecer nada, adicionar ou remover fatos com rapidez, ou adicionar ou remover alunos com rapidez. Atualmente o nosso fluxo de aplicar uma ocorrencia começa com:
+    --o professor abrindo uma de suas ofertas(1)
+    --vai para a lista de alunos e marca quantos precisar(2)
+    --descreve e salva a ocorrencia(3)
+
+Talvez podíamos fazer com que após a fase 3 o professor volte para a mesma turma novamente e além disso consiga reaplicar(reaproveitar) as ocorrencias já aplicadas nessa turma fazendo com que o professor não tenha que repetir tudo novamente só pra incluir mais um aluno.
+
+Talvez seja muito proveitoso se 
+    --pudesse incluir alunos numa ocorrencia já aplicada em outro(s) aluno(s)
+    --fazer uma ocorrencia rascunho(o professor vai fazendo a ocorrencia sem correr perigo de perder dados mas só salva no banco quando ele der o comando final)
+    --fazer ocorrencias rascunho diferenciadas de modo que uma parte da ocorrencia é padrao para todos da lista mas alguns tem ums detalhes diferentes
+    --adicionar ou remover alunos do rascunho
+    --salvar a ocorrencia localmente para não perder caso falte energia ou o professor desista de aplicar naquele momento
+    --se estiver sem internet permitir salvar localmente e assim que a internet voltar o app envia para o banco de dados sem precisar novamente da interferencia do professor
+    --tem mais alguma ideia? como o laravel ou outros recursos podem turbinar nosso app nesse sentido? vamos discutir primeiro como turbinar esse app antes de começar a codificar!!
+---------------------------------------------------------------------------
+
 instalação do laravel-dompdf
 -- cd c:\wamp64\www\syrios
 -- composer require barryvdh/laravel-dompdf

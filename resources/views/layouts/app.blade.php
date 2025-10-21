@@ -113,6 +113,18 @@
                             🧑‍🏫 Lotação
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/regimento*') ? 'active' : '' }}"
+                           href="{{ route('escola.regimento.index') }}">
+                            📜 Regimento Escolar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/identidade*') ? 'active' : '' }}"
+                           href="{{ route('escola.identidade.edit') }}">
+                            🏫 Identidade da Escola
+                        </a>
+                    </li>
                 @endif
 
 
@@ -139,17 +151,17 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('regimento.visualizar', session('current_school_id')) }}">
+                            📜 Regimento Escolar
+                        </a>
+                    </li>
+
+                    <!--li class="nav-item">
                         <a class="nav-link {{ request()->is('professor/relatorios*') ? 'active' : '' }}"
                            href="{{ route('professor.relatorios.index') }}">
                             📊 Relatórios
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('escola/identidade*') ? 'active' : '' }}"
-                           href="{{ route('escola.identidade.edit') }}">
-                            🏫 Identidade da Escola
-                        </a>
-                    </li>
+                    </li-->
                     <!--li class="nav-item">
                         <a class="nav-link {{ request()->is('professor/perfil*') ? 'active' : '' }}"
                            href="{{ route('professor.perfil') }}">
@@ -187,8 +199,17 @@
                         </li>
                     @endif
 
+                    @php
+        
+                        $nome = Auth::user()->nome_u ?? '';
+                        $partes = explode(' ', trim($nome));
+                        $primeiro = $partes[0] ?? '';
+                        $ultimo = count($partes) > 1 ? end($partes) : '';
+ 
+                    @endphp
+
                     <li class="nav-item">
-                        <span class="nav-link">👤 {{ Auth::user()->nome_u ?? 'Usuário' }}</span>
+                        <span class="nav-link">👤 {{ $primeiro.' '.$ultimo }}</span>
                     </li>
                     <li class="nav-item">
                         <form method="POST" action="{{ route('logout') }}">
@@ -357,6 +378,15 @@
                             </ul>
                         </li>
                     @endif
+
+                    @php
+        
+                        $nome = Auth::user()->nome_u ?? '';
+                        $partes = explode(' ', trim($nome));
+                        $primeiro = $partes[0] ?? '';
+                        $ultimo = count($partes) > 1 ? end($partes) : '';
+ 
+                    @endphp
 
                     <li class="nav-item">
                         <span class="nav-link">👤 {{ Auth::user()->nome_u ?? 'Usuário' }}</span>

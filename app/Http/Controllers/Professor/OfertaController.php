@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Oferta;
 use App\Models\Enturmacao;
 use App\Models\Aluno;
+use App\Models\Ocorrencia;
 
 class OfertaController extends Controller
 {
@@ -82,11 +83,19 @@ class OfertaController extends Controller
         ->orderBy('nome_a')
         ->get();
 
+        foreach ($alunos as $aluno) {
+            $aluno->total_ocorrencias_ativas = Ocorrencia::where('aluno_id', $aluno->id)
+                ->where('status', 1)
+                ->count();
+
+            $aluno->total_ocorrencias_geral = Ocorrencia::where('aluno_id', $aluno->id)
+                ->count();
+        }
 
         // 🔢 Contagem simulada de ocorrências (substituir futuramente)
-        foreach ($alunos as $a) {
-            $a->total_ocorrencias = rand(0, 8);
-        }
+        // foreach ($alunos as $a) {
+        //     $a->total_ocorrencias = rand(0, 8);
+        // }
 
         return view('professor.ofertas.alunos', compact('oferta', 'alunos'));
     }

@@ -41,10 +41,12 @@
                     </a>
                     <span class="text-muted">{{ Str::limit($oferta->turma->serie_turma ?? '-', 12) }}</span>
 
-                    {{-- ⚠️ Alerta de turma crítica --}}
+                    {{-- ⚠️ Alerta de turma crítica -}}
                     @if($alerta)
                         <span class="badge bg-danger text-white">⚠️ Alunos em atenção</span>
                     @endif
+                    --}}
+                    
                 </div>
 
                 {{-- 🔢 Visão Geral --}}
