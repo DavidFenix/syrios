@@ -59,7 +59,6 @@ class OcorrenciaController extends Controller
             'status' => $request->status,
             'encaminhamentos' => $request->encaminhamentos,
             'recebido_em' => now(),
-            'vigente' => $request->status == 1,
         ]);
 
         return redirect()

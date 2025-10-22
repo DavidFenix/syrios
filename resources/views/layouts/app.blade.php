@@ -27,6 +27,157 @@
                 {{-- 🧩 MASTER --}}
                 {{-- ========================================================= --}}
                 @if(session('current_role') === 'master')
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="menuMaster" role="button" data-bs-toggle="dropdown">
+                            ⚙️ Administração
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('master.escolas.index') }}">🏫 Escolas</a></li>
+                            <li><a class="dropdown-item" href="{{ route('master.roles.index') }}">🔑 Roles</a></li>
+                            <li><a class="dropdown-item" href="{{ route('master.usuarios.index') }}">👥 Usuários</a></li>
+                            <li><a class="dropdown-item" href="{{ route('master.escolas.associacoes') }}">🔗 Associações</a></li>
+                            <li><a class="dropdown-item" href="{{ route('master.imagens.index') }}">🧹 Limpeza de Imagens</a></li>
+                        </ul>
+                    </li>
+                @endif
+
+
+                {{-- ========================================================= --}}
+                {{-- 🏛️ SECRETARIA --}}
+                {{-- ========================================================= --}}
+                @if(session('current_role') === 'secretaria')
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="menuSecretaria" role="button" data-bs-toggle="dropdown">
+                            🏛️ Secretaria
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('secretaria.escolas.index') }}">🏫 Escolas Filhas</a></li>
+                            <li><a class="dropdown-item" href="{{ route('secretaria.usuarios.index') }}">👥 Usuários</a></li>
+                        </ul>
+                    </li>
+                @endif
+
+
+                {{-- ========================================================= --}}
+                {{-- 🏫 ESCOLA --}}
+                {{-- ========================================================= --}}
+                @if(session('current_role') === 'escola')
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="menuEscolaPessoas" role="button" data-bs-toggle="dropdown">
+                            👨‍🏫 Pessoas
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('escola.professores.index') }}">Professores</a></li>
+                            <li><a class="dropdown-item" href="{{ route('escola.alunos.index') }}">Alunos</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="menuEscolaAcad" role="button" data-bs-toggle="dropdown">
+                            📚 Acadêmico
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('escola.disciplinas.index') }}">Disciplinas</a></li>
+                            <li><a class="dropdown-item" href="{{ route('escola.turmas.index') }}">Turmas</a></li>
+                            <li><a class="dropdown-item" href="{{ route('escola.enturmacao.index') }}">Enturmação</a></li>
+                            <li><a class="dropdown-item" href="{{ route('escola.lotacao.index') }}">Lotação</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="menuEscolaConfig" role="button" data-bs-toggle="dropdown">
+                            ⚙️ Configurações
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('escola.motivos.index') }}">🧩 Motivos de Ocorrência</a></li>
+                            <li><a class="dropdown-item" href="{{ route('escola.alunos.fotos.lote') }}">📦 Upload em Massa de Fotos</a></li>
+                            <li><a class="dropdown-item" href="{{ route('escola.regimento.index') }}">📜 Regimento Escolar</a></li>
+                            <li><a class="dropdown-item" href="{{ route('escola.identidade.edit') }}">🏫 Identidade Escolar</a></li>
+                        </ul>
+                    </li>
+                @endif
+
+
+                {{-- ========================================================= --}}
+                {{-- 👨‍🏫 PROFESSOR --}}
+                {{-- ========================================================= --}}
+                @if(session('current_role') === 'professor')
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="menuProfessor" role="button" data-bs-toggle="dropdown">
+                            👨‍🏫 Professor
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('professor.ofertas.index') }}">📚 Minhas Ofertas</a></li>
+                            <li><a class="dropdown-item" href="{{ route('professor.ocorrencias.index') }}">⚠️ Ocorrências</a></li>
+                            <li><a class="dropdown-item" href="{{ route('regimento.visualizar', session('current_school_id')) }}">📜 Regimento Escolar</a></li>
+                        </ul>
+                    </li>
+                @endif
+
+            </ul>
+
+            {{-- ========================================================= --}}
+            {{-- 🎯 CONTEXTO + USUÁRIO + LOGOUT --}}
+            {{-- ========================================================= --}}
+            <ul class="navbar-nav ms-auto">
+                @auth
+                    {{-- Contexto atual --}}
+                    @if(session('current_role') && session('current_school_id'))
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-warning" href="#" role="button" data-bs-toggle="dropdown">
+                                🎯 {{ ucfirst(session('current_role')) }}
+                                @php
+                                    $escolaAtual = \App\Models\Escola::find(session('current_school_id'));
+                                @endphp
+                                @if($escolaAtual)
+                                    — {{ $escolaAtual->nome_e }}
+                                @endif
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ route('choose.school') }}">🔄 Trocar de contexto</a></li>
+                            </ul>
+                        </li>
+                    @endif
+
+                    @php
+                        $nome = Auth::user()->nome_u ?? '';
+                        $partes = explode(' ', trim($nome));
+                        $primeiro = $partes[0] ?? '';
+                        $ultimo = count($partes) > 1 ? end($partes) : '';
+                    @endphp
+
+                    <li class="nav-item"><span class="nav-link">👤 {{ $primeiro.' '.$ultimo }}</span></li>
+                    <li class="nav-item">
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button class="btn btn-link nav-link">🚪 Sair</button>
+                        </form>
+                    </li>
+                @else
+                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
+                @endauth
+            </ul>
+        </div>
+    </div>
+</nav>
+
+{{--desativado
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="{{ dashboard_route() }}">⚡ Syrios</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMaster"
+                aria-controls="navbarMaster" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarMaster">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                {{-- ========================================================= -}}
+                {{-- 🧩 MASTER -}}
+                {{-- ========================================================= -}}
+                @if(session('current_role') === 'master')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('master/escolas*') ? 'active' : '' }}"
                            href="{{ route('master.escolas.index') }}">
@@ -51,12 +202,18 @@
                             🔗 Associações
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('master.imagens.index') }}" 
+                           class="nav-link {{ request()->is('master/imagens*') ? 'active' : '' }}">
+                           🧹 Limpeza de Imagens Órfãs
+                        </a>
+                    </li>
                 @endif
 
 
-                {{-- ========================================================= --}}
-                {{-- 🏛️ SECRETARIA --}}
-                {{-- ========================================================= --}}
+                {{-- ========================================================= -}}
+                {{-- 🏛️ SECRETARIA -}}
+                {{-- ========================================================= -}}
                 @if(session('current_role') === 'secretaria')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('secretaria/escolas*') ? 'active' : '' }}"
@@ -73,9 +230,9 @@
                 @endif
 
 
-                {{-- ========================================================= --}}
-                {{-- 🏫 ESCOLA --}}
-                {{-- ========================================================= --}}
+                {{-- ========================================================= -}}
+                {{-- 🏫 ESCOLA -}}
+                {{-- ========================================================= -}}
                 @if(session('current_role') === 'escola')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('escola/professores*') ? 'active' : '' }}"
@@ -114,6 +271,18 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/motivos*') ? 'active' : '' }}"
+                           href="{{ route('escola.motivos.index') }}">
+                            🧩 Motivos de Ocorrência
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('escola/alunos/fotos-lote') ? 'active' : '' }}"
+                           href="{{ route('escola.alunos.fotos.lote') }}">
+                            📦 Upload em Massa de Fotos
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {{ request()->is('escola/regimento*') ? 'active' : '' }}"
                            href="{{ route('escola.regimento.index') }}">
                             📜 Regimento Escolar
@@ -128,9 +297,9 @@
                 @endif
 
 
-                {{-- ========================================================= --}}
-                {{-- 👨‍🏫 PROFESSOR --}}
-                {{-- ========================================================= --}}
+                {{-- ========================================================= -}}
+                {{-- 👨‍🏫 PROFESSOR -}}
+                {{-- ========================================================= -}}
                 @if(session('current_role') === 'professor')
                     <!--li class="nav-item">
                         <a class="nav-link {{ request()->is('professor/dashboard*') ? 'active' : '' }}"
@@ -172,12 +341,12 @@
             </ul>
 
 
-            {{-- ========================================================= --}}
-            {{-- 🎯 CONTEXTO ATUAL + USUÁRIO + LOGOUT --}}
-            {{-- ========================================================= --}}
+            {{-- ========================================================= -}}
+            {{-- 🎯 CONTEXTO ATUAL + USUÁRIO + LOGOUT -}}
+            {{-- ========================================================= -}}
             <ul class="navbar-nav ms-auto">
                 @auth
-                    {{-- Contexto atual --}}
+                    {{-- Contexto atual -}}
                     @if(session('current_role') && session('current_school_id'))
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-warning" href="#" role="button" data-bs-toggle="dropdown">
@@ -226,7 +395,7 @@
         </div>
 
 
-        {{--
+        {{--desativado
         <div class="collapse navbar-collapse" id="navbarMaster">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
@@ -405,10 +574,11 @@
             </ul>
 
         </div>
-        --}}
+        -}}
 
     </div>
 </nav>
+--}}
 
 {{-- Espaço para compensar navbar fixa --}}
 <div style="margin-top: 100px;"></div>

@@ -20,7 +20,7 @@
         <tbody>
         @forelse($alunos as $index => $a)
             @php
-                $fotoNome = $a->matricula . '.png';
+                $fotoNome = session('current_school_id').'_'.$a->matricula . '.png';
                 $fotoRelPath = 'storage/img-user/' . $fotoNome;
                 $fotoAbsoluta = public_path($fotoRelPath);
                 $fotoUrl = file_exists($fotoAbsoluta)
@@ -72,6 +72,10 @@
                 <td class="text-end">
                     <a href="{{ route('escola.alunos.edit', $a) }}"
                        class="btn btn-sm btn-warning me-1" title="Editar aluno">✏️</a>
+
+                    <a href="{{ route('escola.alunos.foto.edit', $a->id) }}" class="btn btn-outline-primary btn-sm">
+                        📸 Atualizar Foto
+                    </a>
 
                     <form action="{{ route('escola.alunos.destroy', $a) }}" method="POST" class="d-inline"
                           onsubmit="return confirm('Remover este aluno?')">
@@ -188,9 +192,9 @@ $(document).ready(function () {
             { width: '5%',  targets: 1, className: 'text-center' }, // Matrícula
             { width: '5%',  targets: 2, className: 'text-center' }, // Matrícula
             { width: '5%',  targets: 3, className: 'text-center' }, // Nome
-            { width: '35%', targets: 4 }, // Turma
-            { width: '35%', targets: 5 }, // Turma
-            { width: '10%', targets: 6 }, // Ações
+            { width: '45%', targets: 4 }, // Turma
+            { width: '2%', targets: 5 }, // Turma
+            { width: '28%', targets: 6 }, // Ações
             { orderable: false, targets: [6] } // desativa ordenação no # e Ações
         ], 
     }, [2, 3, 4, 5]);

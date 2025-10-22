@@ -35,6 +35,8 @@ class Ocorrencia extends BaseModel
         'recebido_em' => 'datetime',
     ];
 
+    protected $guarded = ['vigente'];
+
     /*
     |--------------------------------------------------------------------------
     | 🔗 RELACIONAMENTOS

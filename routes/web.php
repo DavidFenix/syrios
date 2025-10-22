@@ -8,6 +8,7 @@ use App\Http\Controllers\Master\EscolaController as MasterEscolaController;
 use App\Http\Controllers\Master\RoleController as MasterRoleController;
 use App\Http\Controllers\Master\UsuarioController as MasterUsuarioController;
 use App\Http\Controllers\Master\DashboardController as MasterDashboardController;
+use App\Http\Controllers\Master\ImagemController;
 
 // Secretaria
 use App\Http\Controllers\Secretaria\EscolaController as SecretariaEscolaController;
@@ -21,6 +22,9 @@ use App\Http\Controllers\Escola\ProfessorController;
 use App\Http\Controllers\Escola\TurmaController;
 use App\Http\Controllers\Escola\UsuarioController as EscolaUsuarioController;
 use App\Http\Controllers\Escola\RegimentoController;
+use App\Http\Controllers\Escola\ModeloMotivoController;
+use App\Http\Controllers\Escola\AlunoFotoController;
+use App\Http\Controllers\Escola\AlunoFotoLoteController;
 
 use App\Http\Controllers\Professor\{
     DashboardController as ProfessorDashboardController,
@@ -29,7 +33,6 @@ use App\Http\Controllers\Professor\{
     RelatorioController,
     PerfilController
 };
-
 
 
 /*
@@ -70,6 +73,13 @@ Route::prefix('master')
     // 🧹 Executar exclusão
     Route::delete('usuarios/{usuario}', [MasterUsuarioController::class, 'destroy'])
             ->name('usuarios.destroy');
+
+    Route::get('imagens', [ImagemController::class, 'index'])->name('imagens.index');
+    Route::post('imagens/limpar', [ImagemController::class, 'limpar'])->name('imagens.limpar');
+   
+
+
+
 
 
     });
@@ -168,6 +178,23 @@ Route::prefix('escola')
 
         Route::get('regimento', [RegimentoController::class, 'index'])->name('regimento.index');
         Route::post('regimento', [RegimentoController::class, 'update'])->name('regimento.update');
+
+        //Motivos de Ocorrência
+        Route::resource('motivos', ModeloMotivoController::class)
+            ->except(['show']);
+   
+        // 📸 Upload de foto do aluno
+        Route::get('alunos/{aluno}/foto', [AlunoFotoController::class, 'edit'])->name('alunos.foto.edit');
+        Route::post('alunos/{aluno}/foto', [AlunoFotoController::class, 'update'])->name('alunos.foto.update');
+        
+        // 📦 Upload em massa de fotos
+        Route::get('alunos/fotos-lote', [AlunoFotoLoteController::class, 'index'])->name('alunos.fotos.lote');
+        Route::post('alunos/fotos-lote', [AlunoFotoLoteController::class, 'store'])->name('alunos.fotos.lote.store');
+  
+
+
+
+
            
     });
 
