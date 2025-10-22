@@ -13,7 +13,7 @@
                 <div class="card-body">
                     <div class="display-5 text-primary">{{ $totalOfertas }}</div>
                     <p class="fw-semibold mb-1">Ofertas</p>
-                    <small class="text-muted">Disciplinas e turmas do ano {{ $ano }}</small>
+                    <small class="text-muted">Disciplinas e turmas - {{ $ano }}</small>
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@
                 <div class="card-body">
                     <div class="display-5 text-warning">{{ $totalOcorrencias }}</div>
                     <p class="fw-semibold mb-1">Ocorrências Aplicadas</p>
-                    <small class="text-muted">Em todas as turmas</small>
+                    <small class="text-muted">Em todas as turmas - {{ $ano }}</small>
                 </div>
             </div>
         </div>
@@ -35,7 +35,7 @@
                 <div class="card-body">
                     <div class="display-5 text-success">{{ $ocorrenciasAtivas }}</div>
                     <p class="fw-semibold mb-1">Ocorrências Ativas</p>
-                    <small class="text-muted">Em andamento</small>
+                    <small class="text-muted">Em andamento - {{ $ano }}</small>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@
                 <div class="card-body">
                     <div class="display-5 text-secondary">{{ $ocorrenciasArquivadas }}</div>
                     <p class="fw-semibold mb-1">Ocorrências Arquivadas</p>
-                    <small class="text-muted">Finalizadas</small>
+                    <small class="text-muted">Finalizadas - {{ $ano }}</small>
                 </div>
             </div>
         </div>

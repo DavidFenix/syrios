@@ -246,7 +246,15 @@ $(document).ready(function () {
             { width: '10%', targets: 9, className: 'text-center' }, 
             { orderable: false, targets: [1,9] } // desativa ordenação no # e Ações
         ], 
-    }, [2, 3, 4, 5]);
+    }, [2, 3, 4, 5, 6, 7, 8]);
+
+    // 🔹 Atualiza numeração (1, 2, 3...) após ordenação, busca ou paginação
+    table.on('order.dt search.dt draw.dt', function () {
+        let i = 1;
+        table.cells(null, 0, { search: 'applied', order: 'applied' }).every(function () {
+            this.data(i++);
+        });
+    }).draw();
 
 });
 </script>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Professor;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Models\Oferta;
 use App\Models\Enturmacao;
 use App\Models\Aluno;
@@ -12,10 +13,79 @@ use App\Models\Ocorrencia;
 
 class OfertaController extends Controller
 {
+    
+    public function index()
+    {
+        $user = auth()->user();
+        $schoolId = session('current_school_id');
+        $anoLetivo = session('ano_letivo_atual') ?? date('Y');
+
+        // 🔍 Vínculo do professor na escola atual
+        $professor = $user->professor()->where('school_id', $schoolId)->first();
+        if (!$professor) {
+            return redirect()
+                ->route('professor.dashboard')
+                ->with('warning', '⚠️ Seu usuário não está vinculado como professor nesta escola.');
+        }
+
+        // 📚 Ofertas do professor no ano vigente
+        $ofertas = Oferta::with(['disciplina', 'turma'])
+            ->where('professor_id', $professor->id)
+            ->where('school_id', $schoolId)
+            ->where('ano_letivo', $anoLetivo)
+            ->where('vigente', true)
+            ->orderByDesc('id')
+            ->get();
+
+        $ofertaIds = $ofertas->pluck('id');
+
+        // 🧮 Consulta consolidada
+        $stats = DB::table(prefix('ocorrencia'))
+            ->select(
+                'oferta_id',
+                DB::raw("
+                    SUM(CASE WHEN total_ocorrencias = 1 THEN 1 ELSE 0 END) AS qtd1,
+                    SUM(CASE WHEN total_ocorrencias = 2 THEN 1 ELSE 0 END) AS qtd2,
+                    SUM(CASE WHEN total_ocorrencias = 3 THEN 1 ELSE 0 END) AS qtd3,
+                    SUM(CASE WHEN total_ocorrencias = 4 THEN 1 ELSE 0 END) AS qtd4,
+                    SUM(CASE WHEN total_ocorrencias >= 5 THEN 1 ELSE 0 END) AS qtd5
+                ")
+            )
+            ->fromSub(function ($sub) use ($ofertaIds, $schoolId, $anoLetivo, $professor) {
+                $sub->from(prefix('ocorrencia'))
+                    ->select(
+                        'oferta_id',
+                        'aluno_id',
+                        DB::raw('COUNT(*) AS total_ocorrencias')
+                    )
+                    ->whereIn('oferta_id', $ofertaIds)
+                    ->where('school_id', $schoolId)
+                    ->where('ano_letivo', $anoLetivo)
+                    ->where('professor_id', $professor->id)
+                    ->where('status', 1) // apenas ativas
+                    ->groupBy('oferta_id', 'aluno_id');
+            }, 'subquery')
+            ->groupBy('oferta_id')
+            ->get()
+            ->keyBy('oferta_id');
+
+        // 🔗 Vincula resultados às ofertas
+        foreach ($ofertas as $oferta) {
+            $dados = $stats->get($oferta->id);
+            $oferta->qtd1 = $dados->qtd1 ?? 0;
+            $oferta->qtd2 = $dados->qtd2 ?? 0;
+            $oferta->qtd3 = $dados->qtd3 ?? 0;
+            $oferta->qtd4 = $dados->qtd4 ?? 0;
+            $oferta->qtd5 = $dados->qtd5 ?? 0;
+        }
+
+        return view('professor.ofertas.index', compact('ofertas'));
+    }
+
     /**
      * Lista todas as ofertas do professor logado
      */
-    public function index()
+    /*public function index()
     {
         $user = auth()->user();
         $schoolId = session('current_school_id');
@@ -49,7 +119,7 @@ class OfertaController extends Controller
         }
 
         return view('professor.ofertas.index', compact('ofertas'));
-    }
+    }*/
 
     /**
      * Exibe os alunos da turma vinculada a uma oferta específica

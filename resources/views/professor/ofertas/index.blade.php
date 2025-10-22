@@ -72,23 +72,23 @@
                     <div class="row text-center g-2">
                         <div class="col-6 col-md-2">
                             <span class="badge bg-secondary">&nbsp;</span><br>
-                            1 ocorrência ativa ({{ $oferta->qtd1 ?? 0 }})
+                            1 ativa ({{ $oferta->qtd1 ?? 0 }} alunos)
                         </div>
                         <div class="col-6 col-md-2">
                             <span class="badge bg-warning text-dark">&nbsp;</span><br>
-                            2 ocorrências ativas ({{ $oferta->qtd2 ?? 0 }})
+                            2 ativas ({{ $oferta->qtd2 ?? 0}} alunos)
                         </div>
                         <div class="col-6 col-md-2">
                             <span class="badge bg-amber text-dark">&nbsp;</span><br>
-                            3 ocorrências ativas ({{ $oferta->qtd3 ?? 0 }})
+                            3 ativas ({{ $oferta->qtd3 ?? 0}} alunos)
                         </div>
                         <div class="col-6 col-md-2">
                             <span class="badge bg-orange text-white">&nbsp;</span><br>
-                            4 ocorrências ativas ({{ $oferta->qtd4 ?? 0 }})
+                            4 ativas ({{ $oferta->qtd4 ?? 0 }} alunos)
                         </div>
                         <div class="col-6 col-md-2">
                             <span class="badge bg-danger">&nbsp;</span><br>
-                            5+ ocorrências ativas ({{ $oferta->qtd5 ?? 0 }})
+                            5+ ativas ({{ $oferta->qtd5 ?? 0 }} alunos)
                         </div>
                     </div>
                 </div>

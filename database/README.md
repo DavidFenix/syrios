@@ -4,7 +4,9 @@ mudanças na base de dados
 ALTER TABLE syrios_escola
 ADD COLUMN frase_efeito VARCHAR(255) NULL AFTER nome_e,
 ADD COLUMN logo_path VARCHAR(255) NULL AFTER frase_efeito;
---migração
+
+--migração da frase de efeito e do logo_path
+  --cd c:\wamp64\www\syrios
   --php artisan migrate --path=database/migrations/2025_10_20_200117_add_frase_efeito_to_escola_table.php
 
 CREATE TABLE `syrios_ocorrencia` (
@@ -59,6 +61,7 @@ ALTER TABLE syrios_ocorrencia_motivo
 ADD UNIQUE KEY uq_ocorrencia_motivo (ocorrencia_id, modelo_motivo_id);
 
 --preparamos uma migração para isso:
+--cd c:\wamp64\www\syrios
 -- php artisan migrate --path=database/migrations/2025_10_18_000001_create_ocorrencia_tables.php
 -- php artisan db:seed --class=MotivosPadraoSeeder
 ---------------------------------------------------------------
