@@ -45,7 +45,9 @@ class ModeloMotivo extends BaseModel
     }
 
     //acrescentado por mim
-    public function escola()      { return $this->belongsTo(Escola::class, 'school_id'); }
+    public function escola()      { 
+        return $this->belongsTo(Escola::class, 'school_id'); 
+    }
 }
 
 

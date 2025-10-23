@@ -32,7 +32,6 @@
 @push('scripts')
 <script>
 $(document).ready(function () {
-    // Aplica o DataTable com filtro nas colunas Nome(1), CPF(2), Status(3), Roles(4)
     initDataTable('#tabela-turmas', {
         order: [[1, 'asc']],
         pageLength: 10

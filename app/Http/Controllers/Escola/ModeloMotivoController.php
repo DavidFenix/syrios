@@ -93,4 +93,48 @@ class ModeloMotivoController extends Controller
         return back()->with('success', '🗑 Motivo excluído com sucesso!');
     }
 
+    public function importar()
+    {
+        $schoolId = session('current_school_id');
+
+        // Motivos de outras escolas
+        $motivosOutros = \App\Models\ModeloMotivo::with('escola:id,nome_e')
+            ->where('school_id', '!=', $schoolId)
+            ->orderBy('descricao')
+            ->get();
+
+        return view('escola.motivos.importar', compact('motivosOutros'));
+    }
+
+    public function importarSalvar(Request $request)
+    {
+        $schoolId = session('current_school_id');
+
+        $request->validate([
+            'motivos' => 'required|array|min:1'
+        ]);
+
+        $motivosSelecionados = \App\Models\ModeloMotivo::whereIn('id', $request->motivos)->get();
+
+        foreach ($motivosSelecionados as $motivo) {
+            // Evita duplicação
+            $existe = \App\Models\ModeloMotivo::where('school_id', $schoolId)
+                ->where('descricao', $motivo->descricao)
+                ->exists();
+
+            if (!$existe) {
+                \App\Models\ModeloMotivo::create([
+                    'school_id' => $schoolId,
+                    'descricao' => $motivo->descricao,
+                    'categoria' => $motivo->categoria,
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('escola.motivos.index')
+            ->with('success', '✅ Motivos importados com sucesso!');
+    }
+
+
 }

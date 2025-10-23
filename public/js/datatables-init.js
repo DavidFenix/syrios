@@ -381,6 +381,7 @@ $(document).ready(function() {
 
   // 🔹 Inicializador genérico reutilizável
   window.initDataTable = function(selector, opts = {}, filterableIndexes = null) {
+    $.fn.dataTable.ext.errMode = 'none';
     const $table = $(selector);
     if ($table.length === 0 || $.fn.dataTable.isDataTable(selector)) return;
 

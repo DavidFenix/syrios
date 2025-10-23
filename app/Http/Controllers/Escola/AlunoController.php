@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Escola;
 use App\Http\Controllers\Controller;
 use App\Models\Aluno;
 use App\Models\Enturmacao;
+use App\Models\Escola;
 use App\Models\Turma;
 use App\Models\Ocorrencia;
 use Illuminate\Http\Request;
@@ -146,15 +147,21 @@ class AlunoController extends Controller
         $alunoExistente = Aluno::where('matricula', $request->matricula)->first();
 
         if ($alunoExistente) {
-            // Já existe em outra escola → oferece vínculo
+            // Busca apenas o nome da escola de origem
+            $escolaOrigemNome = Escola::where('id', $alunoExistente->school_id)->value('nome_e');
+
             return redirect()
                 ->route('escola.alunos.create')
                 ->withInput()
                 ->with([
-                    'warning' => '⚠️ Aluno já existe em outra escola. Você pode vinculá-lo à escola atual.',
-                    'aluno_existente' => $alunoExistente->id
+                    //'warning' => '⚠️ Aluno já existe em outra escola. Você pode vinculá-lo à escola atual.',
+                    'aluno_existente' => $alunoExistente->id,
+                    'matricula_existente' => $request->matricula,
+                    'nome_aluno_existente' => $alunoExistente->nome_a,
+                    'escola_origem_nome' => $escolaOrigemNome ?? '— (não localizada)',
                 ]);
         }
+
 
         // 3️⃣ Cria novo aluno (não existe em lugar nenhum)
         $aluno = Aluno::create([

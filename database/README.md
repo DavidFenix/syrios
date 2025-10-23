@@ -1,6 +1,61 @@
+-----------------------------------------------------------
+novos modelos de motivos para o DB
 
-mudanças na base de dados
+TRUNCATE TABLE syrios_modelo_motivo;
+INSERT INTO syrios_modelo_motivo (id, school_id, descricao, categoria, created_at, updated_at) VALUES
+(1, 1, 'Conversas paralelas durante a explicação do conteúdo', 'Comportamento', NOW(), NOW()),
+(2, 1, 'Brincadeiras durante a explicação do conteúdo', 'Comportamento', NOW(), NOW()),
+(3, 1, 'Falta de respeito com colegas', 'Disciplina', NOW(), NOW()),
+(4, 1, 'Falta de respeito com professores', 'Disciplina', NOW(), NOW()),
+(5, 1, 'Não realizou as atividades propostas', 'Desempenho', NOW(), NOW()),
+(6, 1, 'Saiu da sala sem permissão', 'Disciplina', NOW(), NOW()),
+(7, 1, 'Mau comportamento em sala', 'Comportamento', NOW(), NOW()),
+(8, 1, 'Não cumpriu o tempo do intervalo', 'Pontualidade', NOW(), NOW()),
+(9, 1, 'Atraso frequente', 'Pontualidade', NOW(), NOW()),
+(10, 1, 'Desrespeito ao professor', 'Disciplina', NOW(), NOW()),
+(11, 1, 'Fuga do ambiente escolar', 'Grave', NOW(), NOW()),
+(12, 1, 'Uso indevido de celular em sala', 'Comportamento', NOW(), NOW()),
+(13, 1, 'Não trouxe o material didático', 'Desempenho', NOW(), NOW()),
+(14, 1, 'Indisciplina em sala de aula', 'Comportamento', NOW(), NOW()),
+(15, 1, 'Solicitou sair da sala repetidas vezes (beber água, ir ao banheiro etc.)', 'Comportamento', NOW(), NOW()),
+(16, 1, 'Comportamento agressivo e criação de conflitos com colegas', 'Grave', NOW(), NOW()),
+(17, 1, 'Prática de bullying com colegas', 'Grave', NOW(), NOW()),
+(18, 1, 'Interrompe o professor constantemente', 'Comportamento', NOW(), NOW()),
+(19, 1, 'Recusa-se a realizar as atividades', 'Desempenho', NOW(), NOW()),
+(20, 1, 'Desobediência às regras da sala', 'Disciplina', NOW(), NOW()),
+(21, 1, 'Dificuldade em respeitar a fila ou a ordem de entrada', 'Comportamento', NOW(), NOW()),
+(22, 1, 'Recusa-se a entregar o celular quando solicitado', 'Disciplina', NOW(), NOW()),
+(23, 1, 'Usa linguagem inadequada em sala', 'Disciplina', NOW(), NOW()),
+(24, 1, 'Apresenta desatenção constante durante as aulas', 'Desempenho', NOW(), NOW()),
+(25, 1, 'Alimenta-se em sala sem autorização', 'Comportamento', NOW(), NOW()),
+(26, 1, 'Lança objetos ou perturba o ambiente físico da sala', 'Grave', NOW(), NOW()),
+(27, 1, 'Apresenta descuido com o uniforme escolar', 'Uniforme', NOW(), NOW()),
+(28, 1, 'Comparece sem uniforme completo', 'Uniforme', NOW(), NOW()),
+(29, 1, 'Dificuldade em manter o material organizado', 'Material', NOW(), NOW()),
+(30, 1, 'Não trouxe o caderno ou livro da disciplina', 'Material', NOW(), NOW()),
+(31, 1, 'Falta de interesse nas atividades', 'Desempenho', NOW(), NOW()),
+(32, 1, 'Rude ou irônico com funcionários da escola', 'Disciplina', NOW(), NOW()),
+(33, 1, 'Discussão com colegas durante a aula', 'Comportamento', NOW(), NOW()),
+(34, 1, 'Desatenção constante e conversa durante avaliações', 'Comportamento', NOW(), NOW()),
+(35, 1, 'Interfere negativamente na concentração dos colegas', 'Comportamento', NOW(), NOW()),
+(36, 1, 'Abandono de sala sem justificativa', 'Grave', NOW(), NOW()),
+(37, 1, 'Desacato a funcionário ou servidor da escola', 'Grave', NOW(), NOW()),
+(38, 1, 'Danificou material escolar ou patrimônio público', 'Grave', NOW(), NOW()),
+(39, 1, 'Desobedeceu orientações de segurança escolar', 'Grave', NOW(), NOW()),
+(40, 1, 'Tentativa de evasão ou ausência prolongada sem justificativa', 'Grave', NOW(), NOW());
+
+--cd c:\wamp64\www\syrios
+--php artisan db:seed --class=ModeloMotivoSeeder
+
+--------------------------------------------------------------
+novas mudanças de myisam para innodb para ativar de vez a proteção por chave estrangeira
+--cd c:\wamp64\www\syrios
+--php artisan migrate --path=database/migrations/2025_10_23_000000_convert_to_innodb_and_add_foreign_keys.php
+--php artisan migrate --path=database/migrations/2025_10_23_200000_add_unique_constraints_syrios.php
+
+
 -----------------------------------------------
+mudanças na base de dados
 ALTER TABLE syrios_escola
 ADD COLUMN frase_efeito VARCHAR(255) NULL AFTER nome_e,
 ADD COLUMN logo_path VARCHAR(255) NULL AFTER frase_efeito;

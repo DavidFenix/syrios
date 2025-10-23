@@ -10,8 +10,10 @@
 
     <a href="{{ route('escola.motivos.create') }}" class="btn btn-primary mb-3">➕ Novo Motivo</a>
 
+    <a href="{{ route('escola.motivos.importar') }}" class="btn btn-primary mb-3">📥 Importar Motivos</a>
+
     <div class="table-responsive shadow-sm rounded">
-        <table class="table table-striped align-middle">
+        <table class="table table-striped align-middle" id="tabela-motivos">
             <thead class="table-light">
                 <tr>
                     <th>#</th>
@@ -50,6 +52,16 @@
         </table>
     </div>
 
-    <div class="mt-3">{{ $motivos->links() }}</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function () {
+    initDataTable('#tabela-motivos', {
+        order: [[2, 'asc'],[1, 'asc']],
+        pageLength: 25
+    }, [1, 2]);
+});
+</script>
+@endpush

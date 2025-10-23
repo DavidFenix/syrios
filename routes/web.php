@@ -191,6 +191,13 @@ Route::prefix('escola')
         Route::get('alunos/fotos-lote', [AlunoFotoLoteController::class, 'index'])->name('alunos.fotos.lote');
         Route::post('alunos/fotos-lote', [AlunoFotoLoteController::class, 'store'])->name('alunos.fotos.lote.store');
   
+        // Motivos: importar de outras escolas
+        Route::get('motivos/importar', [\App\Http\Controllers\Escola\ModeloMotivoController::class, 'importar'])
+            ->name('motivos.importar');
+
+        Route::post('motivos/importar', [\App\Http\Controllers\Escola\ModeloMotivoController::class, 'importarSalvar'])
+            ->name('motivos.importar.salvar');
+
 
 
 

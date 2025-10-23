@@ -13,10 +13,10 @@
     <div class="alert alert-warning">{{ session('warning') }}</div>
 @endif
 
-    {{-- ⚠️ Se já existir --}}
+    {{-- ⚠️ Se já existir -}} desativado
     @if(session('aluno_existente'))
         <div class="alert alert-warning">
-            ⚠️ Este aluno já existe no sistema.
+            ⚠️ Este aluno(matrícula:{{session('matricula_existente')}}), já existe no sistema. Se não desejar vincular, você deve usar uma matrícula diferente.
             <form action="{{ route('escola.alunos.vincular', session('aluno_existente')) }}" method="POST" class="mt-2">
                 @csrf
                 <label>Selecione a turma (opcional):</label>
@@ -30,6 +30,42 @@
             </form>
         </div>
     @endif
+    --}}
+
+    {{-- ⚠️ Se já existir --}}
+    @if(session('aluno_existente'))
+        <div class="alert alert-warning shadow-sm">
+            <h5 class="fw-bold">⚠️ Aluno já cadastrado no sistema</h5>
+
+            <p class="mb-1">
+                <strong>Nome:</strong> {{ session('nome_aluno_existente') }}<br>
+                <strong>Matrícula:</strong> {{ session('matricula_existente') }}<br>
+                <strong>Escola de origem:</strong> {{ session('escola_origem_nome') }}
+            </p>
+
+            <hr class="my-2">
+            <p class="mb-2">
+                Se este aluno realmente pertence à sua escola, você pode vinculá-lo diretamente abaixo.  
+                Caso contrário, utilize uma matrícula diferente para criar um novo aluno.
+            </p>
+
+            <form action="{{ route('escola.alunos.vincular', session('aluno_existente')) }}" method="POST" class="mt-2">
+                @csrf
+                <label class="fw-bold">Selecione a turma (opcional):</label>
+                <select name="turma_id" class="form-select mb-3">
+                    <option value="">— Sem turma —</option>
+                    @foreach(\App\Models\Turma::where('school_id', session('current_school_id'))->orderBy('serie_turma')->get() as $t)
+                        <option value="{{ $t->id }}">{{ $t->serie_turma }} — {{ $t->turno }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary">
+                    🔗 Vincular aluno à escola atual
+                </button>
+            </form>
+        </div>
+    @endif
+
+
 
     {{-- Formulário de novo aluno --}}
     <form method="POST" action="{{ route('escola.alunos.store') }}">
