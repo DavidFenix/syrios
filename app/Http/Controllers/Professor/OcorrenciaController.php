@@ -138,11 +138,19 @@ class OcorrenciaController extends Controller
      */
     public function historicoResumido($alunoId)
     {
+        $schoolId = session('current_school_id');
         $aluno  = Aluno::findOrFail($alunoId);
-        $escola = Escola::find(session('current_school_id'));
+        $escola = Escola::find($schoolId);
+
+        // $turma = optional(
+        //     $aluno->enturmacao()->with('turma')->first()
+        // )->turma;
 
         $turma = optional(
-            $aluno->enturmacao()->with('turma')->first()
+            $aluno->enturmacao()
+                ->where('school_id', $schoolId)   // 🔒 restringe à escola logada
+                ->with('turma')
+                ->first()
         )->turma;
 
         $arquivoFoto = 'storage/img-user/' . $aluno->matricula . '.png';
@@ -151,10 +159,18 @@ class OcorrenciaController extends Controller
             ? $fotoAbsoluto
             : public_path('storage/img-user/padrao.png');
 
+        // $ocorrencias = Ocorrencia::with(['motivos', 'oferta.disciplina', 'professor.usuario'])
+        //     ->where('aluno_id', $aluno->id)
+        //     ->orderByDesc('created_at')
+        //     ->get();
+
+
         $ocorrencias = Ocorrencia::with(['motivos', 'oferta.disciplina', 'professor.usuario'])
             ->where('aluno_id', $aluno->id)
+            ->where('school_id', $schoolId) // 🔒 restringe à escola logada
             ->orderByDesc('created_at')
             ->get();
+
 
         return view('professor.ocorrencias.historico_resumido', compact(
             'aluno', 'turma', 'escola', 'fotoFinal', 'ocorrencias'
@@ -172,6 +188,13 @@ class OcorrenciaController extends Controller
             ->where('id', $alunoId)
             ->firstOrFail();
 
+        $turma = optional(
+            $aluno->enturmacao()
+                ->where('school_id', $schoolId)   // 🔒 restringe à escola logada
+                ->with('turma')
+                ->first()
+        )->turma;
+
         $ocorrencias = Ocorrencia::with([
                 'professor.usuario',
                 'oferta.disciplina',
@@ -183,7 +206,7 @@ class OcorrenciaController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('professor.ocorrencias.historico', compact('aluno', 'ocorrencias'));
+        return view('professor.ocorrencias.historico', compact('aluno', 'turma', 'ocorrencias'));
     }
 
     /**

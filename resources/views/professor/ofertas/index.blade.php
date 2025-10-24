@@ -49,14 +49,14 @@
                     
                 </div>
 
-                {{-- 🔢 Visão Geral --}}
+                {{-- 🔢 Resumo Geral --}}
                 <div class="mt-2 mt-md-0">
                     <button class="btn btn-sm btn-outline-secondary" 
                             data-bs-toggle="collapse"
                             data-bs-target="#visao{{ $oferta->id }}"
                             aria-expanded="false"
                             aria-controls="visao{{ $oferta->id }}">
-                        Visão Geral:
+                        Resumo Geral:
                         <span class="badge bg-secondary">{{ $oferta->qtd1 ?? 0 }}</span>
                         <span class="badge bg-warning text-dark">{{ $oferta->qtd2 ?? 0 }}</span>
                         <span class="badge bg-amber text-dark">{{ $oferta->qtd3 ?? 0 }}</span>

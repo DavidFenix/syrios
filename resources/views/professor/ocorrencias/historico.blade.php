@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+{{$verificar @total de ocorrencias ativas e ocorrencias geral, por escola, pois está confuso
+$verificar @se tudo é buscado por escola}}
+
 @section('content')
 <div class="container py-3">
 
@@ -11,32 +14,27 @@
         <a href="{{ url()->previous() }}" class="btn btn-secondary">⬅ Voltar</a>
     </div>
 
-    
-
-    {{-- 👨‍🎓 Informações do aluno --}}
-    <div class="card mb-4 shadow-sm">
+    {{-- ===================== INFORMAÇÕES DO ALUNO ===================== --}}
+    <div class="card shadow-sm border-0 mb-4">
         <div class="card-body d-flex align-items-center">
-        @php
-            $fotoNome = $aluno->matricula . '.png';
-            $fotoPath = public_path('storage/img-user/' . $fotoNome);
-            $fotoUrl = file_exists($fotoPath)
-                ? asset('storage/img-user/' . $fotoNome)
-                : asset('storage/img-user/padrao.png');
-
-            $turma = optional($aluno->enturmacao()->with('turma')->first())->turma->serie_turma ?? '-';
-        @endphp
-        <img src="{{ $fotoUrl }}" class="rounded-circle me-3"
-                 width="70" height="70" style="object-fit: cover;">
-        <div class="card-body">
-            <h5 class="card-title mb-2"><strong>{{ $aluno->nome_a }}</strong></h5>
             @php
-                $turma = optional($aluno->enturmacao()->with('turma')->first())->turma->serie_turma ?? '-';
+                $fotoNome = $aluno->matricula . '.png';
+                $fotoPath = public_path('storage/img-user/' . $fotoNome);
+                $fotoUrl = file_exists($fotoPath)
+                    ? asset('storage/img-user/' . $fotoNome)
+                    : asset('storage/img-user/padrao.png');
             @endphp
-            <p class="mb-0">
-                <strong>Matrícula:</strong> {{ $aluno->matricula }}<br>
-                <strong>Turma:</strong> {{ $turma }}
-            </p>
-        </div>
+
+            <img src="{{ $fotoUrl }}" class="rounded-circle me-3"
+                 width="70" height="70" style="object-fit: cover;">
+
+            <div>
+                <h5 class="mb-1">{{ $aluno->nome_a }}</h5>
+                <p class="mb-0 text-muted small">
+                    <strong>Turma:</strong> {{ $turma->serie_turma ?? '-' }} <br>
+                    <strong>Matrícula:</strong> {{ $aluno->matricula }}
+                </p>
+            </div>
         </div>
     </div>
 

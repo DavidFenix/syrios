@@ -8,6 +8,7 @@ use App\Models\Oferta;
 use App\Models\Professor;
 use App\Models\Disciplina;
 use App\Models\Turma;
+use App\Models\Usuario;
 use Illuminate\Support\Facades\DB;
 
 class LotacaoController extends Controller
@@ -16,13 +17,32 @@ class LotacaoController extends Controller
     {
         $schoolId = session('current_school_id');
         $anoLetivo = session('ano_letivo_atual') ?? date('Y');
+        // $professores = Professor::with('usuario')
+        //     ->where('school_id', $schoolId)
+        //     ->orderByDesc('id')
+        //     ->get();
         $professores = Professor::with('usuario')
-            ->where('school_id', $schoolId)
-            ->orderByDesc('id')
-            ->get();
+                ->where('school_id', $schoolId)
+                ->orderBy(
+                    Usuario::select('nome_u')
+                        ->whereColumn('syrios_usuario.id', 'syrios_professor.usuario_id')
+                        ->limit(1)
+                )
+                ->get();
+
 
         $professorSelecionado = $request->input('professor_id');
         $ofertas = collect();
+
+        // if ($professorSelecionado) {
+        //     $ofertas = Oferta::with(['disciplina', 'turma'])
+        //         ->where('school_id', $schoolId)
+        //         ->where('professor_id', $professorSelecionado)
+        //         ->where('ano_letivo', $anoLetivo)
+        //         ->orderBy('disciplina_id')
+        //         ->get()
+        //         ->groupBy('disciplina_id');
+        // }
 
         if ($professorSelecionado) {
             $ofertas = Oferta::with(['disciplina', 'turma'])
@@ -30,9 +50,14 @@ class LotacaoController extends Controller
                 ->where('professor_id', $professorSelecionado)
                 ->where('ano_letivo', $anoLetivo)
                 ->orderBy('disciplina_id')
+                ->orderBy('turma_id') // 🔹 garante ordem interna
                 ->get()
+                // 🔹 reordena pelo nome da turma dentro do grupo
+                ->sortBy(fn($o) => $o->turma->serie_turma)
                 ->groupBy('disciplina_id');
         }
+
+
 
         //sql_dump($ofertas);
 
