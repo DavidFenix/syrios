@@ -5,7 +5,7 @@
 @section('content')
 <div class="container py-3">
 
-    <h2 class="mb-4">📘 Minhas Ocorrências Registradasaaaaaaaaaaaaaa</h2>
+    <h2 class="mb-4">📘 Minhas Ocorrências Registradas</h2>
 
     {{-- ✅ Mensagens de retorno --}}
     @if(session('success'))
@@ -13,44 +13,6 @@
     @elseif(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
-
-    {{-- 🔘 Controle de visualização --}}
-    <div class="d-flex justify-content-between align-items-right mt-3">
-        
-        {{-- Paginação Laravel (só aparece quando $ocorrencias é paginada) --}}
-        @php
-            $isPaginated = $ocorrencias instanceof \Illuminate\Pagination\LengthAwarePaginator
-                        || $ocorrencias instanceof \Illuminate\Pagination\Paginator;
-        @endphp
-
-
-        @if($isPaginated && $ocorrencias->total() > $ocorrencias->perPage())
-            <div class="pagination-container mb-0">
-                {{ $ocorrencias->links() }}
-            </div>
-        @endif
-
-         @if(!$isPaginated)
-            <div class="alert alert-info py-2 small mb-2">
-                Exibindo todas as ocorrências (modo “Ver tudo”).
-            </div>
-        @endif
-
-
-        <form method="GET" id="formVerTudo">
-            <input type="hidden" name="perPage" id="perPageInput" value="{{ request('perPage', 15) }}">
-            <button type="button" id="toggleVerTudo" class="btn btn-sm btn-outline-secondary">
-                {{ request('perPage', 15) > 15 ? '🔙 Paginar por 15' : '👁️ Ver tudo' }}
-            </button>
-        </form>
-   
-        
-
-
-       
-    </div>
-
-
 
     {{-- 🧱 Tabela de ocorrências --}}
     <div class="table-responsive shadow-sm rounded">
@@ -179,6 +141,37 @@
         </table>
     </div>
 
+    {{-- 🔘 Controle de visualização --}}
+    <div class="d-flex justify-content-between align-items-right mt-3">
+        
+        {{-- Paginação Laravel (só aparece quando $ocorrencias é paginada) --}}
+        @php
+            $isPaginated = $ocorrencias instanceof \Illuminate\Pagination\LengthAwarePaginator
+                        || $ocorrencias instanceof \Illuminate\Pagination\Paginator;
+        @endphp
+
+
+        @if($isPaginated && $ocorrencias->total() > $ocorrencias->perPage())
+            <div class="pagination-container mb-0">
+                {{ $ocorrencias->links() }}
+            </div>
+        @endif
+
+         @if(!$isPaginated)
+            <div class="alert alert-info py-2 small mb-2">
+                Exibindo todas as ocorrências (modo “Ver tudo”).
+            </div>
+        @endif
+
+
+        <form method="GET" id="formVerTudo">
+            <input type="hidden" name="perPage" id="perPageInput" value="{{ request('perPage', 25) }}">
+            <button type="button" id="toggleVerTudo" class="btn btn-sm btn-outline-secondary">
+                {{ request('perPage', 25) > 25 ? '🔙 Paginar por 25' : '👁️ Ver tudo' }}
+            </button>
+        </form>
+       
+    </div>
 
 </div>
 
@@ -234,6 +227,7 @@ function abrirImagem(src) {
 $(document).ready(function () {
     const table = initDataTable('#tabela-ocorrencias', { 
         order: [[6, 'asc'], [2, 'asc']],
+        pageLength: 25,
         columnDefs: [
             { width: '1%',  targets: 0 },
             { width: '5%',  targets: 1, className: 'text-center' },
@@ -260,7 +254,7 @@ $(document).ready(function () {
     // 🔘 Alternância entre ver tudo / paginar
     $('#toggleVerTudo').on('click', function() {
         const current = parseInt($('#perPageInput').val());
-        $('#perPageInput').val(current > 15 ? 15 : 9999);
+        $('#perPageInput').val(current > 25 ? 25 : 9999);
         $('#formVerTudo').submit();
     });
 });

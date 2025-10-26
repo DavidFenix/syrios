@@ -21,87 +21,87 @@ class OcorrenciaController extends Controller
     
 
     public function index()
-{
-    $usuario = auth()->user();
-    $prof = $usuario->professor;
-    $profId = $prof->id ?? 0;
+    {
+        $usuario = auth()->user();
+        $prof = $usuario->professor;
+        $profId = $prof->id ?? 0;
 
-    /*
-    |--------------------------------------------------------------------------
-    | 🎯 1. Determina se deve paginar ou mostrar tudo
-    |--------------------------------------------------------------------------
-    | O valor padrão é 15 registros por página, mas se o usuário clicar em
-    | "👁️ Ver tudo", ele enviará ?perPage=9999 na query string.
-    */
-    $perPage = request()->get('perPage', 15);
+        /*
+        |--------------------------------------------------------------------------
+        | 🎯 1. Determina se deve paginar ou mostrar tudo
+        |--------------------------------------------------------------------------
+        | O valor padrão é 15 registros por página, mas se o usuário clicar em
+        | "👁️ Ver tudo", ele enviará ?perPage=9999 na query string.
+        */
+        $perPage = request()->get('perPage', 25);
 
-    /*
-    |--------------------------------------------------------------------------
-    | 🧭 2. Coleta as ofertas (disciplinas) das turmas onde o professor é diretor
-    |--------------------------------------------------------------------------
-    | Assim, o professor vê tanto as ocorrências que ele próprio registrou
-    | quanto as das turmas que ele coordena (como diretor de turma).
-    */
-    $ofertasDasTurmasQueDirijo = DB::table(prefix('oferta'))
-        ->whereIn('turma_id', function ($inner) use ($profId) {
-            $inner->select('turma_id')
-                ->from(prefix('diretor_turma'))
-                ->where('professor_id', $profId)
-                ->where('vigente', true);
+        /*
+        |--------------------------------------------------------------------------
+        | 🧭 2. Coleta as ofertas (disciplinas) das turmas onde o professor é diretor
+        |--------------------------------------------------------------------------
+        | Assim, o professor vê tanto as ocorrências que ele próprio registrou
+        | quanto as das turmas que ele coordena (como diretor de turma).
+        */
+        $ofertasDasTurmasQueDirijo = DB::table(prefix('oferta'))
+            ->whereIn('turma_id', function ($inner) use ($profId) {
+                $inner->select('turma_id')
+                    ->from(prefix('diretor_turma'))
+                    ->where('professor_id', $profId)
+                    ->where('vigente', true);
+            })
+            ->pluck('id');
+
+        /*
+        |--------------------------------------------------------------------------
+        | 📋 3. Busca as ocorrências do professor (autor) ou diretor de turma
+        |--------------------------------------------------------------------------
+        | Traz dados completos: aluno, professor, oferta (turma + disciplina) e motivos.
+        | Ordena da mais recente para a mais antiga.
+        */
+        $query = Ocorrencia::with([
+            'aluno',
+            'professor.usuario',
+            'oferta.turma',
+            'oferta.disciplina',
+            'motivos'
+        ])
+        ->where(function ($q) use ($profId, $ofertasDasTurmasQueDirijo) {
+            $q->where('professor_id', $profId)
+              ->orWhereIn('oferta_id', $ofertasDasTurmasQueDirijo);
         })
-        ->pluck('id');
+        ->orderByDesc('created_at');
 
-    /*
-    |--------------------------------------------------------------------------
-    | 📋 3. Busca as ocorrências do professor (autor) ou diretor de turma
-    |--------------------------------------------------------------------------
-    | Traz dados completos: aluno, professor, oferta (turma + disciplina) e motivos.
-    | Ordena da mais recente para a mais antiga.
-    */
-    $query = Ocorrencia::with([
-        'aluno',
-        'professor.usuario',
-        'oferta.turma',
-        'oferta.disciplina',
-        'motivos'
-    ])
-    ->where(function ($q) use ($profId, $ofertasDasTurmasQueDirijo) {
-        $q->where('professor_id', $profId)
-          ->orWhereIn('oferta_id', $ofertasDasTurmasQueDirijo);
-    })
-    ->orderByDesc('created_at');
+        /*
+        |--------------------------------------------------------------------------
+        | ⚙️ 4. Decide entre paginação real (Laravel) ou “ver tudo” (DataTables)
+        |--------------------------------------------------------------------------
+        | Se o usuário clicar em “ver tudo”, ele carrega tudo (get()).
+        | Caso contrário, pagina 15 por vez com links.
+        */
+        $ocorrencias = ($perPage > 25)
+            ? $query->get()
+            : $query->paginate($perPage);
 
-    /*
-    |--------------------------------------------------------------------------
-    | ⚙️ 4. Decide entre paginação real (Laravel) ou “ver tudo” (DataTables)
-    |--------------------------------------------------------------------------
-    | Se o usuário clicar em “ver tudo”, ele carrega tudo (get()).
-    | Caso contrário, pagina 15 por vez com links.
-    */
-    $ocorrencias = ($perPage > 15)
-        ? $query->get()
-        : $query->paginate($perPage);
+        /*
+        |--------------------------------------------------------------------------
+        | 🔐 5. Calcula permissões linha a linha
+        |--------------------------------------------------------------------------
+        | Cada ocorrência recebe flags: autor, diretor, outro.
+        */
+        foreach ($ocorrencias as $oc) {
+            $per = $this->podeGerenciar($oc, $usuario);
+            $oc->is_autor   = $per['autor'];
+            $oc->is_diretor = $per['diretor'];
+            $oc->is_outro   = $per['outro'];
+        }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 🔐 5. Calcula permissões linha a linha
-    |--------------------------------------------------------------------------
-    | Cada ocorrência recebe flags: autor, diretor, outro.
-    */
-    foreach ($ocorrencias as $oc) {
-        $per = $this->podeGerenciar($oc, $usuario);
-        $oc->is_autor   = $per['autor'];
-        $oc->is_diretor = $per['diretor'];
-        $oc->is_outro   = $per['outro'];
+        /*
+        |--------------------------------------------------------------------------
+        | 🎨 6. Retorna à view com dados prontos para o Blade
+        |--------------------------------------------------------------------------
+        */
+        return view('professor.ocorrencias.index', compact('ocorrencias'));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | 🎨 6. Retorna à view com dados prontos para o Blade
-    |--------------------------------------------------------------------------
-    */
-    return view('professor.ocorrencias.index', compact('ocorrencias'));
-}
 
 
     /**
