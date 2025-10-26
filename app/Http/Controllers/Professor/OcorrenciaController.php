@@ -53,7 +53,7 @@ class OcorrenciaController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | 📋 3. Busca as ocorrências do professor (autor) ou diretor de turma
+        | 📋 3. Busca as ocorrências do professor (autor) ou diretor de turma na escola atual e do ano atual
         |--------------------------------------------------------------------------
         | Traz dados completos: aluno, professor, oferta (turma + disciplina) e motivos.
         | Ordena da mais recente para a mais antiga.
@@ -65,11 +65,28 @@ class OcorrenciaController extends Controller
             'oferta.disciplina',
             'motivos'
         ])
+        ->daEscolaAtual()   // 🔹 aplica school_id = session('current_school_id')
+        ->anoAtual()        // 🔹 aplica ano_letivo = session('ano_letivo_atual') ou date('Y')
         ->where(function ($q) use ($profId, $ofertasDasTurmasQueDirijo) {
             $q->where('professor_id', $profId)
               ->orWhereIn('oferta_id', $ofertasDasTurmasQueDirijo);
         })
         ->orderByDesc('created_at');
+
+        //esta consulta inclui turmas de outras escolas o que não deveria aqui
+        // $query = Ocorrencia::with([
+        //     'aluno',
+        //     'professor.usuario',
+        //     'oferta.turma',
+        //     'oferta.disciplina',
+        //     'motivos'
+        // ])
+        // ->where(function ($q) use ($profId, $ofertasDasTurmasQueDirijo) {
+        //     $q->where('professor_id', $profId)
+        //       ->orWhereIn('oferta_id', $ofertasDasTurmasQueDirijo);
+        // })
+        // ->orderByDesc('created_at');
+
 
         /*
         |--------------------------------------------------------------------------

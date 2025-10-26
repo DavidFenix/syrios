@@ -88,7 +88,7 @@ class EnturmacaoController extends Controller
         ));
     }
 
-
+❌ Erro ao enturmar alunos. Detalhes no log.
     public function store(Request $request)
     {
         $schoolId = session('current_school_id');

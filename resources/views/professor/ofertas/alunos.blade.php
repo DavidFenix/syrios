@@ -13,9 +13,14 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title mb-0">
-                <strong>Disciplina/Turma/Ano:</strong> {{ $oferta->disciplina->descr_d ?? '—' }}::{{ $oferta->turma->serie_turma ?? '—' }}::{{ $oferta->ano_letivo }}
                 
-                <strong>oferta_id/oferta->school_id/oferta_turma_id/oferta_turma_school_id:{{ $oferta->id }} {{ $oferta->school_id }} {{ $oferta->turma->id }} {{ $oferta->turma->school_id }}</strong>
+                @if(config('app.debug'))
+                    <strong>Disciplina/Turma/Ano:</strong> {{ $oferta->disciplina->descr_d ?? '—' }}::{{ $oferta->turma->serie_turma ?? '—' }}::{{ $oferta->ano_letivo }}
+                    
+                    <strong>oferta_id/oferta->school_id/oferta_turma_id/oferta_turma_school_id:{{ $oferta->id }} {{ $oferta->school_id }} {{ $oferta->turma->id }} {{ $oferta->turma->school_id }}</strong>
+                @else
+                    <strong>Disciplina/Turma/Ano:</strong> {{ $oferta->disciplina->descr_d ?? '—' }}::{{ $oferta->turma->serie_turma ?? '—' }}::{{ $oferta->ano_letivo }}
+                @endif
                 
                 <!--br>
                 <strong>Turma:</strong> {{ $oferta->turma->serie_turma ?? '—' }}
@@ -44,13 +49,16 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>aluno_id</th>
-                    <th>aluno_school_id</th>
-                    <th>oferta_id</th>
-                    <th>oferta_school_id</th>
-                    <th>oferta_turma_id</th>
-                    <th>oferta_turma_school_id</th>
-                    
+
+                    @if(config('app.debug'))
+                        <th>aluno_id</th>
+                        <th>aluno_school_id</th>
+                        <th>oferta_id</th>
+                        <th>oferta_school_id</th>
+                        <th>oferta_turma_id</th>
+                        <th>oferta_turma_school_id</th>
+                    @endif
+                                        
                     <th></th> {{-- checkbox --}}
                     <th>Foto</th>
                     <th>Matrícula</th>
@@ -72,13 +80,16 @@
                     @endphp
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td>{{ $a->id }}</td>
-                        <td>{{ $a->school_id }}</td>
-                        <td>{{ $oferta->id }}</td>
-                        <td>{{ $oferta->school_id }}</td>
-                        <td>{{ $oferta->turma->id }}</td>
-                        <td>{{ $oferta->turma->school_id }}</td>
-                        
+
+                        @if(config('app.debug'))
+                            <td>{{ $a->id }}</td>
+                            <td>{{ $a->school_id }}</td>
+                            <td>{{ $oferta->id }}</td>
+                            <td>{{ $oferta->school_id }}</td>
+                            <td>{{ $oferta->turma->id }}</td>
+                            <td>{{ $oferta->turma->school_id }}</td>
+                        @endif
+
                         <td>
                             <input type="checkbox" name="alunos[]" value="{{ $a->id }}" class="form-check-input aluno-checkbox">
                         </td>

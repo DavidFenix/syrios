@@ -1,3 +1,25 @@
+---------------------------------------------------------
+nova mudança na base de dados
+--não permitir mesmo aluno, em turmas diferentes, na mesma escola(pode mudar no futuro)
+--verificar se há duplicidade antes
+SELECT aluno_id, turma_id, school_id, COUNT(*) AS qtd
+FROM syrios_enturmacao
+GROUP BY aluno_id, turma_id, school_id
+HAVING COUNT(*) > 1;
+--removar a constraint com esse nome, caso já existe, aplicar a unicidade decidida
+ALTER TABLE syrios_enturmacao
+DROP INDEX uq_enturmacao_unica,
+ADD CONSTRAINT uq_enturmacao_unica
+UNIQUE (aluno_id, turma_id, school_id);
+
+
+--cd c:\wamp64\www\syrios
+--php artisan migrate --path=database/migrations/2025_10_26_00001_update_unique_constraint_on_enturmacao_table.php
+
+--mais uma restrição importantes por enturmacao_aluno_ano_escola
+--php artisan migrate --path=database/migrations/2025_10_26_184125_add_unique_constraint_aluno_ano_escola_to_enturmacao_table.php
+
+
 -----------------------------------------------------------
 novos modelos de motivos para o DB
 

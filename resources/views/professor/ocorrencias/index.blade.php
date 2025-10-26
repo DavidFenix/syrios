@@ -67,12 +67,15 @@
 
                         {{-- 👨‍🎓 Aluno --}}
                         <td class="fw-semibold">
-                            {{ $primeiro_a.' '.$ultimo_a }}
+                            {{ $a->nome_a }}
+                            {{-- ⚠️ Durante testes, manter nome completo.
+                                 Quando tudo estiver validado, trocar para: {{ $primeiro_a.' '.$ultimo_a }} --}}
                             <br>
                             <small class="text-muted" style="font-size:0.75rem;">
                                 {{ $a->matricula }}
                             </small>
                         </td>
+
 
                         {{-- 🧾 Motivos resumidos --}}
                         <td style="white-space: normal;">
@@ -84,7 +87,7 @@
                                 $textoCurto = Str::limit($textoFinal, 120);
                             @endphp
                             @if(!empty($textoFinal))
-                                <span class="small">{{ $textoCurto }}</span>
+                                <span class="small">{{ $textoFinal }}</span>
                             @else
                                 <span class="text-muted">—</span>
                             @endif
@@ -196,17 +199,23 @@
         white-space: normal !important;
         word-break: break-word;
     }
-    #tabela-ocorrencias td:nth-child(3),
-    #tabela-ocorrencias td:nth-child(5) {
-        max-width: 140px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    #tabela-ocorrencias td:nth-child(3) {
+        white-space: normal !important;
+        word-break: break-word;
     }
-    #tabela-ocorrencias td:nth-child(6),
+    #tabela-ocorrencias td:nth-child(5) {
+        /*max-width: 140px;*/
+        /*overflow: hidden;*/
+        /*text-overflow: ellipsis;*/
+    }
+    #tabela-ocorrencias td:nth-child(6) {
+        white-space: normal !important;
+        word-break: break-word;
+    }
     #tabela-ocorrencias td:nth-child(7) {
-        max-width: 90px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        /*max-width: 90px;*/
+        /*overflow: hidden;*/
+        /*text-overflow: ellipsis;*/
     }
     #tabela-ocorrencias td:nth-child(8) {
         text-align: center;

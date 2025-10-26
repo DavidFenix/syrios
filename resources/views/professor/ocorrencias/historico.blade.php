@@ -63,22 +63,57 @@
             </div>
 
             <div class="card-body">
-                {{-- 🧾 Motivos --}}
-                <p class="mb-2"><strong>Motivos:</strong></p>
-                <ul>
+                
+                @php
+                    $motivos = '';
+                    foreach ($oc->motivos as $index => $motivo) {
+                        $motivos .= $motivo->descricao;
+                        if ($index < count($oc->motivos) - 1) {
+                            $motivos .= ' / ';
+                        }
+                    }
+                @endphp
+
+
+                {{-- 🧾 Motivos -}}
+                <p class="mb-2"><strong>Motivos:</strong></p>--}}
+
+                @php
+                    // Monta os motivos em uma string separada por " / "
+                    $motivos = $oc->motivos->pluck('descricao')->implode(' / ');
+                    // Monta a descrição completa: descrição + motivos (se existirem)
+                    $textoDescricao = trim(collect([$oc->descricao, $motivos])->filter()->implode(' / '));
+                @endphp
+                {{-- 🧾 Descrição --}}
+                <p><strong>Descrição:</strong>
+                    {{ $textoDescricao ?: '—' }}
+                </p>
+
+
+                {{--<ul>
                     @foreach($oc->motivos as $motivo)
                         <li>
-                            <span class="badge bg-info text-dark" title="{{ $motivo->categoria }}">
+                            <span class="badge bg-info text-dark mb-0" title="{{ $motivo->categoria }}">
                                 {{ $motivo->descricao }}
                             </span>
                         </li>
                     @endforeach
-                </ul>
+                </ul>--}}
 
-                {{-- 🏫 Outros campos --}}
+                {{-- 🏫 Outros campos -}}
                 @if($oc->descricao)
-                    <p><strong>Descrição:</strong> {{ $oc->descricao }}</p>
-                @endif
+                    @if($motivos)
+                        <p><strong>Descrição:</strong> {{ $oc->descricao .' / '. $motivos }}</p>
+                    @else
+                        <p><strong>Descrição:</strong> {{ $oc->descricao }}</p>
+                    @endif
+                @else
+                    @if($motivos)
+                        <p><strong>Descrição:</strong> {{ $motivos }}</p>
+                    @else
+                        <p><strong>Descrição:</strong> {{ -- }}</p>
+                    @endif
+                @endif--}}
 
                 @if($oc->local)
                     <p><strong>Local:</strong> {{ $oc->local }}</p>
@@ -112,3 +147,29 @@
 </style>
 
 @endsection
+
+
+@push('styles')
+<style>
+    .card-body p,
+    .card-body ul,
+    .card-body li,
+    .card-body span.badge {
+        margin: 0 !important;           /* remove margens acima e abaixo */
+        padding: 0 !important;          /* remove espaçamentos internos extras */
+        line-height: 1.1 !important;    /* aproxima as linhas */
+    }
+
+    .card-body ul {
+        list-style: none;               /* remove marcadores, se quiser */
+        padding-left: 0 !important;     /* remove recuo da lista */
+    }
+
+    .card-body li {
+        display: inline-block;          /* coloca badges lado a lado */
+        margin-right: 1px;              /* pequeno espaço horizontal entre badges */
+        margin-bottom: 1px;             /* leve espaço entre linhas de badges */
+    }
+
+</style>
+@endpush
