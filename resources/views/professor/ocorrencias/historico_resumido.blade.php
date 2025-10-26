@@ -56,6 +56,7 @@
             <div>
                 <h5 class="mb-1">{{ $aluno->nome_a }}</h5>
                 <p class="mb-0 text-muted small">
+                    <strong>turma_id:</strong> {{ $turma->id }} <br>
                     <strong>Turma:</strong> {{ $turma->serie_turma ?? '-' }} <br>
                     <strong>Matrícula:</strong> {{ $aluno->matricula }}
                 </p>
@@ -72,6 +73,12 @@
             <thead class="table-light text-center">
                 <tr>
                     <th>#</th>
+                    <th>oco_id</th>
+                    <th>oco_school_id</th>
+                    <th>oco_aluno_id</th>
+                    <th>aluno_school_id</th>
+                    <th>oco_oferta_id</th>
+                    <th>oco_oferta_turma_id</th>
                     <th>Data</th>
                     <th>Descrição / Motivos</th>
                     <th>Disciplina</th>
@@ -98,6 +105,12 @@
                     @endphp
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
+                        <td class="text-center">{{ $oc->id }}</td>
+                        <td class="text-center">{{ $oc->school_id }}</td>
+                        <td class="text-center">{{ $oc->aluno_id }}</td>
+                        <td class="text-center">{{ $aluno->school_id }}</td>
+                        <td class="text-center">{{ $oc->oferta->id }}</td>
+                        <td class="text-center">{{ $oc->oferta->turma->id }}</td>
                         <td>{{ $oc->created_at->format('d/m/Y') }}</td>
                         <td>{{ $oc->descricao }} 
                             @if($motivos) <span class="text-muted">/ {{ $motivos }}</span> @endif

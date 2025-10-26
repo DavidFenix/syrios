@@ -18,6 +18,135 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class OcorrenciaController extends Controller
 {
+    
+
+    public function index()
+{
+    $usuario = auth()->user();
+    $prof = $usuario->professor;
+    $profId = $prof->id ?? 0;
+
+    /*
+    |--------------------------------------------------------------------------
+    | 🎯 1. Determina se deve paginar ou mostrar tudo
+    |--------------------------------------------------------------------------
+    | O valor padrão é 15 registros por página, mas se o usuário clicar em
+    | "👁️ Ver tudo", ele enviará ?perPage=9999 na query string.
+    */
+    $perPage = request()->get('perPage', 15);
+
+    /*
+    |--------------------------------------------------------------------------
+    | 🧭 2. Coleta as ofertas (disciplinas) das turmas onde o professor é diretor
+    |--------------------------------------------------------------------------
+    | Assim, o professor vê tanto as ocorrências que ele próprio registrou
+    | quanto as das turmas que ele coordena (como diretor de turma).
+    */
+    $ofertasDasTurmasQueDirijo = DB::table(prefix('oferta'))
+        ->whereIn('turma_id', function ($inner) use ($profId) {
+            $inner->select('turma_id')
+                ->from(prefix('diretor_turma'))
+                ->where('professor_id', $profId)
+                ->where('vigente', true);
+        })
+        ->pluck('id');
+
+    /*
+    |--------------------------------------------------------------------------
+    | 📋 3. Busca as ocorrências do professor (autor) ou diretor de turma
+    |--------------------------------------------------------------------------
+    | Traz dados completos: aluno, professor, oferta (turma + disciplina) e motivos.
+    | Ordena da mais recente para a mais antiga.
+    */
+    $query = Ocorrencia::with([
+        'aluno',
+        'professor.usuario',
+        'oferta.turma',
+        'oferta.disciplina',
+        'motivos'
+    ])
+    ->where(function ($q) use ($profId, $ofertasDasTurmasQueDirijo) {
+        $q->where('professor_id', $profId)
+          ->orWhereIn('oferta_id', $ofertasDasTurmasQueDirijo);
+    })
+    ->orderByDesc('created_at');
+
+    /*
+    |--------------------------------------------------------------------------
+    | ⚙️ 4. Decide entre paginação real (Laravel) ou “ver tudo” (DataTables)
+    |--------------------------------------------------------------------------
+    | Se o usuário clicar em “ver tudo”, ele carrega tudo (get()).
+    | Caso contrário, pagina 15 por vez com links.
+    */
+    $ocorrencias = ($perPage > 15)
+        ? $query->get()
+        : $query->paginate($perPage);
+
+    /*
+    |--------------------------------------------------------------------------
+    | 🔐 5. Calcula permissões linha a linha
+    |--------------------------------------------------------------------------
+    | Cada ocorrência recebe flags: autor, diretor, outro.
+    */
+    foreach ($ocorrencias as $oc) {
+        $per = $this->podeGerenciar($oc, $usuario);
+        $oc->is_autor   = $per['autor'];
+        $oc->is_diretor = $per['diretor'];
+        $oc->is_outro   = $per['outro'];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 🎨 6. Retorna à view com dados prontos para o Blade
+    |--------------------------------------------------------------------------
+    */
+    return view('professor.ocorrencias.index', compact('ocorrencias'));
+}
+
+
+    /**
+     * Listagem: autor vê as suas; diretores de turma veem as da(s) turma(s) que dirigem.
+     * (filtrado por escola/ano implicitamente em outras telas; aqui foco no papel)
+     */
+    // public function index()
+    // {
+    //     $usuario   = auth()->user();
+    //     $prof      = $usuario->professor;
+    //     $profId    = $prof->id ?? 0;
+        
+    //     // id das ofertas das turmas onde o professor é diretor
+    //     // diretor_turma tem professor_id e turma_id; pegamos as ofertas dessas turmas
+    //     $ofertasDasTurmasQueDirijo = DB::table(prefix('oferta'))
+    //         ->whereIn('turma_id', function ($inner) use ($profId) {
+    //             $inner->select('turma_id')
+    //                 ->from(prefix('diretor_turma'))
+    //                 ->where('professor_id', $profId)
+    //                 ->where('vigente', true);
+    //         })
+    //         ->pluck('id');
+
+    //     $ocorrencias = Ocorrencia::with(['aluno', 'professor.usuario', 'oferta.turma', 'oferta.disciplina', 'motivos'])
+    //         ->where(function ($q) use ($profId, $ofertasDasTurmasQueDirijo) {
+    //             $q->where('professor_id', $profId)
+    //               ->orWhereIn('oferta_id', $ofertasDasTurmasQueDirijo);
+    //         })
+    //         ->orderByDesc('created_at')
+    //         ->paginate(15);
+
+
+    //     // Flags de permissão por linha
+    //     foreach ($ocorrencias as $oc) {
+    //         $per = $this->podeGerenciar($oc, $usuario);
+    //         $oc->is_autor   = $per['autor'];
+    //         $oc->is_diretor = $per['diretor'];
+    //         $oc->is_outro   = $per['outro'];
+            
+    //     }
+
+       
+    //     return view('professor.ocorrencias.index', compact('ocorrencias'));
+    // }
+
     /**
      * Exibe o formulário de encaminhamento (diretor).
      */
@@ -133,49 +262,77 @@ class OcorrenciaController extends Controller
         return $pdf->download('historico_ocorrencias_'.$aluno->matricula.'.pdf');
     }
 
-    /**
-     * Histórico resumido em HTML (mesma base do PDF, sem renderizar PDF).
-     */
     public function historicoResumido($alunoId)
     {
         $schoolId = session('current_school_id');
         $aluno  = Aluno::findOrFail($alunoId);
         $escola = Escola::find($schoolId);
 
-        // $turma = optional(
-        //     $aluno->enturmacao()->with('turma')->first()
-        // )->turma;
-
+        // 🔍 Turma atual do aluno na escola logada
         $turma = optional(
             $aluno->enturmacao()
-                ->where('school_id', $schoolId)   // 🔒 restringe à escola logada
+                ->where('school_id', $schoolId)
                 ->with('turma')
                 ->first()
         )->turma;
 
-        $arquivoFoto = 'storage/img-user/' . $aluno->matricula . '.png';
-        $fotoAbsoluto = public_path($arquivoFoto);
-        $fotoFinal = file_exists($fotoAbsoluto)
-            ? $fotoAbsoluto
+        // 🖼️ Foto do aluno (com fallback seguro)
+        $fotoNome = $aluno->matricula . '.png';
+        $fotoPath = public_path("storage/img-user/{$fotoNome}");
+        $fotoFinal = file_exists($fotoPath)
+            ? $fotoPath
             : public_path('storage/img-user/padrao.png');
 
-        // $ocorrencias = Ocorrencia::with(['motivos', 'oferta.disciplina', 'professor.usuario'])
-        //     ->where('aluno_id', $aluno->id)
-        //     ->orderByDesc('created_at')
-        //     ->get();
-
-
+        // 🧾 Ocorrências filtradas pela escola e turma atual
         $ocorrencias = Ocorrencia::with(['motivos', 'oferta.disciplina', 'professor.usuario'])
             ->where('aluno_id', $aluno->id)
-            ->where('school_id', $schoolId) // 🔒 restringe à escola logada
+            ->where('school_id', $schoolId)
             ->orderByDesc('created_at')
             ->get();
-
 
         return view('professor.ocorrencias.historico_resumido', compact(
             'aluno', 'turma', 'escola', 'fotoFinal', 'ocorrencias'
         ));
     }
+
+
+    /**
+     * Histórico resumido em HTML (mesma base do PDF, sem renderizar PDF).
+     */
+    // public function historicoResumido($alunoId)
+        // {
+        //     $schoolId = session('current_school_id');
+        //     $aluno  = Aluno::findOrFail($alunoId);
+        //     $escola = Escola::find($schoolId);
+
+        //     $turma = optional(
+        //         $aluno->enturmacao()
+        //             ->where('school_id', $schoolId)   // 🔒 restringe à escola logada
+        //             ->with('turma')
+        //             ->first()
+        //     )->turma;
+
+        //     $arquivoFoto = 'storage/img-user/' . $aluno->matricula . '.png';
+        //     $fotoAbsoluto = public_path($arquivoFoto);
+        //     $fotoFinal = file_exists($fotoAbsoluto)
+        //         ? $fotoAbsoluto
+        //         : public_path('storage/img-user/padrao.png');
+
+        //     $ocorrencias = Ocorrencia::with(['motivos', 'oferta.disciplina', 'professor.usuario'])
+        //         ->where('aluno_id', $aluno->id)
+        //         ->where('school_id', $schoolId)
+        //         ->whereHas('oferta', function ($q) use ($turma) {
+        //             $q->where('turma_id', $turma->id);
+        //         })
+        //         ->orderByDesc('created_at')
+        //         ->get();
+
+
+
+        //     return view('professor.ocorrencias.historico_resumido', compact(
+        //         'aluno', 'turma', 'escola', 'fotoFinal', 'ocorrencias'
+        //     ));
+        // }
 
     /**
      * Histórico completo em HTML.
@@ -305,46 +462,7 @@ class OcorrenciaController extends Controller
         }
     }
 
-    /**
-     * Listagem: autor vê as suas; diretores de turma veem as da(s) turma(s) que dirigem.
-     * (filtrado por escola/ano implicitamente em outras telas; aqui foco no papel)
-     */
-    public function index()
-    {
-        $usuario   = auth()->user();
-        $prof      = $usuario->professor;
-        $profId    = $prof->id ?? 0;
-
-        // id das ofertas das turmas onde o professor é diretor
-        // diretor_turma tem professor_id e turma_id; pegamos as ofertas dessas turmas
-        $ofertasDasTurmasQueDirijo = DB::table(prefix('oferta'))
-            ->whereIn('turma_id', function ($inner) use ($profId) {
-                $inner->select('turma_id')
-                    ->from(prefix('diretor_turma'))
-                    ->where('professor_id', $profId)
-                    ->where('vigente', true);
-            })
-            ->pluck('id');
-
-        $ocorrencias = Ocorrencia::with(['aluno', 'professor.usuario', 'oferta.turma', 'oferta.disciplina', 'motivos'])
-            ->where(function ($q) use ($profId, $ofertasDasTurmasQueDirijo) {
-                $q->where('professor_id', $profId)
-                  ->orWhereIn('oferta_id', $ofertasDasTurmasQueDirijo);
-            })
-            ->orderByDesc('created_at')
-            ->paginate(15);
-
-        // Flags de permissão por linha
-        foreach ($ocorrencias as $oc) {
-            $per = $this->podeGerenciar($oc, $usuario);
-            $oc->is_autor   = $per['autor'];
-            $oc->is_diretor = $per['diretor'];
-            $oc->is_outro   = $per['outro'];
-        }
-
-        return view('professor.ocorrencias.index', compact('ocorrencias'));
-    }
-
+    
     /**
      * Detalhes
      */

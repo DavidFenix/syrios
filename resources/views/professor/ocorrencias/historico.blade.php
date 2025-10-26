@@ -1,8 +1,5 @@
 @extends('layouts.app')
 
-{{$verificar @total de ocorrencias ativas e ocorrencias geral, por escola, pois está confuso
-$verificar @se tudo é buscado por escola}}
-
 @section('content')
 <div class="container py-3">
 

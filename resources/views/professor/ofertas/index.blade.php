@@ -39,7 +39,13 @@
                        class="btn {{ $alerta ? 'btn-outline-danger' : 'btn-outline-primary' }} fw-semibold">
                         {{ $i+1 }}. {{ $oferta->disciplina->descr_d ?? 'Sem Disciplina' }}
                     </a>
+                    <span class="text-muted">oferta->disciplina_abr:{{ $oferta->disciplina->abr }}</span>
                     <span class="text-muted">{{ Str::limit($oferta->turma->serie_turma ?? '-', 12) }}</span>
+                    <span class="text-muted">oferta->id:{{ $oferta->id }}</span>
+                    <span class="text-muted">oferta->turma_id:{{ $oferta->turma->id }}</span>
+                    <span class="text-muted">oferta->disciplina_id:{{ $oferta->disciplina->id }}</span>
+                    <span class="text-muted">oferta->professor_id:{{ $oferta->professor->id }}</span>
+                    <span class="text-muted">oferta->school_id:{{ $oferta->school_id }}</span>
 
                     {{-- ⚠️ Alerta de turma crítica -}}
                     @if($alerta)

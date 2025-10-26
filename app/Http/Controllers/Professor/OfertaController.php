@@ -28,15 +28,6 @@ class OfertaController extends Controller
                 ->with('warning', '⚠️ Seu usuário não está vinculado como professor nesta escola.');
         }
 
-        // 📚 Ofertas do professor no ano vigente
-        // $ofertas = Oferta::with(['disciplina', 'turma'])
-        //     ->where('professor_id', $professor->id)
-        //     ->where('school_id', $schoolId)
-        //     ->where('ano_letivo', $anoLetivo)
-        //     ->where('vigente', true)
-        //     ->orderByDesc('id')
-        //     ->get();
-
         $ofertas = Oferta::with(['disciplina', 'turma'])
             ->where('professor_id', $professor->id)
             ->where('school_id', $schoolId)
@@ -46,85 +37,116 @@ class OfertaController extends Controller
             ->sortBy(fn($o) => $o->disciplina->descr_d)
             ->sortBy(fn($o) => $o->turma->serie_turma);
 
+            /*
         $ofertaIds = $ofertas->pluck('id');
 
-        $sub = DB::table(prefix('ocorrencia'))
-            ->select('oferta_id', 'aluno_id', DB::raw('COUNT(*) AS total'))
-            ->whereIn('oferta_id', $ofertaIds)
-            ->where(prefix('ocorrencia') . '.school_id', '=', $schoolId) // 💡 usa a coluna da própria tabela
-            ->where('ano_letivo', $anoLetivo)
-            ->where('status', 1) // apenas ativas
-            ->groupBy('oferta_id', 'aluno_id');
+        $sub = DB::table(prefix('ocorrencia') . ' as o')
+            ->join(prefix('oferta') . ' as ofe', 'ofe.id', '=', 'o.oferta_id')
+            ->join(prefix('enturmacao') . ' as e', function ($join) {
+                $join->on('e.aluno_id', '=', 'o.aluno_id')
+                     ->on('e.turma_id', '=', 'ofe.turma_id');
+            })
+            ->select('ofe.turma_id', 'o.aluno_id', DB::raw('COUNT(o.id) AS total'))
+            ->where('o.school_id', session('current_school_id'))
+            ->where('e.school_id', session('current_school_id')) // 💡 usa vínculo, não aluno.school_id
+            ->where('o.ano_letivo', session('ano_letivo_atual') ?? date('Y'))
+            ->where('o.status', 1)
+            ->groupBy('ofe.turma_id', 'o.aluno_id');
 
         $stats = DB::query()
             ->fromSub($sub, 't')
             ->select(
-                'oferta_id',
+                'turma_id',
                 DB::raw('SUM(CASE WHEN total = 1 THEN 1 ELSE 0 END) AS qtd1'),
                 DB::raw('SUM(CASE WHEN total = 2 THEN 1 ELSE 0 END) AS qtd2'),
                 DB::raw('SUM(CASE WHEN total = 3 THEN 1 ELSE 0 END) AS qtd3'),
                 DB::raw('SUM(CASE WHEN total = 4 THEN 1 ELSE 0 END) AS qtd4'),
                 DB::raw('SUM(CASE WHEN total >= 5 THEN 1 ELSE 0 END) AS qtd5')
             )
-            ->groupBy('oferta_id')
+            ->groupBy('turma_id')
             ->get()
-            ->keyBy('oferta_id');
-
-        // Vincula resultados às ofertas
-        foreach ($ofertas as $oferta) {
-            $dados = $stats->get($oferta->id);
-            $oferta->qtd1 = $dados->qtd1 ?? 0;
-            $oferta->qtd2 = $dados->qtd2 ?? 0;
-            $oferta->qtd3 = $dados->qtd3 ?? 0;
-            $oferta->qtd4 = $dados->qtd4 ?? 0;
-            $oferta->qtd5 = $dados->qtd5 ?? 0;
-        }
+            ->keyBy('turma_id');
+            */
 
 
+        // 📚 Ofertas do professor no ano vigente e escola logada
+        //contagem correta agrupado por turma_id
+            $sub = DB::table(prefix('ocorrencia') . ' as o')
+                ->join(prefix('oferta') . ' as ofe', 'ofe.id', '=', 'o.oferta_id')
+                ->select('ofe.turma_id', 'o.aluno_id', DB::raw('COUNT(*) AS total'))
+                ->where('o.school_id', $schoolId)
+                ->where('o.ano_letivo', $anoLetivo)
+                ->where('o.status', 1)
+                ->groupBy('ofe.turma_id', 'o.aluno_id');
 
-        // $ofertaIds = $ofertas->pluck('id');
+            $stats = DB::query()
+                ->fromSub($sub, 't')
+                ->select(
+                    'turma_id',
+                    DB::raw('SUM(CASE WHEN total = 1 THEN 1 ELSE 0 END) AS qtd1'),
+                    DB::raw('SUM(CASE WHEN total = 2 THEN 1 ELSE 0 END) AS qtd2'),
+                    DB::raw('SUM(CASE WHEN total = 3 THEN 1 ELSE 0 END) AS qtd3'),
+                    DB::raw('SUM(CASE WHEN total = 4 THEN 1 ELSE 0 END) AS qtd4'),
+                    DB::raw('SUM(CASE WHEN total >= 5 THEN 1 ELSE 0 END) AS qtd5')
+                )
+                ->groupBy('turma_id')
+                ->get()
+                ->keyBy('turma_id');
 
-        // // 🧮 Consulta consolidada
-        // $stats = DB::table(prefix('ocorrencia'))
-        //     ->select(
-        //         'oferta_id',
-        //         DB::raw("
-        //             SUM(CASE WHEN total_ocorrencias = 1 THEN 1 ELSE 0 END) AS qtd1,
-        //             SUM(CASE WHEN total_ocorrencias = 2 THEN 1 ELSE 0 END) AS qtd2,
-        //             SUM(CASE WHEN total_ocorrencias = 3 THEN 1 ELSE 0 END) AS qtd3,
-        //             SUM(CASE WHEN total_ocorrencias = 4 THEN 1 ELSE 0 END) AS qtd4,
-        //             SUM(CASE WHEN total_ocorrencias >= 5 THEN 1 ELSE 0 END) AS qtd5
-        //         ")
-        //     )
-        //     ->fromSub(function ($sub) use ($ofertaIds, $schoolId, $anoLetivo, $professor) {
-        //         $sub->from(prefix('ocorrencia'))
-        //             ->select(
-        //                 'oferta_id',
-        //                 'aluno_id',
-        //                 DB::raw('COUNT(*) AS total_ocorrencias')
-        //             )
-        //             ->whereIn('oferta_id', $ofertaIds)
-        //             ->where('school_id', $schoolId)
-        //             ->where('ano_letivo', $anoLetivo)
-        //             //->where('professor_id', $professor->id)
-        //             ->where('status', 1) // apenas ativas
-        //             ->groupBy('oferta_id', 'aluno_id');
-        //     }, 'subquery')
-        //     ->groupBy('oferta_id')
-        //     ->get()
-        //     ->keyBy('oferta_id');
-
-        // // 🔗 Vincula resultados às ofertas
-        // foreach ($ofertas as $oferta) {
-        //     $dados = $stats->get($oferta->id);
-        //     $oferta->qtd1 = $dados->qtd1 ?? 0;
-        //     $oferta->qtd2 = $dados->qtd2 ?? 0;
-        //     $oferta->qtd3 = $dados->qtd3 ?? 0;
-        //     $oferta->qtd4 = $dados->qtd4 ?? 0;
-        //     $oferta->qtd5 = $dados->qtd5 ?? 0;
-        // }
+            // Aplica contagem às ofertas
+            foreach ($ofertas as $oferta) {
+                $dados = $stats->get($oferta->turma_id);
+                $oferta->qtd1 = $dados->qtd1 ?? 0;
+                $oferta->qtd2 = $dados->qtd2 ?? 0;
+                $oferta->qtd3 = $dados->qtd3 ?? 0;
+                $oferta->qtd4 = $dados->qtd4 ?? 0;
+                $oferta->qtd5 = $dados->qtd5 ?? 0;
+            }
 
 
+        //antigo era agrupado por oferta_id e estava contando errado
+        // $ofertas = Oferta::with(['disciplina', 'turma'])
+            //     ->where('professor_id', $professor->id)
+            //     ->where('school_id', $schoolId)
+            //     ->where('ano_letivo', $anoLetivo)
+            //     ->where('vigente', true)
+            //     ->get()
+            //     ->sortBy(fn($o) => $o->disciplina->descr_d)
+            //     ->sortBy(fn($o) => $o->turma->serie_turma);
+
+            // $ofertaIds = $ofertas->pluck('id');
+
+            // $sub = DB::table(prefix('ocorrencia'))
+            //     ->select('oferta_id', 'aluno_id', DB::raw('COUNT(*) AS total'))
+            //     ->whereIn('oferta_id', $ofertaIds)
+            //     ->where(prefix('ocorrencia') . '.school_id', '=', $schoolId) // 💡 usa a coluna da própria tabela
+            //     ->where('ano_letivo', $anoLetivo)
+            //     ->where('status', 1) // apenas ativas
+            //     ->groupBy('oferta_id', 'aluno_id');
+
+            // $stats = DB::query()
+            //     ->fromSub($sub, 't')
+            //     ->select(
+            //         'oferta_id',
+            //         DB::raw('SUM(CASE WHEN total = 1 THEN 1 ELSE 0 END) AS qtd1'),
+            //         DB::raw('SUM(CASE WHEN total = 2 THEN 1 ELSE 0 END) AS qtd2'),
+            //         DB::raw('SUM(CASE WHEN total = 3 THEN 1 ELSE 0 END) AS qtd3'),
+            //         DB::raw('SUM(CASE WHEN total = 4 THEN 1 ELSE 0 END) AS qtd4'),
+            //         DB::raw('SUM(CASE WHEN total >= 5 THEN 1 ELSE 0 END) AS qtd5')
+            //     )
+            //     ->groupBy('oferta_id')
+            //     ->get()
+            //     ->keyBy('oferta_id');
+
+            // // Vincula resultados às ofertas
+            // foreach ($ofertas as $oferta) {
+            //     $dados = $stats->get($oferta->id);
+            //     $oferta->qtd1 = $dados->qtd1 ?? 0;
+            //     $oferta->qtd2 = $dados->qtd2 ?? 0;
+            //     $oferta->qtd3 = $dados->qtd3 ?? 0;
+            //     $oferta->qtd4 = $dados->qtd4 ?? 0;
+            //     $oferta->qtd5 = $dados->qtd5 ?? 0;
+            // }
 
         return view('professor.ofertas.index', compact('ofertas'));
     }
@@ -181,56 +203,39 @@ class OfertaController extends Controller
             ->where('ano_letivo', $anoLetivo)
             ->findOrFail($ofertaId);
 
+        //🔍 Alunos enturmados na turma dessa oferta da school_id logada
+        //Nesse caso, nenhuma lógica deve filtrar alunos por aluno.school_id, mas sim por enturmacao.school_id (a escola de vínculo).
         $alunos = Aluno::whereHas('enturmacao', function ($q) use ($oferta) {
-                $q->where('turma_id', $oferta->turma_id);
-            })
-            ->withCount([
-                // Ocorrências ativas do aluno na escola logada
-                'ocorrencias as total_ocorrencias_ativas' => function ($q) use ($schoolId) {
-                    $q->where('status', 1)
-                      ->where('school_id', $schoolId);
-                },
-                // Total geral (ativas + arquivadas) na escola logada
-                'ocorrencias as total_ocorrencias_geral' => function ($q) use ($schoolId) {
-                    $q->where('school_id', $schoolId);
-                }
-            ])
-            ->orderBy('nome_a')
-            ->get();
-
-
-        // 🔍 Alunos enturmados na turma dessa oferta
-        // $alunos = Aluno::select('id', 'matricula', 'nome_a', 'school_id')
-        //     ->whereHas('enturmacao', function ($q) use ($oferta, $schoolId, $anoLetivo) {
-        //         $q->where('turma_id', $oferta->turma_id)
-        //           ->where('school_id', $schoolId)
-        //           ->where('ano_letivo', $anoLetivo);
-        //     })
-        //     ->orderBy('nome_a')
-        //     ->get();
+            $q->where('turma_id', $oferta->turma_id)
+              ->where('school_id', $oferta->school_id); // 💡 usa a escola da turma/oferta
+        })
+        ->withCount([
+            'ocorrencias as total_ocorrencias_ativas' => function ($q) use ($schoolId) {
+                $q->where('status', 1)->where('school_id', $schoolId);
+            },
+            'ocorrencias as total_ocorrencias_geral' => function ($q) use ($schoolId) {
+                $q->where('school_id', $schoolId);
+            }
+        ])
+        ->orderBy('nome_a')
+        ->get();
 
         // $alunos = Aluno::whereHas('enturmacao', function ($q) use ($oferta) {
-        //     $q->where('turma_id', $oferta->turma_id);
-        // })
-        // ->withCount(['ocorrencias as total_ocorrencias_ativas' => function ($q) {
-        //     $q->where('status', 1); // apenas ativas
-        // }])
-        // ->orderBy('nome_a')
-        // ->get();
-
-        // foreach ($alunos as $aluno) {
-        //     $aluno->total_ocorrencias_ativas = Ocorrencia::where('aluno_id', $aluno->id)
-        //         ->where('status', 1)
-        //         ->count();
-
-        //     $aluno->total_ocorrencias_geral = Ocorrencia::where('aluno_id', $aluno->id)
-        //         ->count();
-        // }
-
-        // 🔢 Contagem simulada de ocorrências (substituir futuramente)
-        // foreach ($alunos as $a) {
-        //     $a->total_ocorrencias = rand(0, 8);
-        // }
+        //         $q->where('turma_id', $oferta->turma_id);
+        //     })
+        //     ->withCount([
+        //         // Ocorrências ativas do aluno na escola logada
+        //         'ocorrencias as total_ocorrencias_ativas' => function ($q) use ($schoolId) {
+        //             $q->where('status', 1)
+        //               ->where('school_id', $schoolId);
+        //         },
+        //         // Total geral (ativas + arquivadas) na escola logada
+        //         'ocorrencias as total_ocorrencias_geral' => function ($q) use ($schoolId) {
+        //             $q->where('school_id', $schoolId);
+        //         }
+        //     ])
+        //     ->orderBy('nome_a')
+        //     ->get();
 
         return view('professor.ofertas.alunos', compact('oferta', 'alunos'));
     }
