@@ -388,3 +388,13 @@ fetch('/diag/csrf',{credentials:'include'})
 </script>
 HTML;
 });
+
+
+Route::get('/diag/headers', function () {
+    // força criar uma sessão
+    session(['_diag' => now()->toDateTimeString()]);
+
+    return response('ok', 200)
+        ->header('X-Diag', '1')
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+});
