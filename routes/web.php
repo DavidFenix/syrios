@@ -422,3 +422,13 @@ Route::get('/session-debug', function () {
         ]
     ]);
 });
+
+Route::get('/cookie-test', function (\Illuminate\Http\Request $request) {
+    $response = response()->json([
+        'input_cookies' => $request->cookies->all(),
+        'session_id' => session()->getId(),
+    ]);
+    $response->cookie('cookie_test', 'ok', 10, '/', null, true, true, false, 'None');
+    return $response;
+});
+
