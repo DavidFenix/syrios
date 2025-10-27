@@ -390,11 +390,14 @@ HTML;
 });
 
 
-Route::get('/diag/headers', function () {
-    // força criar uma sessão
-    session(['_diag' => now()->toDateTimeString()]);
-
-    return response('ok', 200)
-        ->header('X-Diag', '1')
-        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+Route::get('/diag/server', function (Request $request) {
+    return response()->json([
+        'https' => $_SERVER['HTTPS'] ?? null,
+        'http_x_forwarded_proto' => $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null,
+        'request_scheme' => $_SERVER['REQUEST_SCHEME'] ?? null,
+        'url_scheme' => $request->getScheme(),
+        'secure' => $request->isSecure(),
+        'trusted_proxies' => Request::getTrustedProxies(),
+        'app_url' => config('app.url'),
+    ]);
 });
