@@ -411,3 +411,14 @@ Route::get('/debug', function () {
     ];
 });
 
+Route::get('/session-debug', function () {
+    return response()->json([
+        'session_id' => session()->getId(),
+        'has_token' => session()->has('_token'),
+        'csrf_token' => csrf_token(),
+        'cookies' => request()->cookies->all(),
+        'headers' => [
+            'cookie_header' => request()->header('cookie')
+        ]
+    ]);
+});
