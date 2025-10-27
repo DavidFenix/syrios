@@ -1,11 +1,11 @@
 <?php
 
 // 🔧 Corrige o caminho do .env quando hospedado no Render
-$renderEnvDir = '/etc/secrets';
-if (file_exists($renderEnvDir . '/.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable($renderEnvDir);
-    $dotenv->load();
-}
+// $renderEnvDir = '/etc/secrets';
+// if (file_exists($renderEnvDir . '/.env')) {
+//     $dotenv = Dotenv\Dotenv::createImmutable($renderEnvDir);
+//     $dotenv->load();
+// }
 
 
 
