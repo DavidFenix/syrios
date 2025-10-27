@@ -13,6 +13,9 @@ RUN a2enmod rewrite
 WORKDIR /var/www/html
 COPY . .
 
+# Copia o .env do diretório de segredos do Render para o local padrão do Laravel
+RUN if [ -f /etc/secrets/.env ]; then cp /etc/secrets/.env /var/www/html/.env; fi
+
 # Define o DocumentRoot para a pasta "public"
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
     && sed -i 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf
