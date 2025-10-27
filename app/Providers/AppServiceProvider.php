@@ -17,6 +17,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
+        config(['session.same_site' => 'none']);
+
         Schema::defaultStringLength(191);
         Carbon::setLocale('pt_BR');
         date_default_timezone_set('America/Sao_Paulo');
