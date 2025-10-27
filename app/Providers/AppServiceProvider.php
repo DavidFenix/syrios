@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL; 
 use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Http\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
