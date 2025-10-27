@@ -9,35 +9,33 @@ RUN apt-get update && apt-get install -y \
 # Habilita o mod_rewrite (necessário para Laravel)
 RUN a2enmod rewrite
 
-# Copia o projeto Laravel
+# Define o diretório de trabalho
 WORKDIR /var/www/html
+
+# Copia o projeto para dentro do container
 COPY . .
 
-# 🔧 Se existir o .env do Render, copia para o Laravel antes de instalar dependências
-RUN if [ -f /etc/secrets/.env ]; then \
-      echo "✔ Copiando .env de /etc/secrets para /var/www/html"; \
-      cp /etc/secrets/.env /var/www/html/.env; \
-    else \
-      echo "⚠️ Nenhum arquivo /etc/secrets/.env encontrado"; \
-    fi
+# Copia .env se existir em /etc/secrets (Render)
+RUN if [ -f /etc/secrets/.env ]; then cp /etc/secrets/.env /var/www/html/.env; fi
 
-# Define o DocumentRoot para a pasta "public"
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
-    && sed -i 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf
+# ⚙️ Configura o Apache para apontar para /public
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf && \
+    echo "<Directory /var/www/html/public>\n\
+    AllowOverride All\n\
+    Require all granted\n\
+</Directory>" >> /etc/apache2/apache2.conf
 
-# Copia o Composer do container oficial
+# Instala o Composer e dependências do Laravel
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN composer install --no-dev --optimize-autoloader
 
-# 🔧 Instala dependências do Laravel
-RUN composer install --no-dev --optimize-autoloader || true
-
-# Gera chave e cria storage link (sem erro se .env não existir)
+# Gera chave e cria storage link
 RUN php artisan key:generate --force || true && php artisan storage:link || true
 
-# Ajusta permissões de cache e storage
+# Ajusta permissões
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Exponha a porta HTTP
+# Expõe a porta 80
 EXPOSE 80
 
 # Inicia o Apache
