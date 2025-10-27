@@ -401,3 +401,13 @@ Route::get('/diag/server', function (Request $request) {
         'app_url' => config('app.url'),
     ]);
 });
+
+Route::get('/debug', function () {
+    return [
+        'isSecure' => request()->isSecure(),
+        'url' => url('/'),
+        'scheme' => request()->getScheme(),
+        'server' => request()->server(),
+    ];
+});
+
