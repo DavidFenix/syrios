@@ -1,4 +1,4 @@
-# --- Etapa base: PHP + extensões necessárias ---
+# --- Etapa base: PHP + Apache ---
 FROM php:8.1-apache
 
 # Instala dependências do Laravel
@@ -9,23 +9,25 @@ RUN apt-get update && apt-get install -y \
 # Habilita o mod_rewrite (necessário para Laravel)
 RUN a2enmod rewrite
 
-# Define diretório de trabalho
+# Copia o projeto para o container
 WORKDIR /var/www/html
-
-# Copia arquivos do projeto
 COPY . .
 
-# Instala Composer
+# Define o DocumentRoot para a pasta "public"
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
+    && sed -i 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf
+
+# Instala o Composer e dependências
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN composer install --no-dev --optimize-autoloader
 
-# Cria storage link e gera chave da aplicação
-RUN php artisan key:generate --force && php artisan storage:link || true
+# Gera chave e cria storage link (se .env existir)
+RUN if [ -f ".env" ]; then php artisan key:generate --force && php artisan storage:link; fi
 
-# Define permissões corretas
+# Ajusta permissões
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expõe a porta padrão do Apache
+# Expõe a porta do Apache
 EXPOSE 80
 
 # Inicia o Apache
