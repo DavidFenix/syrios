@@ -88,7 +88,7 @@ class EnturmacaoController extends Controller
         ));
     }
 
-❌ Erro ao enturmar alunos. Detalhes no log.
+    
     public function store(Request $request)
     {
         $schoolId = session('current_school_id');
@@ -180,16 +180,46 @@ class EnturmacaoController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
+            $erro = $e->getMessage();
+
+            // 🔍 Detecta violação de UNIQUE (erro 1062)
+            if (str_contains($erro, '1062') || str_contains($erro, 'Duplicate entry')) {
+                Log::warning('Tentativa de enturmar aluno duplicado', [
+                    'erro' => $erro,
+                    'school_id' => $schoolId,
+                    'user_id' => auth()->id(),
+                ]);
+
+                return back()
+                    ->withInput()
+                    ->with('error', '⚠️ Um ou mais alunos já estão enturmados nesta escola e ano letivo.');
+            }
+
+            // 🔹 Outros erros genéricos
             Log::error('Erro ao enturmar em lote', [
-                'erro' => $e->getMessage(),
+                'erro' => $erro,
                 'school_id' => $schoolId,
                 'user_id' => auth()->id(),
             ]);
 
             return back()
                 ->withInput()
-                ->with('error', '❌ Erro ao enturmar alunos. Detalhes no log.');
+                ->with('error', '❌ Ocorreu um erro inesperado ao enturmar alunos. Detalhes foram registrados no log.');
         }
+
+        // } catch (\Throwable $e) {
+        //     DB::rollBack();
+
+        //     Log::error('Erro ao enturmar em lote', [
+        //         'erro' => $e->getMessage(),
+        //         'school_id' => $schoolId,
+        //         'user_id' => auth()->id(),
+        //     ]);
+
+        //     return back()
+        //         ->withInput()
+        //         ->with('error', '❌ Erro ao enturmar alunos. Detalhes no log.');
+        // }
     }
 
     public function edit($id)

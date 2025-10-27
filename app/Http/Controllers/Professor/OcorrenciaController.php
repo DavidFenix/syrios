@@ -53,7 +53,7 @@ class OcorrenciaController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | 📋 3. Busca as ocorrências do professor (autor) ou diretor de turma na escola atual e do ano atual
+        | 📋 3. Busca as ocorrências do professor (autor) ou diretor de turma na escola atual e do ano atual, e apenas dos alunos enturmados na turma onde é DT
         |--------------------------------------------------------------------------
         | Traz dados completos: aluno, professor, oferta (turma + disciplina) e motivos.
         | Ordena da mais recente para a mais antiga.
@@ -65,13 +65,37 @@ class OcorrenciaController extends Controller
             'oferta.disciplina',
             'motivos'
         ])
-        ->daEscolaAtual()   // 🔹 aplica school_id = session('current_school_id')
-        ->anoAtual()        // 🔹 aplica ano_letivo = session('ano_letivo_atual') ou date('Y')
-        ->where(function ($q) use ($profId, $ofertasDasTurmasQueDirijo) {
-            $q->where('professor_id', $profId)
-              ->orWhereIn('oferta_id', $ofertasDasTurmasQueDirijo);
+        ->daEscolaAtual()
+        ->anoAtual()
+        ->where(function ($q) use ($profId) {
+
+            $q->where('professor_id', $profId) // 🔹 Ocorrências aplicadas por ele
+              ->orWhereIn('aluno_id', function ($sub) use ($profId) {
+                  $sub->select('aluno_id')
+                      ->from(prefix('enturmacao') . ' as e')
+                      ->join(prefix('diretor_turma') . ' as d', 'd.turma_id', '=', 'e.turma_id')
+                      ->where('d.professor_id', $profId)
+                      ->where('d.vigente', true);
+              });
         })
         ->orderByDesc('created_at');
+
+
+        //esta consulta ainda mostra as ocorrencias do aluno depois que ele sai da turma onde o professor é DT
+        // $query = Ocorrencia::with([
+        //     'aluno',
+        //     'professor.usuario',
+        //     'oferta.turma',
+        //     'oferta.disciplina',
+        //     'motivos'
+        // ])
+        // ->daEscolaAtual()   // 🔹 aplica school_id = session('current_school_id')
+        // ->anoAtual()        // 🔹 aplica ano_letivo = session('ano_letivo_atual') ou date('Y')
+        // ->where(function ($q) use ($profId, $ofertasDasTurmasQueDirijo) {
+        //     $q->where('professor_id', $profId)
+        //       ->orWhereIn('oferta_id', $ofertasDasTurmasQueDirijo);
+        // })
+        // ->orderByDesc('created_at');
 
         //esta consulta inclui turmas de outras escolas o que não deveria aqui
         // $query = Ocorrencia::with([
