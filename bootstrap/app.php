@@ -1,5 +1,13 @@
 <?php
 
+// Antes de criar a aplicação Laravel
+$customEnv = '/etc/secrets/.env';
+if (file_exists($customEnv)) {
+    $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__), $customEnv);
+    $dotenv->load();
+}
+
+
 /*
 |--------------------------------------------------------------------------
 | Create The Application
