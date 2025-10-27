@@ -47,6 +47,12 @@ class AppServiceProvider extends ServiceProvider
         Carbon::setLocale('pt_BR');
         date_default_timezone_set('America/Sao_Paulo');
         Paginator::defaultView('vendor.pagination.default');
+
+        if (app()->environment('production')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+            $_SERVER['HTTPS'] = 'on';
+        }
+
     }
 
 }
