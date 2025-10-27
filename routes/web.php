@@ -341,3 +341,50 @@ Route::get('regimento/{school}', [RegimentoController::class, 'visualizar'])
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+
+use Illuminate\Http\Request;
+
+Route::get('/diag/csrf', function (Request $r) {
+    return response()->json([
+        'app_url'        => config('app.url'),
+        'session_driver' => config('session.driver'),
+        'session_cookie' => config('session.cookie'),
+        'session_domain' => config('session.domain'),
+        'session_secure' => config('session.secure'),
+        'session_same'   => config('session.same_site'),
+        'session_id'     => session()->getId(),
+        'has_token'      => csrf_token() ? true : false,
+        'csrf_token'     => csrf_token(),
+        'cookies_in'     => $r->cookies->all(),
+    ]);
+});
+
+Route::post('/diag/csrf', function (Request $r) {
+    return response()->json([
+        'posted__token'  => $r->input('_token'),
+        'session_token'  => $r->session()->token(),  // token válido da sessão
+        'match'          => hash_equals((string)$r->session()->token(), (string)$r->input('_token')),
+        'session_id'     => session()->getId(),
+        'cookies_in'     => $r->cookies->all(),
+    ]);
+})->name('diag.csrf.post');
+
+Route::get('/diag/form', function () {
+    return <<<HTML
+<!doctype html>
+<meta charset="utf-8">
+<title>Diag Form</title>
+<form method="POST" action="/diag/csrf">
+    <input type="hidden" name="_token" value="__TOKEN__">
+    <button>Enviar</button>
+</form>
+<script>
+fetch('/diag/csrf',{credentials:'include'})
+ .then(r=>r.json())
+ .then(j=>{
+   document.querySelector('input[name="_token"]').value = j.csrf_token;
+ });
+</script>
+HTML;
+});
