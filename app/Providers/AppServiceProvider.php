@@ -28,20 +28,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Schema::defaultStringLength(191);
 
-        if (env('FORCE_HTTPS', false)) {
+        // 🔒 Corrige HTTPS atrás de proxy (Render, Cloudflare)
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
             URL::forceScheme('https');
+            $_SERVER['HTTPS'] = 'on';
         }
 
-        if (app()->environment('production')) {
-            Request::setTrustedProxies(
-                [Request::HEADER_X_FORWARDED_ALL],
-                Request::HEADER_X_FORWARDED_PROTO
-            );
-        }
+        // 🔧 Confia nos proxies para detectar HTTPS corretamente
+        Request::setTrustedProxies(
+            ['0.0.0.0/0'], // confia em todos os proxies (Render usa IPs dinâmicos)
+            Request::HEADER_X_FORWARDED_ALL
+        );
 
-        date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
         Carbon::setLocale('pt_BR');
+        date_default_timezone_set('America/Sao_Paulo');
         Paginator::defaultView('vendor.pagination.default');
     }
 }
