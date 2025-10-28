@@ -314,133 +314,136 @@ Route::prefix('professor')
     });
 
 
-/*
-|--------------------------------------------------------------------------
-| Rotas Públicas (sem login)
-|--------------------------------------------------------------------------
-*/
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::middleware(['web'])->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | Rotas Públicas (sem login)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Seleção de contexto (após login, caso haja múltiplos vínculos)
-Route::get('/choose-school', [LoginController::class, 'chooseSchool'])->name('choose.school');
-Route::get('/choose-role/{schoolId}', [LoginController::class, 'chooseRole'])->name('choose.role');
-Route::post('/set-context', [LoginController::class, 'setContextPost'])->name('set.context');
+    // Seleção de contexto (após login, caso haja múltiplos vínculos)
+    Route::get('/choose-school', [LoginController::class, 'chooseSchool'])->name('choose.school');
+    Route::get('/choose-role/{schoolId}', [LoginController::class, 'chooseRole'])->name('choose.role');
+    Route::post('/set-context', [LoginController::class, 'setContextPost'])->name('set.context');
 
-// 📘 Rota pública (professores e outros)
-Route::get('regimento/{school}', [RegimentoController::class, 'visualizar'])
-    ->middleware('auth')
-    ->name('regimento.visualizar');
+    // 📘 Rota pública (professores e outros)
+    Route::get('regimento/{school}', [RegimentoController::class, 'visualizar'])
+        ->middleware('auth')
+        ->name('regimento.visualizar');
 
-/*
-|--------------------------------------------------------------------------
-| Rota raiz
-|--------------------------------------------------------------------------
-*/
-Route::get('/', function () {
-    return redirect()->route('login');
+    /*
+    |--------------------------------------------------------------------------
+    | Rota raiz
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/', function () {
+        return redirect()->route('login');
+    });
+
+
+    use Illuminate\Http\Request;
+
+    Route::get('/diag/csrf', function (Request $r) {
+        return response()->json([
+            'app_url'        => config('app.url'),
+            'session_driver' => config('session.driver'),
+            'session_cookie' => config('session.cookie'),
+            'session_domain' => config('session.domain'),
+            'session_secure' => config('session.secure'),
+            'session_same'   => config('session.same_site'),
+            'session_id'     => session()->getId(),
+            'has_token'      => csrf_token() ? true : false,
+            'csrf_token'     => csrf_token(),
+            'cookies_in'     => $r->cookies->all(),
+        ]);
+    });
+
+    Route::post('/diag/csrf', function (Request $r) {
+        return response()->json([
+            'posted__token'  => $r->input('_token'),
+            'session_token'  => $r->session()->token(),  // token válido da sessão
+            'match'          => hash_equals((string)$r->session()->token(), (string)$r->input('_token')),
+            'session_id'     => session()->getId(),
+            'cookies_in'     => $r->cookies->all(),
+        ]);
+    })->name('diag.csrf.post');
+
+    Route::get('/diag/form', function () {
+        return <<<HTML
+    <!doctype html>
+    <meta charset="utf-8">
+    <title>Diag Form</title>
+    <form method="POST" action="/diag/csrf">
+        <input type="hidden" name="_token" value="__TOKEN__">
+        <button>Enviar</button>
+    </form>
+    <script>
+    fetch('/diag/csrf',{credentials:'include'})
+     .then(r=>r.json())
+     .then(j=>{
+       document.querySelector('input[name="_token"]').value = j.csrf_token;
+     });
+    </script>
+    HTML;
+    });
+
+
+    Route::get('/diag/server', function (Request $request) {
+        return response()->json([
+            'https' => $_SERVER['HTTPS'] ?? null,
+            'http_x_forwarded_proto' => $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null,
+            'request_scheme' => $_SERVER['REQUEST_SCHEME'] ?? null,
+            'url_scheme' => $request->getScheme(),
+            'secure' => $request->isSecure(),
+            'trusted_proxies' => Request::getTrustedProxies(),
+            'app_url' => config('app.url'),
+        ]);
+    });
+
+    Route::get('/debug', function () {
+        return [
+            'isSecure' => request()->isSecure(),
+            'url' => url('/'),
+            'scheme' => request()->getScheme(),
+            'server' => request()->server(),
+        ];
+    });
+
+    Route::get('/session-debug', function () {
+        return response()->json([
+            'session_id' => session()->getId(),
+            'has_token' => session()->has('_token'),
+            'csrf_token' => csrf_token(),
+            'cookies' => request()->cookies->all(),
+            'headers' => [
+                'cookie_header' => request()->header('cookie')
+            ]
+        ]);
+    });
+
+    Route::get('/cookie-test', function (\Illuminate\Http\Request $request) {
+        $response = response()->json([
+            'input_cookies' => $request->cookies->all(),
+            'session_id' => session()->getId(),
+        ]);
+        $response->cookie('cookie_test', 'ok', 10, '/', null, true, true, false, 'None');
+        return $response;
+    });
+
+    Route::get('/debug-headers', function () {
+        session()->put('test_session', 'funciona');
+        $response = response('Headers do Servidor');
+        $headers = $response->headers->all();
+
+        return response()->json([
+            'headers_brutos_servidor' => $headers,
+            'session_id_gerado' => session()->getId(),
+            'session_conteudo' => session()->all(),
+        ]);
+    });
+    
+
 });
-
-
-use Illuminate\Http\Request;
-
-Route::get('/diag/csrf', function (Request $r) {
-    return response()->json([
-        'app_url'        => config('app.url'),
-        'session_driver' => config('session.driver'),
-        'session_cookie' => config('session.cookie'),
-        'session_domain' => config('session.domain'),
-        'session_secure' => config('session.secure'),
-        'session_same'   => config('session.same_site'),
-        'session_id'     => session()->getId(),
-        'has_token'      => csrf_token() ? true : false,
-        'csrf_token'     => csrf_token(),
-        'cookies_in'     => $r->cookies->all(),
-    ]);
-});
-
-Route::post('/diag/csrf', function (Request $r) {
-    return response()->json([
-        'posted__token'  => $r->input('_token'),
-        'session_token'  => $r->session()->token(),  // token válido da sessão
-        'match'          => hash_equals((string)$r->session()->token(), (string)$r->input('_token')),
-        'session_id'     => session()->getId(),
-        'cookies_in'     => $r->cookies->all(),
-    ]);
-})->name('diag.csrf.post');
-
-Route::get('/diag/form', function () {
-    return <<<HTML
-<!doctype html>
-<meta charset="utf-8">
-<title>Diag Form</title>
-<form method="POST" action="/diag/csrf">
-    <input type="hidden" name="_token" value="__TOKEN__">
-    <button>Enviar</button>
-</form>
-<script>
-fetch('/diag/csrf',{credentials:'include'})
- .then(r=>r.json())
- .then(j=>{
-   document.querySelector('input[name="_token"]').value = j.csrf_token;
- });
-</script>
-HTML;
-});
-
-
-Route::get('/diag/server', function (Request $request) {
-    return response()->json([
-        'https' => $_SERVER['HTTPS'] ?? null,
-        'http_x_forwarded_proto' => $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null,
-        'request_scheme' => $_SERVER['REQUEST_SCHEME'] ?? null,
-        'url_scheme' => $request->getScheme(),
-        'secure' => $request->isSecure(),
-        'trusted_proxies' => Request::getTrustedProxies(),
-        'app_url' => config('app.url'),
-    ]);
-});
-
-Route::get('/debug', function () {
-    return [
-        'isSecure' => request()->isSecure(),
-        'url' => url('/'),
-        'scheme' => request()->getScheme(),
-        'server' => request()->server(),
-    ];
-});
-
-Route::get('/session-debug', function () {
-    return response()->json([
-        'session_id' => session()->getId(),
-        'has_token' => session()->has('_token'),
-        'csrf_token' => csrf_token(),
-        'cookies' => request()->cookies->all(),
-        'headers' => [
-            'cookie_header' => request()->header('cookie')
-        ]
-    ]);
-});
-
-Route::get('/cookie-test', function (\Illuminate\Http\Request $request) {
-    $response = response()->json([
-        'input_cookies' => $request->cookies->all(),
-        'session_id' => session()->getId(),
-    ]);
-    $response->cookie('cookie_test', 'ok', 10, '/', null, true, true, false, 'None');
-    return $response;
-});
-
-Route::get('/debug-headers', function () {
-    session()->put('test_session', 'funciona');
-    $response = response('Headers do Servidor');
-    $headers = $response->headers->all();
-
-    return response()->json([
-        'headers_brutos_servidor' => $headers,
-        'session_id_gerado' => session()->getId(),
-        'session_conteudo' => session()->all(),
-    ]);
-});
-
