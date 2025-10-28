@@ -1,42 +1,65 @@
-# 🧩 Etapa 1: Build Composer
-FROM composer:2.6 AS build
-
-WORKDIR /app
-
-# Copia arquivos e instala dependências
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --optimize-autoloader
-
-# Copia todo o código
-COPY . .
-
-RUN php artisan config:clear && php artisan route:clear && php artisan view:clear
-
-# 🧩 Etapa 2: Servidor PHP 8.1 + Apache
+# ================================
+# 📦 BASE IMAGE
+# ================================
 FROM php:8.1-apache
 
-# Instala extensões PHP necessárias
-RUN docker-php-ext-install pdo pdo_mysql
+# ================================
+# 🧩 DEPENDÊNCIAS DO SISTEMA
+# ================================
+RUN apt-get update && apt-get install -y \
+    git unzip libpng-dev libjpeg-dev libfreetype6-dev \
+    libonig-dev libxml2-dev zip curl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql gd mbstring exif pcntl bcmath opcache
 
-# Habilita mod_rewrite (necessário para Laravel)
-RUN a2enmod rewrite
+# ================================
+# 🧰 COMPOSER
+# ================================
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copia app da etapa anterior
-COPY --from=build /app /var/www/html
-
+# ================================
+# 📁 DIRETÓRIO DE TRABALHO
+# ================================
 WORKDIR /var/www/html
 
-# ✅ Corrige permissões
-RUN chown -R www-data:www-data storage bootstrap/cache \
+# ================================
+# 📄 COPIA CÓDIGO DO PROJETO
+# (precisa vir antes do composer install, pois o helpers.php é carregado)
+# ================================
+COPY . .
+
+# ================================
+# ⚙️ INSTALA DEPENDÊNCIAS PHP
+# ================================
+RUN composer install --no-dev --no-interaction --optimize-autoloader
+
+# ================================
+# 🔑 ARQUIVO .env E CHAVE DO APP
+# ================================
+# Cria um .env se não existir (evita erro no build)
+RUN if [ ! -f .env ]; then cp .env.example .env || touch .env; fi \
+    && php artisan key:generate --force || true
+
+# ================================
+# 🔗 LINKS E PERMISSÕES
+# ================================
+RUN php artisan storage:link || true \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# ✅ Cria .env vazio se não existir e gera APP_KEY
-RUN touch /var/www/html/.env \
-    && php artisan key:generate --force || true \
-    && php artisan storage:link || true
+# ================================
+# 🧩 CONFIGURAÇÃO APACHE
+# ================================
+# Corrige o aviso de ServerName e define DocumentRoot
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
+    && sed -i 's#/var/www/html#/var/www/html/public#g' /etc/apache2/sites-available/000-default.conf
 
-# ✅ Expõe porta 8080 e inicia o servidor Laravel
+# ================================
+# 🔥 EXPOSE PORTA CORRETA
+# ================================
 EXPOSE 8080
-CMD php artisan serve --host=0.0.0.0 --port=8080
 
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+# ================================
+# 🚀 COMANDO DE EXECUÇÃO
+# ================================
+CMD ["apache2-foreground"]
