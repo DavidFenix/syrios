@@ -38,3 +38,5 @@ RUN touch /var/www/html/.env \
 # ✅ Expõe porta 8080 e inicia o servidor Laravel
 EXPOSE 8080
 CMD php artisan serve --host=0.0.0.0 --port=8080
+
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
