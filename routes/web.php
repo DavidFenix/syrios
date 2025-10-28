@@ -319,11 +319,10 @@ Route::prefix('professor')
 | Rotas Públicas (sem login)
 |--------------------------------------------------------------------------
 |
-| Estas rotas precisam do grupo "web" para que o Laravel inicialize
-| corretamente a sessão e envie o cookie syrios_session.
+| Estas rotas precisam estar sob o grupo "web" para que o Laravel
+| inicialize a sessão e envie o cookie syrios_session corretamente.
 |
 */
-
 Route::middleware(['web'])->group(function () {
 
     // Autenticação
@@ -331,12 +330,12 @@ Route::middleware(['web'])->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Seleção de contexto (após login)
+    // Seleção de contexto
     Route::get('/choose-school', [LoginController::class, 'chooseSchool'])->name('choose.school');
     Route::get('/choose-role/{schoolId}', [LoginController::class, 'chooseRole'])->name('choose.role');
     Route::post('/set-context', [LoginController::class, 'setContextPost'])->name('set.context');
 
-    // Diagnóstico
+    // Diagnóstico de sessão
     Route::get('/session-debug', function () {
         return response()->json([
             'session_id' => session()->getId(),
@@ -349,7 +348,8 @@ Route::middleware(['web'])->group(function () {
         ]);
     });
 
-    Route::get('/cookie-test', function (\Illuminate\Http\Request $request) {
+    // Teste direto de cookie
+    Route::get('/cookie-test', function (Request $request) {
         $response = response()->json([
             'input_cookies' => $request->cookies->all(),
             'session_id' => session()->getId(),
@@ -367,15 +367,11 @@ Route::middleware(['web'])->group(function () {
         );
         return $response;
     });
-});
 
-/*
-|--------------------------------------------------------------------------
-| Rota raiz
-|--------------------------------------------------------------------------
-*/
-Route::get('/', function () {
-    return redirect()->route('login');
+    // Página inicial
+    Route::get('/', function () {
+        return redirect()->route('login');
+    });
 });
 
 
