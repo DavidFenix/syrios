@@ -432,3 +432,104 @@ Route::get('/cookie-test', function (\Illuminate\Http\Request $request) {
     return $response;
 });
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+
+Route::get('/session-debug-pro', function (Request $r) {
+    $sessionId = session()->getId();
+    $cookies = $r->cookies->all();
+    $hasCookie = isset($cookies[Config::get('session.cookie')]);
+    $csrf = csrf_token();
+    $sameSite = Config::get('session.same_site');
+    $secure = Config::get('session.secure');
+    $domain = Config::get('session.domain');
+
+    $html = <<<HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Diagnóstico de Sessão - Syrios</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f7f9fb;
+    color: #222;
+    margin: 40px;
+}
+h1 {
+    color: #2c3e50;
+}
+.card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.ok {color: #2ecc71; font-weight: bold;}
+.fail {color: #e74c3c; font-weight: bold;}
+.info {color: #2980b9;}
+code {
+    background: #f1f1f1;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+</style>
+</head>
+<body>
+    <h1>🧠 Diagnóstico de Sessão Syrios</h1>
+    <div class="card">
+        <h2>Status Geral</h2>
+        <p><strong>ID da Sessão:</strong> <code>{$sessionId}</code></p>
+        <p><strong>Token CSRF:</strong> <code>{$csrf}</code></p>
+        <p><strong>Cookie Recebido:</strong> 
+            <span class="{$hasCookie ? 'ok' : 'fail'}">
+                {$hasCookie ? '✅ Sim' : '❌ Não'}
+            </span>
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Configuração Atual</h2>
+        <ul>
+            <li><strong>Session Driver:</strong> <code>{config('session.driver')}</code></li>
+            <li><strong>Domínio:</strong> <code>{$domain}</code></li>
+            <li><strong>SameSite:</strong> <code>{$sameSite}</code></li>
+            <li><strong>Secure Cookie:</strong> <code>{$secure ? 'true ✅' : 'false ❌'}</code></li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Cookies Recebidos</h2>
+        <pre style="background:#f1f1f1;padding:10px;border-radius:6px;">{json_encode($cookies, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)}</pre>
+    </div>
+
+    <div class="card">
+        <h2>Diagnóstico Automático</h2>
+        <p>
+HTML;
+
+    if (!$hasCookie) {
+        $html .= "<span class='fail'>🚨 O navegador não enviou o cookie de sessão. O Laravel cria uma nova sessão a cada request, causando erro 419.</span>
+        <ul>
+            <li>Verifique se o navegador aceita cookies.</li>
+            <li>Garanta que o cookie apareça em DevTools → Aplicativo → Cookies.</li>
+            <li>Confirme que <code>SESSION_SAME_SITE=none</code> e <code>SESSION_SECURE_COOKIE=true</code> estão ativos.</li>
+        </ul>";
+    } else {
+        $html .= "<span class='ok'>🟢 O cookie de sessão foi recebido com sucesso! O CSRF deve funcionar corretamente agora.</span>";
+    }
+
+    $html .= <<<HTML
+        </p>
+    </div>
+
+    <p class="info">Atualize a página duas vezes: o <strong>ID da sessão</strong> deve permanecer igual. Se mudar, o cookie ainda não foi aceito.</p>
+</body>
+</html>
+HTML;
+
+    return response($html);
+});
+
