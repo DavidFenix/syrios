@@ -432,3 +432,15 @@ Route::get('/cookie-test', function (\Illuminate\Http\Request $request) {
     return $response;
 });
 
+Route::get('/debug-headers', function () {
+    session()->put('test_session', 'funciona');
+    $response = response('Headers do Servidor');
+    $headers = $response->headers->all();
+
+    return response()->json([
+        'headers_brutos_servidor' => $headers,
+        'session_id_gerado' => session()->getId(),
+        'session_conteudo' => session()->all(),
+    ]);
+});
+
