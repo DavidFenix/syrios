@@ -1,42 +1,40 @@
-# --- Etapa base: PHP + Apache ---
-FROM php:8.1-apache
+# 🧩 Etapa 1: Build Composer
+FROM composer:2.6 AS build
 
-# Instala dependências do Laravel
-RUN apt-get update && apt-get install -y \
-    zip unzip git libpng-dev libonig-dev libxml2-dev curl \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+WORKDIR /app
 
-# Habilita o mod_rewrite (necessário para Laravel)
-RUN a2enmod rewrite
+# Copia arquivos e instala dependências
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --optimize-autoloader
 
-# Define o diretório de trabalho
-WORKDIR /var/www/html
-
-# Copia o projeto para dentro do container
+# Copia todo o código
 COPY . .
 
-# Copia .env se existir em /etc/secrets (Render)
-RUN if [ -f /etc/secrets/.env ]; then cp /etc/secrets/.env /var/www/html/.env; fi
+RUN php artisan config:clear && php artisan route:clear && php artisan view:clear
 
-# ⚙️ Configura o Apache para apontar para /public
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf && \
-    echo "<Directory /var/www/html/public>\n\
-    AllowOverride All\n\
-    Require all granted\n\
-</Directory>" >> /etc/apache2/apache2.conf
+# 🧩 Etapa 2: Servidor PHP 8.1 + Apache
+FROM php:8.1-apache
 
-# Instala o Composer e dependências do Laravel
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-RUN composer install --no-dev --optimize-autoloader
+# Instala extensões PHP necessárias
+RUN docker-php-ext-install pdo pdo_mysql
 
-# Gera chave e cria storage link
-RUN php artisan key:generate --force || true && php artisan storage:link || true
+# Habilita mod_rewrite (necessário para Laravel)
+RUN a2enmod rewrite
 
-# Ajusta permissões
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Copia app da etapa anterior
+COPY --from=build /app /var/www/html
 
-# Expõe a porta 80
-EXPOSE 80
+WORKDIR /var/www/html
 
-# Inicia o Apache
-CMD ["apache2-foreground"]
+# ✅ Corrige permissões
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# ✅ Cria .env vazio se não existir e gera APP_KEY
+RUN touch /var/www/html/.env \
+    && php artisan key:generate --force || true \
+    && php artisan storage:link || true
+
+# ✅ Expõe porta 8080 e inicia o servidor Laravel
+EXPOSE 8080
+CMD php artisan serve --host=0.0.0.0 --port=8080
