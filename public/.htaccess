@@ -3,6 +3,11 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    <IfModule mod_headers.c>
+        # Corrige bloqueio de Set-Cookie no Render (Apache 2.4.65)
+        Header always edit Set-Cookie "(?i)^(.+)$" "$1; SameSite=None; Secure"
+    </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header
