@@ -5,6 +5,11 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+if (function_exists('ini_set')) {
+    ini_set('zlib.output_compression', '0');
+    ini_set('output_buffering', '4096');
+}
+
 /*
 |--------------------------------------------------------------------------
 | Check If The Application Is Under Maintenance
