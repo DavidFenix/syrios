@@ -343,9 +343,6 @@ Route::middleware(['web'])->group(function () {
         return redirect()->route('login');
     });
 
-
-    use Illuminate\Http\Request;
-
     Route::get('/diag/csrf', function (Request $r) {
         return response()->json([
             'app_url'        => config('app.url'),
@@ -444,6 +441,8 @@ Route::middleware(['web'])->group(function () {
             'session_conteudo' => session()->all(),
         ]);
     });
-    
+
+
+    // Outras rotas públicas que você quiser manter acessíveis
 
 });
