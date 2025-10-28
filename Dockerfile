@@ -50,9 +50,9 @@ RUN php artisan storage:link || true \
 # ================================
 # 🧩 CONFIGURAÇÃO APACHE
 # ================================
-# Corrige o aviso de ServerName e define DocumentRoot
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
-    && sed -i 's#/var/www/html#/var/www/html/public#g' /etc/apache2/sites-available/000-default.conf
+    && sed -i 's#/var/www/html#/var/www/html/public#g' /etc/apache2/sites-available/000-default.conf \
+    && sed -i 's/80/8080/g' /etc/apache2/ports.conf /etc/apache2/sites-available/000-default.conf
 
 # ================================
 # 🔥 EXPOSE PORTA CORRETA
