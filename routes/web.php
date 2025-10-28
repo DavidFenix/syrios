@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\LoginController;
 
 // Master
@@ -318,62 +319,37 @@ Route::prefix('professor')
 |--------------------------------------------------------------------------
 | Rotas Públicas (sem login)
 |--------------------------------------------------------------------------
-|
-| Estas rotas precisam estar sob o grupo "web" para que o Laravel
-| inicialize a sessão e envie o cookie syrios_session corretamente.
-|
 */
 Route::middleware(['web'])->group(function () {
-
-    // Autenticação
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Seleção de contexto
     Route::get('/choose-school', [LoginController::class, 'chooseSchool'])->name('choose.school');
     Route::get('/choose-role/{schoolId}', [LoginController::class, 'chooseRole'])->name('choose.role');
     Route::post('/set-context', [LoginController::class, 'setContextPost'])->name('set.context');
 
-    // Diagnóstico de sessão
-    Route::get('/session-debug', function () {
-        return response()->json([
-            'session_id' => session()->getId(),
-            'has_token' => session()->has('_token'),
-            'csrf_token' => csrf_token(),
-            'cookies' => request()->cookies->all(),
-            'headers' => [
-                'cookie_header' => request()->header('cookie')
-            ]
-        ]);
-    });
+    // Debug simples
+    Route::get('/debug', fn() => ['secure' => request()->isSecure(), 'url' => url('/')]);
+    Route::get('/debug-headers', fn() => response()->json(['headers' => request()->headers->all()]));
 
-    // Teste direto de cookie
     Route::get('/cookie-test', function (Request $request) {
-        $response = response()->json([
-            'input_cookies' => $request->cookies->all(),
-            'session_id' => session()->getId(),
-        ]);
-        $response->cookie(
-            'cookie_test',
-            'ok',
-            10,
-            '/',
-            'syrios.onrender.com',
-            true,
-            true,
-            false,
-            'None'
-        );
+        $response = response('<h1>cookie test</h1>');
+        $response->cookie('cookie_test', 'ok', 10, '/', 'syrios.onrender.com', true, true, false, 'None');
         return $response;
     });
 
-    // Página inicial
-    Route::get('/', function () {
-        return redirect()->route('login');
+    Route::get('/session-debug', function () {
+        return response()->json([
+            'session_id' => session()->getId(),
+            'has_token'  => session()->has('_token'),
+            'csrf_token' => csrf_token(),
+            'cookies'    => request()->cookies->all(),
+        ]);
     });
-});
 
+    Route::get('/', fn() => redirect()->route('login'));
+});
 
 
 
