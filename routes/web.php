@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Auth\LoginController;
 
 // Master
@@ -348,6 +349,12 @@ Route::middleware(['web'])->group(function () {
         ]);
     });
 
+    Route::get('/cookie-proxy-test', function () {
+        $response = new Response('<h1>Teste manual de cookie</h1><p>Verifique se o navegador recebeu o cookie chamado <b>proxy_test_cookie</b>.</p>');
+        $response->header('Set-Cookie', 'proxy_test_cookie=OK_FROM_SERVER; Path=/; Max-Age=600; SameSite=None; Secure');
+        return $response;
+    });
+        
     Route::get('/', fn() => redirect()->route('login'));
 });
 
