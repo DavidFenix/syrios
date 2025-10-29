@@ -117,13 +117,4 @@ class MasterController extends Controller
     }
 
 
-    // Excluir usuário
-    // public function destroyUsuario($id)
-    // {
-    //     $usuario = Usuario::findOrFail($id);
-    //     $usuario->roles()->detach();
-    //     $usuario->delete();
-
-    //     return redirect()->route('master.index')->with('success','Usuário excluído!');
-    // }
 }

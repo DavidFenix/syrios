@@ -41,20 +41,6 @@ class RegimentoController extends Controller
         return back()->with('success', '📄 Regimento atualizado com sucesso!');
     }
 
-    /**
-     * Permite visualização pública do PDF.
-     */
-    // public function visualizar($schoolId)
-    // {
-    //     $regimento = Regimento::where('school_id', $schoolId)->firstOrFail();
-
-    //     if (!Storage::disk('public')->exists($regimento->arquivo)) {
-    //         abort(404, 'Arquivo não encontrado.');
-    //     }
-
-    //     return response()->file(storage_path("app/public/{$regimento->arquivo}"));
-    // }
-
     public function visualizar($schoolId)
     {
         $regimento = Regimento::where('school_id', $schoolId)->first();

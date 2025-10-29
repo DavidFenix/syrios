@@ -9,22 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class DisciplinaController extends Controller
 {
-    // public function index()
-    // {
-    //     $escola = Auth::user()->escola;
-    //     $disciplinas = Disciplina::where('school_id', $escola->id)->get();
-
-    //     return view('escola.disciplinas.index', compact('disciplinas', 'escola'));
-    // }
-
-    // public function index()
-    // {
-    //     $schoolId = session('current_school_id');
-    //     $disciplinas = Disciplina::where('school_id', $schoolId)->get();
-
-    //     return view('escola.disciplinas.index', compact('disciplinas'));
-    // }
-
+   
     public function index()
     {
         $schoolId = session('current_school_id');
@@ -95,26 +80,4 @@ class DisciplinaController extends Controller
         return redirect()->route('escola.disciplinas.index')->with('success','Disciplina removida!');
     }
     
-    // public function edit(Disciplina $disciplina)
-    // {
-    //     return view('escola.disciplinas.edit', compact('disciplina'));
-    // }
-
-    // public function update(Request $request, Disciplina $disciplina)
-    // {
-    //     $request->validate([
-    //         'abr'     => 'required|string|max:10',
-    //         'descr_d' => 'required|string|max:100',
-    //     ]);
-
-    //     $disciplina->update($request->only('abr','descr_d'));
-
-    //     return redirect()->route('escola.disciplinas.index')->with('success', 'Disciplina atualizada!');
-    // }
-
-    // public function destroy(Disciplina $disciplina)
-    // {
-    //     $disciplina->delete();
-    //     return redirect()->route('escola.disciplinas.index')->with('success', 'Disciplina excluída!');
-    // }
 }

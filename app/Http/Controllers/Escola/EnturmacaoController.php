@@ -27,31 +27,6 @@ class EnturmacaoController extends Controller
         return view('escola.enturmacao.index', compact('enturmacoes', 'anoLetivo'));
     }
 
-    // public function create()
-        // {
-        //     $schoolId = session('current_school_id');
-        //     $alunos = Aluno::where('school_id', $schoolId)->orderBy('nome_a')->get();
-        //     $turmas = Turma::where('school_id', $schoolId)->orderBy('serie_turma')->get();
-
-        //     return view('escola.enturmacao.create', compact('alunos', 'turmas'));
-        // }
-
-    // public function create()
-        // {
-        //     $schoolId = session('current_school_id');
-        //     $anoLetivo = session('ano_letivo_atual') ?? date('Y');
-
-        //     $alunos = Aluno::where('school_id', $schoolId)
-        //         ->orderBy('nome_a')
-        //         ->get(['id','nome_a','matricula']);
-
-        //     $turmas = Turma::where('school_id', $schoolId)
-        //         ->orderBy('serie_turma')
-        //         ->get(['id','serie_turma','turno']);
-
-        //     return view('escola.enturmacao.create', compact('alunos', 'turmas', 'anoLetivo'));
-        // }
-
     public function create(Request $request)
     {
         $schoolId = session('current_school_id');
@@ -207,19 +182,6 @@ class EnturmacaoController extends Controller
                 ->with('error', '❌ Ocorreu um erro inesperado ao enturmar alunos. Detalhes foram registrados no log.');
         }
 
-        // } catch (\Throwable $e) {
-        //     DB::rollBack();
-
-        //     Log::error('Erro ao enturmar em lote', [
-        //         'erro' => $e->getMessage(),
-        //         'school_id' => $schoolId,
-        //         'user_id' => auth()->id(),
-        //     ]);
-
-        //     return back()
-        //         ->withInput()
-        //         ->with('error', '❌ Erro ao enturmar alunos. Detalhes no log.');
-        // }
     }
 
     public function edit($id)

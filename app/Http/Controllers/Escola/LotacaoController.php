@@ -34,16 +34,6 @@ class LotacaoController extends Controller
         $professorSelecionado = $request->input('professor_id');
         $ofertas = collect();
 
-        // if ($professorSelecionado) {
-        //     $ofertas = Oferta::with(['disciplina', 'turma'])
-        //         ->where('school_id', $schoolId)
-        //         ->where('professor_id', $professorSelecionado)
-        //         ->where('ano_letivo', $anoLetivo)
-        //         ->orderBy('disciplina_id')
-        //         ->get()
-        //         ->groupBy('disciplina_id');
-        // }
-
         if ($professorSelecionado) {
             $ofertas = Oferta::with(['disciplina', 'turma'])
                 ->where('school_id', $schoolId)

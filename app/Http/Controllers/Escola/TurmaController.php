@@ -52,12 +52,6 @@ class TurmaController extends Controller
         return view('escola.turmas.edit', compact('turma'));
     }
 
-    // public function edit(Turma $turma)
-    // {
-
-    //     return view('escola.turmas.edit', compact('turma'));
-    // }
-
     public function update(Request $request, $id)
     {
         $schoolId = session('current_school_id');
@@ -73,18 +67,6 @@ class TurmaController extends Controller
         return redirect()->route('escola.turmas.index')->with('success','Turma atualizada com sucesso!');
     }
 
-    // public function update(Request $request, Turma $turma)
-    // {
-    //     $request->validate([
-    //         'serie_turma' => 'required|string|max:20',
-    //         'turno'       => 'required|string|max:20',
-    //     ]);
-
-    //     $turma->update($request->only('serie_turma','turno'));
-
-    //     return redirect()->route('escola.turmas.index')->with('success', 'Turma atualizada!');
-    // }
-
     public function destroy($id)
     {
         $schoolId = session('current_school_id');
@@ -93,10 +75,5 @@ class TurmaController extends Controller
 
         return redirect()->route('escola.turmas.index')->with('success','Turma removida!');
     }
-    
-    // public function destroy(Turma $turma)
-    // {
-    //     $turma->delete();
-    //     return redirect()->route('escola.turmas.index')->with('success', 'Turma excluída!');
-    // }
+   
 }

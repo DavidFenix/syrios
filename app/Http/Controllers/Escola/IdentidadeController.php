@@ -44,24 +44,6 @@ class IdentidadeController extends Controller
         return redirect()
             ->route('escola.identidade.edit')
             ->with('success', '✅ Identidade visual atualizada com sucesso!');
-
-            // $validated = $request->validate([
-            //     'frase_efeito' => 'nullable|string|max:255',
-            //     'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            // ]);
-
-            // $escola = Escola::find(session('current_school_id'));
-            // $escola->frase_efeito = $validated['frase_efeito'] ?? $escola->frase_efeito;
-
-            // // upload do logo se houver
-            // if ($request->hasFile('logo')) {
-            //     $path = $request->file('logo')->store('logos', 'public');
-            //     $escola->logo_path = $path;
-            // }
-
-            // $escola->save();
-
-
         
     }
 }

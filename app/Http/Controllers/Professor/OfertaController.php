@@ -37,37 +37,7 @@ class OfertaController extends Controller
             ->sortBy(fn($o) => $o->disciplina->descr_d)
             ->sortBy(fn($o) => $o->turma->serie_turma);
 
-            /*
-        $ofertaIds = $ofertas->pluck('id');
-
-        $sub = DB::table(prefix('ocorrencia') . ' as o')
-            ->join(prefix('oferta') . ' as ofe', 'ofe.id', '=', 'o.oferta_id')
-            ->join(prefix('enturmacao') . ' as e', function ($join) {
-                $join->on('e.aluno_id', '=', 'o.aluno_id')
-                     ->on('e.turma_id', '=', 'ofe.turma_id');
-            })
-            ->select('ofe.turma_id', 'o.aluno_id', DB::raw('COUNT(o.id) AS total'))
-            ->where('o.school_id', session('current_school_id'))
-            ->where('e.school_id', session('current_school_id')) // 💡 usa vínculo, não aluno.school_id
-            ->where('o.ano_letivo', session('ano_letivo_atual') ?? date('Y'))
-            ->where('o.status', 1)
-            ->groupBy('ofe.turma_id', 'o.aluno_id');
-
-        $stats = DB::query()
-            ->fromSub($sub, 't')
-            ->select(
-                'turma_id',
-                DB::raw('SUM(CASE WHEN total = 1 THEN 1 ELSE 0 END) AS qtd1'),
-                DB::raw('SUM(CASE WHEN total = 2 THEN 1 ELSE 0 END) AS qtd2'),
-                DB::raw('SUM(CASE WHEN total = 3 THEN 1 ELSE 0 END) AS qtd3'),
-                DB::raw('SUM(CASE WHEN total = 4 THEN 1 ELSE 0 END) AS qtd4'),
-                DB::raw('SUM(CASE WHEN total >= 5 THEN 1 ELSE 0 END) AS qtd5')
-            )
-            ->groupBy('turma_id')
-            ->get()
-            ->keyBy('turma_id');
-            */
-
+            
 
         // 📚 Ofertas do professor no ano vigente e escola logada
         //contagem correta agrupado por turma_id
@@ -104,91 +74,10 @@ class OfertaController extends Controller
             }
 
 
-        //antigo era agrupado por oferta_id e estava contando errado
-        // $ofertas = Oferta::with(['disciplina', 'turma'])
-            //     ->where('professor_id', $professor->id)
-            //     ->where('school_id', $schoolId)
-            //     ->where('ano_letivo', $anoLetivo)
-            //     ->where('vigente', true)
-            //     ->get()
-            //     ->sortBy(fn($o) => $o->disciplina->descr_d)
-            //     ->sortBy(fn($o) => $o->turma->serie_turma);
-
-            // $ofertaIds = $ofertas->pluck('id');
-
-            // $sub = DB::table(prefix('ocorrencia'))
-            //     ->select('oferta_id', 'aluno_id', DB::raw('COUNT(*) AS total'))
-            //     ->whereIn('oferta_id', $ofertaIds)
-            //     ->where(prefix('ocorrencia') . '.school_id', '=', $schoolId) // 💡 usa a coluna da própria tabela
-            //     ->where('ano_letivo', $anoLetivo)
-            //     ->where('status', 1) // apenas ativas
-            //     ->groupBy('oferta_id', 'aluno_id');
-
-            // $stats = DB::query()
-            //     ->fromSub($sub, 't')
-            //     ->select(
-            //         'oferta_id',
-            //         DB::raw('SUM(CASE WHEN total = 1 THEN 1 ELSE 0 END) AS qtd1'),
-            //         DB::raw('SUM(CASE WHEN total = 2 THEN 1 ELSE 0 END) AS qtd2'),
-            //         DB::raw('SUM(CASE WHEN total = 3 THEN 1 ELSE 0 END) AS qtd3'),
-            //         DB::raw('SUM(CASE WHEN total = 4 THEN 1 ELSE 0 END) AS qtd4'),
-            //         DB::raw('SUM(CASE WHEN total >= 5 THEN 1 ELSE 0 END) AS qtd5')
-            //     )
-            //     ->groupBy('oferta_id')
-            //     ->get()
-            //     ->keyBy('oferta_id');
-
-            // // Vincula resultados às ofertas
-            // foreach ($ofertas as $oferta) {
-            //     $dados = $stats->get($oferta->id);
-            //     $oferta->qtd1 = $dados->qtd1 ?? 0;
-            //     $oferta->qtd2 = $dados->qtd2 ?? 0;
-            //     $oferta->qtd3 = $dados->qtd3 ?? 0;
-            //     $oferta->qtd4 = $dados->qtd4 ?? 0;
-            //     $oferta->qtd5 = $dados->qtd5 ?? 0;
-            // }
-
         return view('professor.ofertas.index', compact('ofertas'));
     }
 
-    /**
-     * Lista todas as ofertas do professor logado
-     */
-    /*public function index()
-    {
-        $user = auth()->user();
-        $schoolId = session('current_school_id');
-        $anoLetivo = session('ano_letivo_atual') ?? date('Y');
-
-        // 🔍 Localiza o vínculo de professor na escola atual
-        $professor = $user->professor()->where('school_id', $schoolId)->first();
-
-        if (!$professor) {
-            return redirect()
-                ->route('professor.dashboard')
-                ->with('warning', '⚠️ Seu usuário não está vinculado como professor nesta escola.');
-        }
-
-        // 📚 Carrega as ofertas do professor para o ano vigente
-        $ofertas = Oferta::with(['disciplina', 'turma'])
-            ->where('professor_id', $professor->id)
-            ->where('school_id', $schoolId)
-            ->where('ano_letivo', $anoLetivo)
-            ->where('vigente', true)
-            ->orderByDesc('id')
-            ->get();
-
-        // 🔢 Calcula contagem de ocorrências simulada (substituir depois por consulta real)
-        foreach ($ofertas as $oferta) {
-            $oferta->qtd1 = rand(0, 5);
-            $oferta->qtd2 = rand(0, 5);
-            $oferta->qtd3 = rand(0, 5);
-            $oferta->qtd4 = rand(0, 5);
-            $oferta->qtd5 = rand(0, 5);
-        }
-
-        return view('professor.ofertas.index', compact('ofertas'));
-    }*/
+    
 
     /**
      * Exibe os alunos da turma vinculada a uma oferta específica
@@ -253,10 +142,5 @@ class OfertaController extends Controller
             'alunos' => $alunosSelecionados
         ]);
     }
-
-
-
-
-
-    
+ 
 }

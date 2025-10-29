@@ -35,53 +35,5 @@ class RoleController extends Controller
         abort(403, 'Exclusão de roles não permitida.');
     }
 
- /*
-    public function create()
-    {
-        return view('master.roles.create');
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'role_name' => 'required|string|max:50|unique:syrios_role,role_name',
-        ]);
-
-        Role::create($request->all());
-
-        return redirect()->route('master.roles.index')
-                         ->with('success', 'Role criada com sucesso!');
-    }
-
-    public function show($id)
-    {
-        //
-    }
-
-    public function edit(Role $role)
-    {
-        return view('master.roles.edit', compact('role'));
-    }
-
-    public function update(Request $request, Role $role)
-    {
-        $request->validate([
-            'role_name' => 'required|string|max:50|unique:syrios_role,role_name,' . $role->id,
-        ]);
-
-        $role->update($request->all());
-
-        return redirect()->route('master.roles.index')
-                         ->with('success', 'Role atualizada com sucesso!');
-    }
-
-    public function destroy(Role $role)
-    {
-        $role->delete();
-
-        return redirect()->route('master.roles.index')
-                         ->with('success', 'Role excluída com sucesso!');
-    }
-    */
 }
 
