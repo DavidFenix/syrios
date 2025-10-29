@@ -1,12 +1,46 @@
+| Nome          | Valor                                                      |
+| ------------- | ---------------------------------------------------------- |
+APP_NAME=Syrios
+APP_ENV=production
+APP_KEY=base64:HjvoKQ+HryNsLiKil3mGGjQnbilOAYDnVSI9GWhQqEQ=
+APP_DEBUG=false
+APP_URL
+LOG_CHANNEL=stack
+LOG_LEVEL=debug
+DB_CONNECTION=mysql
+DB_HOST=nozomi.proxy.rlwy.net
+DB_PORT=20952
+DB_DATABASE=railway
+DB_USERNAME=root
+DB_PASSWORD=MgtBQookiADPygUYMHGoxnCFZLWxZIcf
+TIMEZONE=America/Sao_Paulo
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://syrios.onrender.com
 
-koyeb.com
-login com git dei...@gmail.com
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+SESSION_SECURE_COOKIE=true
+SESSION_DOMAIN=syrios.onrender.com
+SESSION_SAME_SITE=None
+
+FORCE_HTTPS=true
+
+APP_ENV=production
+APP_URL=https://syrios.onrender.com
+FORCE_HTTPS=true
+SESSION_SECURE_COOKIE=true
+
+APP_ENV=production
+APP_URL=https://syrios.onrender.com
+FORCE_HTTPS=true
+SESSION_SECURE_COOKIE=true
 
 APP_NAME=Syrios
 APP_ENV=production
 APP_KEY=base64:HjvoKQ+HryNsLiKil3mGGjQnbilOAYDnVSI9GWhQqEQ=
 APP_DEBUG=false
-APP_URL=https://syrios.koyeb.app
+APP_URL=https://syrios.onrender.com
 
 LOG_CHANNEL=stack
 LOG_LEVEL=debug
@@ -18,52 +52,27 @@ DB_DATABASE=railway
 DB_USERNAME=root
 DB_PASSWORD=MgtBQookiADPygUYMHGoxnCFZLWxZIcf
 
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DRIVER=local
+QUEUE_CONNECTION=sync
+
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
 SESSION_SECURE_COOKIE=true
+SESSION_DOMAIN=syrios.onrender.com
 SESSION_SAME_SITE=None
---------------------------------------------------------
 
-🚀 Alternativas que funcionam 100% (inclusive cookies)
-Provedor  Grátis? Motivo de destaque
+TIMEZONE=America/Sao_Paulo
+FORCE_HTTPS=true
 
-Railway.app ✅ plano gratuito com 512 MB RAM Sessões e cookies funcionam, HTTPS real sem proxy
 
-Fly.io  ✅ plano gratuito  Você controla o container (sem Cloudflare intermediando)
+                                          |
 
-Cyclic.sh ✅ free tier Hospeda Laravel completo com MySQL externo (Aiven ou Planetscale)
 
-----------------------------------------------------------
-nada ainda
-https://syrios.onrender.com/debug-headers
-erro 404
-https://syrios.onrender.com/debug
-erro 404
-https://syrios.onrender.com/cookie-test
-erro 500
-https://syrios.onrender.com/session-debug
-{"session_id":"dMZ1jjFMaDtHpR59yHRAptUtAvbFMxmewZo05lVA","has_token":true,"csrf_token":"m4MsqW0rICOu1hNf5xbLj831wHWEqKOI9uZvLRuI","cookies":[],"headers":{"cookie_header":null}}
 
-if (function_exists('ini_set')) {
-    ini_set('zlib.output_compression', '0');
-    ini_set('output_buffering', '4096');
-}
-<IfModule mod_headers.c>
-    # Corrige bloqueio de Set-Cookie no Render (Apache 2.4.65)
-    Header always edit Set-Cookie "(?i)^(.+)$" "$1; SameSite=None; Secure"
-</IfModule>
-----------------------------------------
-
-Excelente diagnóstico, David — esse curl -I mostra exatamente o que precisávamos ver 👇
-Cabeçalho Valor
-HTTP/2 200  página foi entregue com sucesso via HTTPS
-cf-cache-status: DYNAMIC  ✅ o Cloudflare não serviu cache (requisição foi até o Render)
-x-render-origin-server: Apache/2.4.65 (Debian)  ✅ resposta veio diretamente do Apache/PHP, não de cache
-❌ não há Set-Cookie:  o Laravel não enviou o cookie na resposta
-Portanto agora sabemos com 100% de certeza:
-🚫 O cookie não está sendo gerado nem enviado pelo Laravel — o problema não é mais cache.
-Até aqui, corrigimos o ambiente (Cloudflare, Render, cache, HTTPS, proxy) — agora é hora de resolver por que o Laravel não emite o Set-Cookie mesmo num request dinâmico.
-
+onde está a base de dados
+https://railway.com/project/ed08a5a4-28ce-453b-ad23-f22473355ddc/service/cae3eaba-45d0-4b95-83cf-4f1d29f41efe/database?environmentId=88551099-1571-4afb-812e-92903124fc68&state=table&table=syrios_aluno
 
 https://dashboard.render.com/web/srv-d3vmejur433s73d0l9tg/deploys/dep-d3vmeker433s73d0lb5g
 ddscosta23@gmail.com
