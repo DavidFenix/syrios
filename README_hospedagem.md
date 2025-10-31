@@ -1,3 +1,148 @@
+tentativa de rodar o projeto syrios com railway
+--login pelo email:ddscosta23@gmail.com
+--entrada usando um codigo que foi enviado por email
+--depois de muito apanhar tentando conectar a pasta privada do syrios sem sucesso recebo a noticia da IA que so poderia pasta publica, mas não quero tornar syrios publico no git. a solução alternativa segue abaixo:
+
+Perfeito, David! 🚀 Vamos instalar o **Railway CLI** passo a passo — é rápido, leve e 100% gratuito.
+👉 Depois disso, você vai poder fazer deploy, ver logs e rodar comandos como `php artisan` diretamente do seu terminal, sem depender da interface travada.
+
+  ---
+
+  ## 🧰 **ETAPA 1 — Verificar Node.js**
+
+  O Railway CLI precisa do Node.
+
+  No **Prompt de Comando** ou **PowerShell**, digite:
+
+  ```bash
+  node -v
+  ```
+
+  * Se aparecer algo como `v22.x.x` ou `v20.x.x`, está tudo certo ✅
+  * Se aparecer **“node não é reconhecido”**, baixe e instale o Node LTS daqui:
+    🔗 [https://nodejs.org/en/download](https://nodejs.org/en/download)
+
+  ---
+
+  ## ⚙️ **ETAPA 2 — Instalar o Railway CLI**
+
+  Depois de garantir que o Node está instalado, execute:
+
+  ```bash
+  npm install -g @railway/cli
+  ```
+
+  (Leva 30 segundos. O `-g` significa “global”, ou seja, ficará disponível em qualquer pasta.)
+
+  Para confirmar se deu certo:
+
+  ```bash
+  railway --version
+  ```
+
+  Se aparecer algo como `Railway CLI v3.x.x`, está ✅.
+
+  ---
+
+  ## 🔑 **ETAPA 3 — Fazer login**
+
+  Agora conecte o CLI à sua conta Railway:
+
+  ```bash
+  railway login
+  ```
+
+  Isso abrirá o navegador e pedirá permissão → clique em **Authorize**.
+
+  Depois volte ao terminal — já estará autenticado.
+
+  ---
+
+  ## 🗂️ **ETAPA 4 — Conectar ao projeto Syrios**
+
+  Vá até sua pasta do projeto local:
+
+  ```bash
+  cd C:\wamp64\www\syrios
+  ```
+
+  E conecte seu projeto local ao app do Railway:
+
+  ```bash
+  railway link
+  ```
+
+  O CLI vai listar seus projetos → escolha **Syrios** (ou o nome que você vê no painel).
+
+  ---
+
+  ## 🚀 **ETAPA 5 — Fazer o deploy**
+
+  Agora é só rodar:
+
+  ```bash
+  railway up
+  ```
+
+  O CLI vai:
+
+  * Ler seu `Dockerfile`
+  * Criar o build
+  * Mostrar logs em tempo real
+  * Gerar a URL pública no final (tipo `https://syrios.up.railway.app`)
+
+  ---
+
+  ## 🧩 **Dica: ver logs depois**
+
+  Pra ver o log a qualquer momento:
+
+  ```bash
+  railway logs
+  ```
+
+  ---
+
+  Quer que eu monte **um único script** (copiar e colar no PowerShell) que já instala o CLI, faz login e linka direto ao seu projeto “Syrios”?
+  Assim você não precisa digitar comando por comando.
+
+--variaveis do banco criado dentro do proprio railway
+MYSQL_DATABASE=railway
+MYSQL_PUBLIC_URL=mysql://root:bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj@shuttle.proxy.rlwy.net:58761/railway
+MYSQL_ROOT_PASSWORD=bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj
+MYSQL_URL=mysql://root:bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj@mysql-l4yt.railway.internal:3306/railway
+MYSQLDATABASE=railway
+MYSQLHOST=mysql-l4yt.railway.internal
+MYSQLPASSWORD=bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj
+MYSQLPORT=3306
+MYSQLUSER=root
+
+--enviando o dump do syrios
+"C:\wamp64\bin\mysql\mysql8.0.31\bin\mysql.exe" -h shuttle.proxy.rlwy.net -P 58761 -u root -p railway -e "SHOW TABLES;"
+
+--apague as variaveis criadas automaticamente. agora o .env deve ficar assim:
+APP_NAME=Syrios
+APP_ENV=production
+APP_KEY=base64:HjvoKQ+HryNsLiKil3mGGjQnbilOAYDnVSI9GWhQqEQ=
+APP_DEBUG=false
+APP_URL=https://syrios.up.railway.app
+LOG_CHANNEL=stack
+LOG_LEVEL=debug
+DB_CONNECTION=mysql
+DB_HOST=shuttle.proxy.rlwy.net
+DB_PORT=58761
+DB_DATABASE=railway
+DB_USERNAME=root
+DB_PASSWORD=bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=None
+
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+
+syrios(6)_InnoDB_com dados
 | Nome          | Valor                                                      |
 | ------------- | ---------------------------------------------------------- |
 APP_NAME=Syrios

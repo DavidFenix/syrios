@@ -304,6 +304,10 @@ Route::prefix('professor')
                 ->name('pdf');
         });
 
+        // 📘 Rota pública (professores e outros) 
+        Route::get('regimento/{school}', [RegimentoController::class, 'visualizar']) 
+            ->name('regimento.visualizar');
+
         /*
         |--------------------------------------------------------------------------
         | RELATÓRIOS
@@ -329,6 +333,9 @@ Route::middleware(['web'])->group(function () {
     Route::get('/choose-school', [LoginController::class, 'chooseSchool'])->name('choose.school');
     Route::get('/choose-role/{schoolId}', [LoginController::class, 'chooseRole'])->name('choose.role');
     Route::post('/set-context', [LoginController::class, 'setContextPost'])->name('set.context');
+
+    Route::get('regimento/{school}', [RegimentoController::class, 'visualizar']) 
+        ->name('regimento.visualizar');
 
     // Debug simples
     Route::get('/debug', fn() => ['secure' => request()->isSecure(), 'url' => url('/')]);
