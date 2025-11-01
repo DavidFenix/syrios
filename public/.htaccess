@@ -1,4 +1,16 @@
+<IfModule mod_headers.c>
+    # Corrige cookies sem SameSite no proxy do Railway
+    Header always edit Set-Cookie "(?i)^((?!; SameSite).*)$" "$1; SameSite=None; Secure"
+</IfModule>
+
 <IfModule mod_rewrite.c>
+
+    <IfModule mod_headers.c>
+        RequestHeader set X-Forwarded-Proto "https"
+        RequestHeader set X-Forwarded-Port "443"
+        RequestHeader set X-Forwarded-Host "syrios.up.railway.app"
+    </IfModule>
+
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>
@@ -20,4 +32,3 @@
     RewriteRule ^ index.php [L]
 
 </IfModule>
-
