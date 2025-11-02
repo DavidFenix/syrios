@@ -101,6 +101,63 @@ Perfeito, David! 🚀 Vamos instalar o **Railway CLI** passo a passo — é ráp
   railway logs
   ```
 
+Se você só fez uma pequena mudança e não alterou dependências, pode rodar o railway up direto — ele vai reutilizar o build anterior, o que é bem mais rápido.
+
+
+🔄 2. Quando usar railway up --build (rebuild completo)
+
+Execute essa variação somente quando:
+
+alterou o Dockerfile;
+
+mudou algo em composer.json (instalou nova dependência PHP);
+
+atualizou a versão do PHP, GD, PDO etc.;
+
+mudou permissões de pastas (storage, bootstrap/cache);
+
+ou deu erro de cache durante o deploy.
+
+railway up --build
+
+
+Isso força o Railway a reconstruir o container inteiro (como se fosse a primeira vez).
+
+⚙️ 3. Antes de subir
+
+Certifique-se de que:
+
+Seu terminal está dentro da pasta do projeto:
+
+cd C:\wamp64\www\syrios
+
+
+Você está linkado ao projeto certo (só precisa fazer 1 vez):
+
+railway link
+
+
+O .env local não tem segredos que você não quer enviar — o Railway usa o `.env remoto** configurado no painel**, não o local.
+
+🧰 4. Dica bônus: rodar comandos artisan direto no Railway
+
+Você pode executar comandos Laravel sem precisar SSH, usando:
+
+railway run php artisan migrate
+railway run php artisan cache:clear
+railway run php artisan config:clear
+
+
+Isso é ótimo depois de subir o código, pra garantir que tudo está sincronizado.
+
+✅ Resumo rápido
+Situação  Comando
+Mudou código (controllers, views, etc.) railway up
+Mudou dependências ou Dockerfile  railway up --build
+Quer rodar um comando Artisan remoto  railway run php artisan migrate
+Quer ver logs em tempo real railway logs
+
+
   ---
 
   Quer que eu monte **um único script** (copiar e colar no PowerShell) que já instala o CLI, faz login e linka direto ao seu projeto “Syrios”?

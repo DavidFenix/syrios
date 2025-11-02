@@ -20,25 +20,19 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         // 🔧 Configurações gerais
-        config(['session.same_site' => 'none']);
+        //config(['session.same_site' => 'none']);
         Schema::defaultStringLength(191);
         Carbon::setLocale('pt_BR');
         date_default_timezone_set('America/Sao_Paulo');
         Paginator::defaultView('vendor.pagination.default');
 
         // 🌐 Confia em proxies (importante pro Railway e Render)
-        Request::setTrustedProxies(['0.0.0.0/0'], Request::HEADER_X_FORWARDED_ALL);
+        //Request::setTrustedProxies(['0.0.0.0/0'], Request::HEADER_X_FORWARDED_ALL);
 
-        // 🚀 Força HTTPS em ambiente local e produção (Railway proxy)
-        if (App::environment(['production', 'local'])) {
+        if (App::environment('production')) {
             URL::forceScheme('https');
-
-            // Railway às vezes omite X-Forwarded-Port
-            if (request()->header('x-forwarded-proto') === 'https') {
-                request()->server->set('HTTPS', 'on');
-                request()->server->set('SERVER_PORT', '443');
-            }
         }
+
     }
 }
 

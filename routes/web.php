@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Auth\LoginController;
+use Illuminate\Support\Facades\Session;
+use Symfony\Component\HttpFoundation\Cookie;
 
 // Master
 use App\Http\Controllers\Master\EscolaController as MasterEscolaController;
@@ -326,6 +328,54 @@ Route::prefix('professor')
 |--------------------------------------------------------------------------
 */
 Route::middleware(['web'])->group(function () {
+
+    Route::get('/header-debug', function (Request $request) {
+        // Garante que a sessão está iniciada
+        if (!Session::isStarted()) {
+            Session::start();
+        }
+
+        // Armazena algo na sessão para verificar persistência
+        Session::put('debug_test', now()->toDateTimeString());
+
+        // Monta dados de diagnóstico
+        $data = [
+            'timestamp' => now()->toDateTimeString(),
+            'client_ip' => $request->ip(),
+            'session_value' => Session::get('debug_test'),
+            'cookies_received' => $request->cookies->all(),
+            'headers_received' => $request->headers->all(),
+        ];
+
+        // Cria resposta JSON (forma correta)
+        $response = response()->json([
+            'debug_info' => $data,
+            'note' => 'Check if headers or cookies below are modified by Koyeb or Cloudflare proxies.'
+        ]);
+
+        // Define cabeçalhos adicionais
+        $response->headers->set('X-Debug-App', 'Syrios');
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $response->headers->set('Pragma', 'no-cache');
+
+        // Cookie de teste (sem parâmetros nomeados)
+        $testCookie = new Cookie(
+            'test_cookie',   // nome
+            'ok',            // valor
+            time() + 3600,   // expira em 1h (timestamp Unix)
+            '/',             // caminho
+            null,            // domínio
+            true,            // secure
+            false,           // httpOnly
+            false,           // raw
+            'None'           // SameSite
+        );
+
+        $response->headers->setCookie($testCookie);
+
+        return $response;
+    });
+
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

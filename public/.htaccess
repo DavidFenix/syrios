@@ -1,15 +1,9 @@
 <IfModule mod_headers.c>
-    # Corrige cookies sem SameSite no proxy do Railway
+    # 🔐 Garante que cookies sejam compatíveis com HTTPS e SameSite=None
     Header always edit Set-Cookie "(?i)^((?!; SameSite).*)$" "$1; SameSite=None; Secure"
 </IfModule>
 
 <IfModule mod_rewrite.c>
-
-    <IfModule mod_headers.c>
-        RequestHeader set X-Forwarded-Proto "https"
-        RequestHeader set X-Forwarded-Port "443"
-        RequestHeader set X-Forwarded-Host "syrios.up.railway.app"
-    </IfModule>
 
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
@@ -17,16 +11,16 @@
 
     RewriteEngine On
 
-    # Handle Authorization Header
+    # 🔄 Preserva o cabeçalho de autorização (importante para APIs / login)
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # 🚫 Remove barra final de URLs (ex: /users/ → /users)
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller...
+    # 🚀 Redireciona tudo para o index.php (Laravel)
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
