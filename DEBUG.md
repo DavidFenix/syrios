@@ -7,6 +7,17 @@
 	--config/session.php --OK
 
 
+MYSQL_DATABASE=railway
+MYSQL_PUBLIC_URL=mysql://root:bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj@shuttle.proxy.rlwy.net:58761/railway
+MYSQL_ROOT_PASSWORD=bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj
+MYSQL_URL=mysql://root:bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj@mysql-l4yt.railway.internal:3306/railway
+MYSQLDATABASE=railway
+MYSQLHOST=mysql-l4yt.railway.internal
+MYSQLPASSWORD=bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj
+MYSQLPORT=3306
+MYSQLUSER=root
+
+
 --------------------------------------------------------------------------------
 como está o rotas web agora
 ---------------------------------------------------------------------------------
@@ -494,6 +505,30 @@ como está o .env que mandei para o railway
 -------------------------------------------------------------------------------------
 APP_NAME=Syrios
 APP_ENV=production
+APP_KEY="base64:zHgmDP/hcdkRkbaS6mOh9tazXOMvlIudKvZxJ1knAio="
+APP_DEBUG=true
+APP_URL="https://syrios.up.railway.app"
+ASSET_URL=null
+LOG_CHANNEL=stack
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=None
+SESSION_DOMAIN=syrios.up.railway.app
+CACHE_DRIVER=file
+QUEUE_CONNECTION=sync
+DB_CONNECTION=mysql
+DB_HOST=mysql-l4yt.railway.internal
+DB_PORT=3306
+DB_DATABASE=railway
+DB_USERNAME=root
+DB_PASSWORD=bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj
+APP_TIMEZONE="America/Sao_Paulo"
+LOG_LEVEL=debug
+
+
+APP_NAME=Syrios
+APP_ENV=production
 APP_KEY=base64:zHgmDP/hcdkRkbaS6mOh9tazXOMvlIudKvZxJ1knAio=
 APP_DEBUG=true
 APP_URL=https://syrios.up.railway.app
@@ -510,3 +545,4 @@ DB_DATABASE=:memory:
 
 CACHE_DRIVER=file
 QUEUE_CONNECTION=sync
+

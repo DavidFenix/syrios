@@ -57,6 +57,15 @@ Route::middleware(['web'])->group(function () {
     // Página inicial → login
     Route::get('/', fn() => redirect()->route('login'));
 
+    Route::get('/cache-clear', function () {
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+        Artisan::call('route:clear');
+        Artisan::call('view:clear');
+        return "Cache limpo!";
+    });
+
+
     // Login / Logout (públicas)
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
