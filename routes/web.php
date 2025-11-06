@@ -329,6 +329,68 @@ Route::prefix('professor')
 */
 Route::middleware(['web'])->group(function () {
 
+
+
+
+    Route::get('/way', function () {
+        return '
+        <h2>Login Teste</h2>
+        <form method="post" action="/waylogin">
+          <input type="email" name="email" placeholder="Email" required><br><br>
+          <input type="password" name="password" placeholder="Senha" required><br><br>
+          <button type="submit">Entrar</button>
+        </form>
+        <hr><a href="/waydiag">Diagnóstico</a>';
+    });
+
+    Route::post('/waylogin', function (Request $request) {
+        Session::put('user', [
+            'email' => $request->email,
+            'logged_at' => now()->toDateTimeString()
+        ]);
+        return redirect('/waydashboard');
+    });
+
+    Route::get('/waydashboard', function () {
+        if (!Session::has('user')) {
+            return redirect('/way');
+        }
+        $u = Session::get('user');
+        return "
+        <h2>Área Protegida</h2>
+        <p>Email: <b>{$u['email']}</b></p>
+        <p>Login em: {$u['logged_at']}</p>
+        <a href='/waylogout'>Sair</a> | <a href='/waydiag'>Diagnóstico</a>";
+    });
+
+    Route::get('/waylogout', function () {
+        Session::flush();
+        return redirect('/way');
+    });
+
+    Route::get('/waydiag', function (Request $r) {
+        $headers = [];
+        foreach ($r->headers->all() as $k => $v) {
+            $headers[$k] = implode('; ', $v);
+        }
+
+        return response()->make("
+        <h2>Diagnóstico</h2>
+        <p>HTTPS detectado: " . ($r->isSecure() ? 'Sim' : 'Não') . "</p>
+        <h3>Cookies</h3><pre>" . print_r($r->cookies->all(), true) . "</pre>
+        <h3>Sessão</h3><pre>" . print_r(session()->all(), true) . "</pre>
+        <h3>Headers</h3><pre>" . print_r($headers, true) . "</pre>
+        <a href='/way'>Voltar</a>", 200, ['Content-Type' => 'text/html']);
+    });
+
+
+
+
+
+
+
+
+
     Route::get('/header-debug', function (Request $request) {
         // Garante que a sessão está iniciada
         if (!Session::isStarted()) {
