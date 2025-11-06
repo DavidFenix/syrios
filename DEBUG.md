@@ -1,7 +1,10 @@
 
 1) Verificar arquivos que syrios tem a mais em Http/Middleware
-	--EnsureContextSelected.php
-	--RoleMiddleware.php
+	--Middleware/EnsureContextSelected.php --OK
+	--Middleware/RoleMiddleware.php --OK
+	--Providers/AppServiceProvider.php --OK
+	--Services/ContextService.php --OK
+	--config/session.php --OK
 
 
 --------------------------------------------------------------------------------
