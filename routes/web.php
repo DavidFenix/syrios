@@ -57,6 +57,18 @@ Route::middleware(['web'])->group(function () {
     // Página inicial → login
     Route::get('/', fn() => redirect()->route('login'));
 
+    Route::prefix('diag')->group(function () { 
+
+        Route::get('/', [DiagController::class, 'index'])->name('diag.index'); 
+        Route::get('/headers', [DiagController::class, 'headers'])->name('diag.headers'); 
+        Route::get('/cookies', [DiagController::class, 'cookies'])->name('diag.cookies'); 
+        Route::get('/set-cookie', [DiagController::class, 'setCookie'])->name('diag.setcookie'); 
+        Route::get('/configs', [DiagController::class, 'configs'])->name('diag.configs'); 
+        
+        Route::get('/cookie-test', function () { return response('ok')->cookie( 'probe', '1', 0, null, null, true, true, false, 'None' ); 
+            
+    }); 
+
     Route::get('/cache-clear', function () {
         Artisan::call('config:clear');
         Artisan::call('cache:clear');
