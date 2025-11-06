@@ -1,28 +1,21 @@
-<IfModule mod_headers.c>
-    # 🔐 Garante que cookies sejam compatíveis com HTTPS e SameSite=None
-    Header always edit Set-Cookie "(?i)^((?!; SameSite).*)$" "$1; SameSite=None; Secure"
-</IfModule>
-
 <IfModule mod_rewrite.c>
-
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>
 
     RewriteEngine On
 
-    # 🔄 Preserva o cabeçalho de autorização (importante para APIs / login)
+    # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # 🚫 Remove barra final de URLs (ex: /users/ → /users)
+    # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # 🚀 Redireciona tudo para o index.php (Laravel)
+    # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
-
 </IfModule>
