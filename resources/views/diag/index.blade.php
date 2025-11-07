@@ -25,7 +25,16 @@
         </li>
         <li class="list-group-item">
             <strong>SESSION_SECURE_COOKIE:</strong>
-            {{ $status['secure_cookie'] === 'true' ? '✅ true' : ($status['secure_cookie'] === 'false' ? '⚠️ false' : 'null') }}
+            @php $secure = $status['secure_cookie']; @endphp
+
+            @if(in_array($secure, [true, 'true', 1, '1'], true))
+                ✅ true
+            @elseif(in_array($secure, [false, 'false', 0, '0'], true))
+                ⚠️ false
+            @else
+                null
+            @endif
+
         </li>
         <li class="list-group-item">
             <strong>APP_ENV:</strong>
