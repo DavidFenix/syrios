@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Cookie;
 
 // Auth
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\DiagController;
+use App\Http\Controllers\DiagController;
 
 // Master
 use App\Http\Controllers\Master\EscolaController as MasterEscolaController;
@@ -66,7 +66,9 @@ Route::middleware(['web'])->group(function () {
         Route::get('/set-cookie', [DiagController::class, 'setCookie'])->name('diag.setcookie'); 
         Route::get('/configs', [DiagController::class, 'configs'])->name('diag.configs'); 
         
-        Route::get('/cookie-test', function () { return response('ok')->cookie( 'probe', '1', 0, null, null, true, true, false, 'None' ); 
+        Route::get('/cookie-test', function () { 
+            return response('ok')->cookie( 'probe', '1', 0, null, null, true, true, false, 'None' ); 
+        });
 
     }); 
 
