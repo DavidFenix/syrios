@@ -13,52 +13,43 @@ class DiagController extends Controller
     {
         /*
         |--------------------------------------------------------------------------
-        | 1️⃣ Enviar Cookie de Teste
+        | 1) Verifica e cria cookie automaticamente
         |--------------------------------------------------------------------------
         */
-        $probeCookie = new Cookie(
-            name: 'probe',
-            value: 'ok',
-            expire: time() + 3600,
+        $cookieName = 'probe';
+        $cookieExists = $request->cookies->has($cookieName);
+
+        // Criar cookie probe (Secure + SameSite=None para Railway)
+        $probeCookie = cookie(
+            name: $cookieName,
+            value: '1',
+            minutes: 60,
             path: '/',
-            domain: env('SESSION_DOMAIN', null),
-            secure: true,
-            httpOnly: false,
+            domain: null,               // usa domínio atual automaticamente
+            secure: true,               // ⚠️ obrigatório p/ SameSite=None
+            httpOnly: false,            // só leitura — ok
             raw: false,
             sameSite: 'None'
         );
 
         /*
         |--------------------------------------------------------------------------
-        | 2️⃣ Detectar HTTPS corretamente (mesmo atrás de proxy)
+        | 2) Status do sistema
         |--------------------------------------------------------------------------
         */
-        $isHttps = 
-               $request->isSecure()
-            || $request->header('x-forwarded-proto') === 'https'
-            || env('APP_URL', '') !== null && str_starts_with(env('APP_URL'), 'https');
-
-        /*
-        |--------------------------------------------------------------------------
-        | 3️⃣ Ler variáveis principais
-        |--------------------------------------------------------------------------
-        */
-        $appEnv = env('APP_ENV', 'unknown');
-        $appUrl = env('APP_URL', '');
-        $cookieTestReceived = isset($_COOKIE['probe']);
-        $cookieSecureEnv = env('SESSION_SECURE_COOKIE');
+        $isHttps = $request->isSecure() || $request->header('x-forwarded-proto') === 'https';
 
         $status = [
-            'railway'          => str_contains($appUrl, 'railway.app'),
-            'https'            => $isHttps,
-            'cookie_received'  => $cookieTestReceived,
-            'secure_cookie'    => $cookieSecureEnv,
-            'env'              => $appEnv,
+            'railway'       => str_contains(env('APP_URL', ''), 'railway.app'),
+            'https'         => $isHttps,
+            'cookie_received' => $cookieExists,
+            'secure_cookie' => env('SESSION_SECURE_COOKIE'),
+            'env'           => env('APP_ENV', 'unknown'),
         ];
 
         /*
         |--------------------------------------------------------------------------
-        | 4️⃣ Variáveis de ambiente mascaradas
+        | 3) Variáveis de ambiente mascaradas
         |--------------------------------------------------------------------------
         */
         $rawEnv = $_ENV + getenv();
@@ -66,50 +57,43 @@ class DiagController extends Controller
 
         $sensitiveKeys = [
             'APP_KEY', 'DB_PASSWORD', 'DB_USERNAME', 'DB_HOST', 'DB_DATABASE',
-            'AWS_SECRET_ACCESS_KEY', 'AWS_ACCESS_KEY_ID',
-            'MAIL_PASSWORD', 'PUSHER_APP_SECRET', 'REDIS_PASSWORD'
+            'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY',
+            'PUSHER_APP_SECRET', 'MAIL_PASSWORD', 'REDIS_PASSWORD',
         ];
 
-        $envMasked = collect($rawEnv)->mapWithKeys(function ($value, $key) use ($sensitiveKeys) {
-            $isSensitive = collect($sensitiveKeys)->contains(fn($sk) => str_contains($key, $sk));
-            return [$key => $isSensitive ? '**********' : $value];
+        $envMasked = collect($rawEnv)->mapWithKeys(function ($v, $k) use ($sensitiveKeys) {
+            $isSensitive = collect($sensitiveKeys)->contains(fn($sk) => str_contains($k, $sk));
+            return [$k => $isSensitive ? '**********' : $v];
         });
 
         /*
         |--------------------------------------------------------------------------
-        | 5️⃣ Ler config/cors.php
+        | 4) Configuração CORS
         |--------------------------------------------------------------------------
         */
         $corsConfig = Config::get('cors');
 
         /*
         |--------------------------------------------------------------------------
-        | 6️⃣ Listar arquivos importantes
+        | 5) Arquivos relevantes
         |--------------------------------------------------------------------------
         */
-        $files = [
-            'Dockerfile'         => base_path('Dockerfile'),
-            'AppServiceProvider' => app_path('Providers/AppServiceProvider.php'),
-            'Kernel.php'         => app_path('Http/Kernel.php'),
-            'TrustProxies.php'   => app_path('Http/Middleware/TrustProxies.php'),
-            'VerifyCsrfToken.php'=> app_path('Http/Middleware/VerifyCsrfToken.php'),
-            'config/cors.php'    => config_path('cors.php'),
-            'routes/web.php'     => base_path('routes/web.php'),
-            'public/.htaccess'   => public_path('.htaccess'),
+        $filesToRead = [
+            'Dockerfile' => base_path('Dockerfile'),
+            'AppServiceProvider.php' => app_path('Providers/AppServiceProvider.php'),
+            'Kernel.php' => app_path('Http/Kernel.php'),
+            'TrustProxies.php' => app_path('Http/Middleware/TrustProxies.php'),
+            'VerifyCsrfToken.php' => app_path('Http/Middleware/VerifyCsrfToken.php'),
+            'config/cors.php' => config_path('cors.php'),
+            'routes/web.php' => base_path('routes/web.php'),
+            'public/.htaccess' => public_path('.htaccess'),
         ];
 
         $fileContents = [];
-        foreach ($files as $label => $path) {
+        foreach ($filesToRead as $label => $path) {
             if (File::exists($path)) {
                 $content = File::get($path);
-
-                // Máscara automática
-                $content = preg_replace(
-                    '/(APP_KEY|DB_PASSWORD|DB_USERNAME|DB_HOST|AWS_SECRET_ACCESS_KEY|MAIL_PASSWORD)=([^\n]+)/',
-                    '$1=**********',
-                    $content
-                );
-
+                $content = preg_replace('/(APP_KEY|DB_PASSWORD|DB_USERNAME|DB_HOST|AWS_SECRET_ACCESS_KEY)=([^\n]+)/', '$1=**********', $content);
                 $fileContents[$label] = $content;
             } else {
                 $fileContents[$label] = '[Arquivo não encontrado]';
@@ -118,19 +102,17 @@ class DiagController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | 7️⃣ Montar resposta
+        | 6) Renderização da view + adicionar cookie
         |--------------------------------------------------------------------------
         */
         $response = response()->view('diag.index', [
             'status' => $status,
-            'env'    => $envMasked,
-            'cors'   => $corsConfig,
-            'files'  => $fileContents,
+            'env' => $envMasked,
+            'cors' => $corsConfig,
+            'files' => $fileContents,
         ]);
 
-        // ✅ Anexar cookie de teste
-        $response->headers->setCookie($probeCookie);
-
-        return $response;
+        return $response->cookie($probeCookie);
     }
+
 }
