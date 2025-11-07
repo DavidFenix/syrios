@@ -64,16 +64,6 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
 RUN a2enmod rewrite headers \
     && sed -i '/DocumentRoot \/var\/www\/html\/public/a<Directory /var/www/html/public>\n\tAllowOverride All\n\tRequire all granted\n</Directory>' /etc/apache2/sites-available/000-default.conf
 
-# ================================
-# 🧩 HEADERS ESSENCIAIS PARA COOKIES (sem sobrescrever Railway)
-# ================================
-RUN echo '\
-<IfModule mod_headers.c>\n\
-    Header always edit Set-Cookie (.*) "$1; SameSite=None; Secure"\n\
-    Header always set Access-Control-Allow-Origin "*"\n\
-    Header always set Access-Control-Allow-Credentials "true"\n\
-</IfModule>\n' >> /etc/apache2/apache2.conf
-
 # ⚠️ Importante:
 # Não defina manualmente X-Forwarded-* — o Railway já faz isso.
 # Apenas use TrustProxies no Laravel.
