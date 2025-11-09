@@ -22,19 +22,66 @@ class AppServiceProvider extends ServiceProvider
         // 🔧 Configurações gerais
         Schema::defaultStringLength(191);
         Carbon::setLocale('pt_BR');
-        //date_default_timezone_set('America/Sao_Paulo');
         Paginator::defaultView('vendor.pagination.default');
 
-        // if (App::environment('production')) {
-        //     URL::forceScheme('https');
-        // }
-
+        /*
+        |--------------------------------------------------------------------------
+        | Força HTTPS somente quando houver proxy indicando isso
+        |--------------------------------------------------------------------------
+        */
         if ($this->app->environment('production')) {
             if (request()->header('x-forwarded-proto') === 'https') {
                 URL::forceScheme('https');
             }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Criação automática do symlink storage → public/storage
+        | Somente em produção e somente se ainda não existir
+        |--------------------------------------------------------------------------
+        */
+        if ($this->app->environment('production')) {
+            $public = public_path('storage');
+            $target = storage_path('app/public');
 
+            // Se o link ainda NÃO existir
+            if (!is_link($public)) {
+                try {
+                    // garante que o diretório de destino existe
+                    if (!is_dir($target)) {
+                        @mkdir($target, 0755, true);
+                    }
+
+                    // cria o link
+                    symlink($target, $public);
+                } catch (\Throwable $e) {
+                    // silencioso para não quebrar o sistema
+                    // railway não permite mkdir em certas horas
+                }
+            }
+        }
     }
+
+
+    // public function boot()
+    // {
+    //     // 🔧 Configurações gerais
+    //     Schema::defaultStringLength(191);
+    //     Carbon::setLocale('pt_BR');
+    //     //date_default_timezone_set('America/Sao_Paulo');
+    //     Paginator::defaultView('vendor.pagination.default');
+
+    //     // if (App::environment('production')) {
+    //     //     URL::forceScheme('https');
+    //     // }
+
+    //     if ($this->app->environment('production')) {
+    //         if (request()->header('x-forwarded-proto') === 'https') {
+    //             URL::forceScheme('https');
+    //         }
+    //     }
+
+
+    // }
 }
