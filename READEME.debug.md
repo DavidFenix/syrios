@@ -1,6 +1,8 @@
 
-
---comentar @extends('layouts.app') dos arquivos em
+-------------------------------------------------------------
+Passo 3 :: deploy ok :: cookie falha
+-------------------------------------------------------------
+--comentar codigos dos arquivos em
     --resources\views\auth\...php
 
 -------------------------------------------------------------
