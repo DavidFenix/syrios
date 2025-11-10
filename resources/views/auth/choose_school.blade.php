@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{--debug:passo3::@extends('layouts.app')--}}
 
 @section('content')
 <div class="container">

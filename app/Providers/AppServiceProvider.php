@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        // Impede execução de migrações definindo um diretório vazio
+        // debug:passo2::Impede execução de migrações definindo um diretório vazio
         $this->app->afterResolving('migrator', function (Migrator $migrator) {
             $migrator->path('database/migrations_disabled');
         });

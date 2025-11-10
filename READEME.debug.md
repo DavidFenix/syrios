@@ -1,5 +1,10 @@
+
+
+--comentar @extends('layouts.app') dos arquivos em
+    --resources\views\auth\...php
+
 -------------------------------------------------------------
-Passo 2 :: 
+Passo 2 :: deploy/acesso ok :: cookie falha
 -------------------------------------------------------------
 --vamos desativar qualquer migração alterando o boot() em
     --Providers\AppServiceProvider.php
