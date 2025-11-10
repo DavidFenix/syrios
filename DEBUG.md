@@ -1,11 +1,50 @@
 
+# ================================
+# 🧩 HEADERS ESSENCIAIS PARA COOKIES (sem sobrescrever Railway)
+# ================================
+RUN echo '\
+<IfModule mod_headers.c>\n\
+    Header always edit Set-Cookie (.*) "$1; SameSite=None; Secure"\n\
+    Header always set Access-Control-Allow-Origin "*"\n\
+    Header always set Access-Control-Allow-Credentials "true"\n\
+</IfModule>\n' >> /etc/apache2/apache2.conf
+
 1) Verificar arquivos que syrios tem a mais em Http/Middleware
 	--Middleware/EnsureContextSelected.php --OK
 	--Middleware/RoleMiddleware.php --OK
 	--Providers/AppServiceProvider.php --OK
 	--Services/ContextService.php --OK
 	--config/session.php --OK
+	--restaurar .htaccess --OK
 
+<IfModule mod_headers.c>
+    # 🔐 Garante que cookies sejam compatíveis com HTTPS e SameSite=None
+    Header always edit Set-Cookie "(?i)^((?!; SameSite).*)$" "$1; SameSite=None; Secure"
+</IfModule>
+
+<IfModule mod_rewrite.c>
+
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # 🔄 Preserva o cabeçalho de autorização (importante para APIs / login)
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # 🚫 Remove barra final de URLs (ex: /users/ → /users)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # 🚀 Redireciona tudo para o index.php (Laravel)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+
+</IfModule>
 
 MYSQL_DATABASE=railway
 MYSQL_PUBLIC_URL=mysql://root:bQEvpHjDLCkoTQEfQHeVfYFdBTMBtGGj@shuttle.proxy.rlwy.net:58761/railway

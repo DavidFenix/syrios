@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Artisan;
 use Symfony\Component\HttpFoundation\Cookie;
 
 // Auth
@@ -46,6 +47,13 @@ use App\Http\Controllers\Professor\{
     PerfilController
 };
 
+//somente para testes, remova em produção
+Route::get('/kill-cookie', function () {
+    return response('Cookie removido')
+        ->cookie('syriosia_session', null, -1, '/', 'syriosia.up.railway.app', true, true, false, 'None')
+        ->cookie('XSRF-TOKEN', null, -1, '/', 'syriosia.up.railway.app', true, true, false, 'None');
+});
+
 /*
 |--------------------------------------------------------------------------
 | Rotas Públicas (sem login)
@@ -79,7 +87,6 @@ Route::middleware(['web'])->group(function () {
         Artisan::call('view:clear');
         return "Cache limpo!";
     });
-
 
     // Login / Logout (públicas)
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -208,6 +215,8 @@ Route::middleware(['web'])->group(function () {
     // Regimento público
     Route::get('regimento/{school}', [RegimentoController::class, 'visualizar'])
         ->name('regimento.visualizar');
+
+
 });
 
 /*
@@ -441,6 +450,8 @@ Route::middleware(['auth', 'ensure.context'])->group(function () {
             // Relatórios
             Route::get('relatorios', [RelatorioController::class, 'index'])
                 ->name('relatorios.index');
-        });
+    });
+
+
 
 });
