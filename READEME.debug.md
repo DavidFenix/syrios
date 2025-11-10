@@ -3,7 +3,11 @@ Passo 2 ::
 -------------------------------------------------------------
 --vamos desativar qualquer migração alterando o boot() em
     --Providers\AppServiceProvider.php
-        --Schema::preventMigrations();
+        --// Impede execução de migrações definindo um diretório vazio
+        $this->app->afterResolving('migrator', function (Migrator $migrator) {
+            $migrator->path('database/migrations_disabled');
+        });
+    --criar a pasta e deixar vazia: database/migrations_disabled/
 
 -------------------------------------------------------------
 Passo 1 :: deploy/acesso ok :: cookie falha

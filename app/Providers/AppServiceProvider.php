@@ -19,8 +19,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        // Desativa TODAS as migrações
-        Schema::preventMigrations();
+        // Impede execução de migrações definindo um diretório vazio
+        $this->app->afterResolving('migrator', function (Migrator $migrator) {
+            $migrator->path('database/migrations_disabled');
+        });
 
         // 🔧 Configurações gerais
         Schema::defaultStringLength(191);
