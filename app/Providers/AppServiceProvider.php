@@ -9,6 +9,7 @@ use Illuminate\Support\ServiceProvider;
 use Symfony\Component\HttpFoundation\Request;
 use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Database\Migrations\Migrator;
 
 class AppServiceProvider extends ServiceProvider
 {
