@@ -9,6 +9,7 @@
 </head>
 <body>
 
+{{--debug:passo1::desativação da nav
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="{{ dashboard_route() }}">⚡ Syrios</a>
@@ -21,9 +22,9 @@
         <div class="collapse navbar-collapse" id="navbarMaster">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-                {{-- ========================================================= --}}
-                {{-- 🧩 MASTER --}}
-                {{-- ========================================================= --}}
+                {{-- ========================================================= -}}
+                {{-- 🧩 MASTER -}}
+                {{-- ========================================================= -}}
                 @if(session('current_role') === 'master')
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="menuMaster" role="button" data-bs-toggle="dropdown">
@@ -40,9 +41,9 @@
                 @endif
 
 
-                {{-- ========================================================= --}}
-                {{-- 🏛️ SECRETARIA --}}
-                {{-- ========================================================= --}}
+                {{-- ========================================================= -}}
+                {{-- 🏛️ SECRETARIA -}}
+                {{-- ========================================================= -}}
                 @if(session('current_role') === 'secretaria')
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="menuSecretaria" role="button" data-bs-toggle="dropdown">
@@ -56,9 +57,9 @@
                 @endif
 
 
-                {{-- ========================================================= --}}
-                {{-- 🏫 ESCOLA --}}
-                {{-- ========================================================= --}}
+                {{-- ========================================================= -}}
+                {{-- 🏫 ESCOLA -}}
+                {{-- ========================================================= -}}
                 @if(session('current_role') === 'escola')
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="menuEscolaPessoas" role="button" data-bs-toggle="dropdown">
@@ -96,9 +97,9 @@
                 @endif
 
 
-                {{-- ========================================================= --}}
-                {{-- 👨‍🏫 PROFESSOR --}}
-                {{-- ========================================================= --}}
+                {{-- ========================================================= -}}
+                {{-- 👨‍🏫 PROFESSOR -}}
+                {{-- ========================================================= -}}
                 @if(session('current_role') === 'professor')
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="menuProfessor" role="button" data-bs-toggle="dropdown">
@@ -114,12 +115,12 @@
 
             </ul>
 
-            {{-- ========================================================= --}}
-            {{-- 🎯 CONTEXTO + USUÁRIO + LOGOUT --}}
-            {{-- ========================================================= --}}
+            {{-- ========================================================= -}}
+            {{-- 🎯 CONTEXTO + USUÁRIO + LOGOUT -}}
+            {{-- ========================================================= -}}
             <ul class="navbar-nav ms-auto">
                 @auth
-                    {{-- Contexto atual --}}
+                    {{-- Contexto atual -}}
                     @if(session('current_role') && session('current_school_id'))
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-warning" href="#" role="button" data-bs-toggle="dropdown">
@@ -155,9 +156,10 @@
                     <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
                 @endauth
             </ul>
+
         </div>
     </div>
-</nav>
+</nav>--}}
 
 {{--desativado
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">

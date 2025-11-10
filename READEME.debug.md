@@ -1,3 +1,11 @@
+-------------------------------------------------------------
+Passo 1
+-------------------------------------------------------------
+--Vamos desativar parte dos códigos fazendo comentários
+--vamos marcar com debug:passo1 para permitir desfaze-lo facilmente
+    --app\layouts\app.blade.php
+        --comentar a barra de navegação
+
 
 1) Verificar arquivos que syrios tem a mais em Http/Middleware
 	--Middleware/EnsureContextSelected.php --OK
