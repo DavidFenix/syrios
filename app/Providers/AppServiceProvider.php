@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
+        // Desativa TODAS as migrações
+        Schema::preventMigrations();
+
         // 🔧 Configurações gerais
         Schema::defaultStringLength(191);
         Carbon::setLocale('pt_BR');
