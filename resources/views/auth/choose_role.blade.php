@@ -1,4 +1,4 @@
-{{--debug:passo3::@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="container">
@@ -23,4 +23,3 @@
     </form>
 </div>
 @endsection
---}}
